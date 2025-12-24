@@ -1,0 +1,26 @@
+{{if .}}
+<table class="metrics-table">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Sleep</th>
+            <th>Waist (cm)</th>
+            <th>RHR</th>
+            <th>Nutrition</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .}}
+        <tr>
+            <td>{{.Date}}</td>
+            <td>{{printf "%.1f" .SleepScore}}</td>
+            <td>{{printf "%.1f" .WaistCm}}</td>
+            <td>{{printf "%.1f" .RHR}}</td>
+            <td>{{printf "%.1f" .NutritionScore}}</td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+{{else}}
+<p class="empty">No health data yet. Add your first entry below!</p>
+{{end}}

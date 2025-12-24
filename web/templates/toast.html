@@ -1,0 +1,13 @@
+{{define "toast.html"}}
+<div id="toast-container" hx-swap-oob="innerHTML">
+    <div class="message {{if .IsSuccess}}success{{else}}error{{end}}">
+        {{.Message}}
+        <script>
+            setTimeout(() => {
+                const container = document.getElementById('toast-container');
+                if (container) container.innerHTML = '';
+            }, 2000);
+        </script>
+    </div>
+</div>
+{{end}}

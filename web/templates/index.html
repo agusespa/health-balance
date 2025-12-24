@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Longevity Health Tracker</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <!-- Global toast container - outside document flow -->
+    <div id="toast-container"
+        style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000;"></div>
+
+    <div class="container">
+        <div class="card score-display" id="score-container" hx-get="/current-score" hx-trigger="refresh"
+            hx-swap="outerHTML">
+            <h2>Longevity Score</h2>
+            <div class="score-value">{{printf "%.0f" .CurrentScore.Score}}</div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill {{if lt .CurrentScore.Score 1000.0}}below-baseline{{else}}above-baseline{{end}}"
+                        style="width: {{if gt .CurrentScore.Score 2000.0}}100{{else}}{{printf " %.1f" (divf
+                        .CurrentScore.Score 20.0)}}{{end}}%">
+                    </div>
+                    <div class="progress-baseline"></div>
+                </div>
+                <div class="progress-labels">
+                    <span>0</span>
+                    <span class="baseline-label">1000</span>
+                    <span>2000</span>
+                </div>
+            </div>
+            <p class="score-date">Last updated: {{.CurrentScore.Date}}</p>
+        </div>
+
+        <!-- Health Pillar -->
+        <div class="card pillar-card">
+            <div class="pillar-header" onclick="togglePillar('health')">
+                <h2>Health Pillar</h2>
+                <span class="toggle-icon" id="health-icon">▶</span>
+            </div>
+            <div class="pillar-content" id="health-content" style="display: none;">
+                <div class="add-data-section">
+                    <h3>This Week's Data</h3>
+                    <form hx-post="/add-health-metrics" hx-target="#health-metrics" hx-swap="innerHTML"
+                        hx-indicator="#health-spinner">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="sleep_score">
+                                    Sleep Quality Score (0-100)
+                                </label>
+                                <input type="number" id="sleep_score" name="sleep_score" step="0.1" min="0" max="100"
+                                    required>
+                                <small class="help-text">Your weekly average sleep quality. 75+ is good.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="waist_cm">
+                                    Waist Circumference (cm)
+                                </label>
+                                <input type="number" id="waist_cm" name="waist_cm" step="0.1" required>
+                                <small class="help-text">Used to calculate WHtR (Waist-to-Height Ratio).</small>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="rhr">
+                                    Resting Heart Rate (BPM)
+                                </label>
+                                <input type="number" id="rhr" name="rhr" step="0.1" required>
+                                <small class="help-text">Lower is better (50-70 is good for adults). Baseline auto-calculated from last 3 months.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="nutrition_score">
+                                    Nutrition Quality (1-10)
+                                </label>
+                                <input type="number" id="nutrition_score" name="nutrition_score" min="1" max="10"
+                                    step="0.1" required>
+                                <small class="help-text">Self-assessment of your weekly nutrition. Consider:
+                                            whole foods, vegetables, protein quality, processed food intake, and
+                                            hydration. 7+ is good.</small>
+                            </div>
+                        </div>
+
+                        <button type="submit">
+                            <span class="button-text">Save Health Data</span>
+                            <div id="health-spinner" class="spinner htmx-indicator"></div>
+                        </button>
+                    </form>
+                </div>
+
+                <div id="health-metrics" hx-get="/health-metrics" hx-trigger="load">
+                    <!-- Data loads when section is opened -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Fitness Pillar -->
+        <div class="card pillar-card">
+            <div class="pillar-header" onclick="togglePillar('fitness')">
+                <h2>Fitness Pillar</h2>
+                <span class="toggle-icon" id="fitness-icon">▶</span>
+            </div>
+            <div class="pillar-content" id="fitness-content" style="display: none;">
+                <div class="add-data-section">
+                    <h3>This Week's Data</h3>
+                    <form hx-post="/add-fitness-metrics" hx-target="#fitness-metrics" hx-swap="innerHTML"
+                        hx-indicator="#fitness-spinner">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="vo2_max">
+                                    VO2 Max
+                                </label>
+                                <input type="number" id="vo2_max" name="vo2_max" step="0.1" required>
+                                <small class="help-text">Maximum oxygen uptake during exercise. Get from fitness watch or lab test. Higher is better. 40+ is good for most adults.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="weekly_workouts">
+                                    Workout Sessions
+                                </label>
+                                <input type="number" id="weekly_workouts" name="weekly_workouts" min="0" required>
+                                <small class="help-text">Number of structured exercise sessions this week (20+ minutes each). Include cardio, strength training, sports. Target: 3+</small>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="daily_steps">
+                                    Daily Steps
+                                </label>
+                                <input type="number" id="daily_steps" name="daily_steps" min="0" required>
+                                <small class="help-text">Your average daily step count for the week. Get from phone or fitness tracker. Target: 8,000+</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="weekly_mobility">
+                                    Mobility Sessions
+                                </label>
+                                <input type="number" id="weekly_mobility" name="weekly_mobility" min="0" required>
+                                <small class="help-text">Dedicated stretching, yoga, or mobility work sessions (10+ minutes). Target: 3+</small>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="cardio_recovery">
+                                    Cardio Recovery (BPM Drop)
+                                </label>
+                                <input type="number" id="cardio_recovery" name="cardio_recovery" min="0" required>
+                                <small class="help-text">Heart rate drop 60 seconds after stopping intense exercise. 20+ BPM is good, 30+ is excellent.</small>
+                            </div>
+                        </div>
+
+                        <button type="submit">
+                            <span class="button-text">Save Fitness Data</span>
+                            <div id="fitness-spinner" class="spinner htmx-indicator"></div>
+                        </button>
+                    </form>
+                </div>
+
+                <div id="fitness-metrics" hx-get="/fitness-metrics" hx-trigger="load">
+                    <!-- Data loads when section is opened -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Cognition Pillar -->
+        <div class="card pillar-card">
+            <div class="pillar-header" onclick="togglePillar('cognition')">
+                <h2>Cognition Pillar</h2>
+                <span class="toggle-icon" id="cognition-icon">▶</span>
+            </div>
+            <div class="pillar-content" id="cognition-content" style="display: none;">
+                <div class="add-data-section">
+                    <h3>This Week's Data</h3>
+                    <form hx-post="/add-cognition-metrics" hx-target="#cognition-metrics" hx-swap="innerHTML"
+                        hx-indicator="#cognition-spinner">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="dual_n_back">
+                                    Dual N-Back Level
+                                </label>
+                                <input type="number" id="dual_n_back" name="dual_n_back" min="1" required>
+                                <small class="help-text">Working memory test level. Aim for 4+.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="reaction_time">
+                                    Reaction Time
+                                </label>
+                                <input type="number" id="reaction_time" name="reaction_time" min="0" required>
+                                <small class="help-text">Simple reaction time test (e.g., humanbenchmark.com). 200-300ms is typical.</small>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="weekly_mindfulness">
+                                    Mindfulness Sessions
+                                </label>
+                                <input type="number" id="weekly_mindfulness" name="weekly_mindfulness" min="0" required>
+                                <small class="help-text">Meditation, breathwork, or mindfulness practice sessions (10+ minutes). Target: 3+</small>
+                            </div>
+                        </div>
+
+                        <button type="submit">
+                            <span class="button-text">Save Cognition Data</span>
+                            <div id="cognition-spinner" class="spinner htmx-indicator"></div>
+                        </button>
+                    </form>
+                </div>
+
+                <div id="cognition-metrics" hx-get="/cognition-metrics" hx-trigger="load">
+                    <!-- Data loads when section is opened -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Score History -->
+        <div class="card pillar-card">
+            <div class="pillar-header" onclick="togglePillar('history')">
+                <h2>Score History</h2>
+                <span class="toggle-icon" id="history-icon">▶</span>
+            </div>
+            <div class="pillar-content" id="history-content" style="display: none;">
+                <div id="scores" hx-get="/scores" hx-trigger="load">
+                    <!-- Data loads when section is opened -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="card pillar-card">
+            <div class="pillar-header" onclick="togglePillar('settings')">
+                <h2>User Profile</h2>
+                <span class="toggle-icon" id="settings-icon">▶</span>
+            </div>
+            <div class="pillar-content" id="settings-content" style="display: none;">
+                <form hx-post="/update-profile" hx-indicator="#settings-spinner" hx-swap="none">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="birth_date">
+                                Birth Date
+                            </label>
+                            <input type="date" id="birth_date" name="birth_date" {{if
+                                .Profile}}value="{{.Profile.BirthDate}}" {{end}} required>
+                                <small class="help-text">Used to calculate your current age for aging tax and baseline comparisons.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="sex">
+                                Biological Sex
+                            </label>
+                            <select id="sex" name="sex" required>
+                                <option value="">Select...</option>
+                                <option value="male" {{if .Profile}}{{if eq .Profile.Sex "male" }}selected{{end}}{{end}}>Male</option>
+                                <option value="female" {{if .Profile}}{{if eq .Profile.Sex "female"}}selected{{end}}{{end}}>Female</option>
+                            </select>
+                                <small class="help-text">Used for VO2 Max baseline calculations (males and females have different norms).</small>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="height_cm">
+                                Height (centimeters)
+                            </label>
+                            <input type="number" id="height_cm" name="height_cm" step="0.1" min="100" max="250" {{if
+                                .Profile}}value="{{printf " %.1f" .Profile.HeightCm}}"{{end}} required>
+                                <small class="help-text">Used to calculate WHtR (Waist-to-Height Ratio) from your waist measurements.</small>
+                        </div>
+                        <div class="form-group"></div>
+                    </div>
+
+                    <button type="submit">
+                        <span class="button-text">Update Profile</span>
+                        <div id="settings-spinner" class="spinner htmx-indicator"></div>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function togglePillar(pillarId) {
+            const content = document.getElementById(pillarId + '-content');
+            const icon = document.getElementById(pillarId + '-icon');
+
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.textContent = '▼';
+
+                // Load data when opening for the first time
+                if (pillarId === 'health' && !content.dataset.loaded) {
+                    htmx.trigger('#health-metrics', 'load');
+                    content.dataset.loaded = 'true';
+                }
+                if (pillarId === 'fitness' && !content.dataset.loaded) {
+                    htmx.trigger('#fitness-metrics', 'load');
+                    content.dataset.loaded = 'true';
+                }
+                if (pillarId === 'cognition' && !content.dataset.loaded) {
+                    htmx.trigger('#cognition-metrics', 'load');
+                    content.dataset.loaded = 'true';
+                }
+                if (pillarId === 'history' && !content.dataset.loaded) {
+                    htmx.trigger('#scores', 'load');
+                    content.dataset.loaded = 'true';
+                }
+            } else {
+                content.style.display = 'none';
+                icon.textContent = '▶';
+            }
+        }
+    </script>
+</body>
+
+</html>

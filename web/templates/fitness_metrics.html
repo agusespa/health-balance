@@ -1,0 +1,28 @@
+{{if .}}
+<table class="metrics-table">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>VO2 Max</th>
+            <th>Workouts</th>
+            <th>Steps</th>
+            <th>Mobility</th>
+            <th>Recovery</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .}}
+        <tr>
+            <td>{{.Date}}</td>
+            <td>{{printf "%.1f" .VO2Max}}</td>
+            <td>{{.WeeklyWorkouts}}</td>
+            <td>{{.DailySteps}}</td>
+            <td>{{.WeeklyMobility}}</td>
+            <td>{{.CardioRecovery}}</td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+{{else}}
+<p class="empty">No fitness data yet. Add your first entry below!</p>
+{{end}}

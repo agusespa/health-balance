@@ -1,0 +1,184 @@
+package models
+
+import (
+	"database/sql"
+	"time"
+)
+
+func SaveHealthMetrics(db *sql.DB, m HealthMetrics) error {
+	date := time.Now().Format("2006-01-02")
+	_, err := db.Exec(`
+		INSERT INTO health_metrics (date, sleep_score, waist_cm, rhr, nutrition_score)
+		VALUES (?, ?, ?, ?, ?)
+	`, date, m.SleepScore, m.WaistCm, m.RHR, m.NutritionScore)
+	return err
+}
+
+func SaveFitnessMetrics(db *sql.DB, m FitnessMetrics) error {
+	date := time.Now().Format("2006-01-02")
+	_, err := db.Exec(`
+		INSERT INTO fitness_metrics (date, vo2_max, weekly_workouts, daily_steps, weekly_mobility, cardio_recovery)
+		VALUES (?, ?, ?, ?, ?, ?)
+	`, date, m.VO2Max, m.WeeklyWorkouts, m.DailySteps, m.WeeklyMobility, m.CardioRecovery)
+	return err
+}
+
+func SaveCognitionMetrics(db *sql.DB, m CognitionMetrics) error {
+	date := time.Now().Format("2006-01-02")
+	_, err := db.Exec(`
+		INSERT INTO cognition_metrics (date, dual_n_back_level, reaction_time, weekly_mindfulness)
+		VALUES (?, ?, ?, ?)
+	`, date, m.DualNBackLevel, m.ReactionTime, m.WeeklyMindfulness)
+	return err
+}
+
+func GetRecentHealthMetrics(db *sql.DB, limit int) ([]HealthMetrics, error) {
+	rows, err := db.Query(`
+		SELECT date, sleep_score, waist_cm, rhr, nutrition_score
+		FROM health_metrics
+		ORDER BY date DESC
+		LIMIT ?
+	`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var metrics []HealthMetrics
+	for rows.Next() {
+		var m HealthMetrics
+		err := rows.Scan(&m.Date, &m.SleepScore, &m.WaistCm, &m.RHR, &m.NutritionScore)
+		if err != nil {
+			return nil, err
+		}
+		metrics = append(metrics, m)
+	}
+
+	return metrics, nil
+}
+
+func GetRecentFitnessMetrics(db *sql.DB, limit int) ([]FitnessMetrics, error) {
+	rows, err := db.Query(`
+		SELECT date, vo2_max, weekly_workouts, daily_steps, weekly_mobility, cardio_recovery
+		FROM fitness_metrics
+		ORDER BY date DESC
+		LIMIT ?
+	`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var metrics []FitnessMetrics
+	for rows.Next() {
+		var m FitnessMetrics
+		err := rows.Scan(&m.Date, &m.VO2Max, &m.WeeklyWorkouts, &m.DailySteps, &m.WeeklyMobility, &m.CardioRecovery)
+		if err != nil {
+			return nil, err
+		}
+		metrics = append(metrics, m)
+	}
+
+	return metrics, nil
+}
+
+func GetRecentCognitionMetrics(db *sql.DB, limit int) ([]CognitionMetrics, error) {
+	rows, err := db.Query(`
+		SELECT date, dual_n_back_level, reaction_time, weekly_mindfulness
+		FROM cognition_metrics
+		ORDER BY date DESC
+		LIMIT ?
+	`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var metrics []CognitionMetrics
+	for rows.Next() {
+		var m CognitionMetrics
+		err := rows.Scan(&m.Date, &m.DualNBackLevel, &m.ReactionTime, &m.WeeklyMindfulness)
+		if err != nil {
+			return nil, err
+		}
+		metrics = append(metrics, m)
+	}
+
+	return metrics, nil
+}
+
+func GetHealthMetricsByDate(db *sql.DB, date string) (*HealthMetrics, error) {
+	var m HealthMetrics
+	err := db.QueryRow(`
+		SELECT date, sleep_score, waist_cm, rhr, nutrition_score
+		FROM health_metrics
+		WHERE date = ?
+	`, date).Scan(&m.Date, &m.SleepScore, &m.WaistCm, &m.RHR, &m.NutritionScore)
+	
+	if err != nil {
+		return nil, err
+	}
+	return &m, nil
+}
+
+func GetFitnessMetricsByDate(db *sql.DB, date string) (*FitnessMetrics, error) {
+	var m FitnessMetrics
+	err := db.QueryRow(`
+		SELECT date, vo2_max, weekly_workouts, daily_steps, weekly_mobility, cardio_recovery
+		FROM fitness_metrics
+		WHERE date = ?
+	`, date).Scan(&m.Date, &m.VO2Max, &m.WeeklyWorkouts, &m.DailySteps, &m.WeeklyMobility, &m.CardioRecovery)
+	
+	if err != nil {
+		return nil, err
+	}
+	return &m, nil
+}
+
+func GetCognitionMetricsByDate(db *sql.DB, date string) (*CognitionMetrics, error) {
+	var m CognitionMetrics
+	err := db.QueryRow(`
+		SELECT date, dual_n_back_level, reaction_time, weekly_mindfulness
+		FROM cognition_metrics
+		WHERE date = ?
+	`, date).Scan(&m.Date, &m.DualNBackLevel, &m.ReactionTime, &m.WeeklyMindfulness)
+	
+	if err != nil {
+		return nil, err
+	}
+	return &m, nil
+}
+
+// CalculateRHRBaseline calculates the 3-month average RHR
+func CalculateRHRBaseline(db *sql.DB) (float64, error) {
+	threeMonthsAgo := time.Now().AddDate(0, -3, 0).Format("2006-01-02")
+	
+	var baseline float64
+	err := db.QueryRow(`
+		SELECT AVG(rhr)
+		FROM health_metrics
+		WHERE date >= ?
+	`, threeMonthsAgo).Scan(&baseline)
+	
+	if err != nil {
+		return 0, err
+	}
+	
+	return baseline, nil
+}
+
+func GetUserProfile(db *sql.DB) (*UserProfile, error) {
+	var profile UserProfile
+	err := db.QueryRow("SELECT birth_date, sex, height_cm FROM user_profile ORDER BY id DESC LIMIT 1").Scan(&profile.BirthDate, &profile.Sex, &profile.HeightCm)
+	
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	
+	return &profile, err
+}
+
+func SaveUserProfile(db *sql.DB, profile UserProfile) error {
+	_, err := db.Exec("INSERT INTO user_profile (birth_date, sex, height_cm) VALUES (?, ?, ?)", profile.BirthDate, profile.Sex, profile.HeightCm)
+	return err
+}
