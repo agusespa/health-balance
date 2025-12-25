@@ -35,6 +35,7 @@ h1 {
     text-align: center;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
+    position: relative;
 }
 
 .score-display h2 {
@@ -448,35 +449,15 @@ td {
 }
 
 .settings-icon-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-    transition: transform 0.2s ease-in-out;
-}
-
-.settings-icon-container:hover {
-    transform: scale(1.1);
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    padding: 10px;
 }
 
 #rationale-button-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
-    border-radius: 50%;
-    padding: 10px; /* Increase clickable area */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s ease-in-out;
-}
-
-#rationale-button-container:hover {
-    transform: scale(1.1);
-}
-
-#rationale-button-container svg {
-    width: 36px;
-    height: 36px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    padding: 10px;
 }

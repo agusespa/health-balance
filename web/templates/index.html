@@ -10,23 +10,61 @@
 </head>
 
 <body>
-    <div class="settings-icon-container">
-        <a href="/settings" style="text-decoration: none; color: inherit;">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="24px" height="24px">
-                <path d="M0 0h24v24H0z" fill="none" />
-                <path
-                    d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.09-.76-1.71-1.06L14.46 2.5c-.05-.24-.27-.42-.51-.42h-4c-.25 0-.46.18-.51.42L9.16 5.27c-.62.3-1.19.66-1.71 1.06l-2.49-1c-.22-.08-.49 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19-.15-.24.42-.12-.64l2 3.46c.12.22.39.3.61-.22l2.49-1c.52.4 1.09.76 1.71 1.06l.36 2.77c.05.24.27.42.51.42h4c.25 0 .46-.18.51.42l.36-2.77c.62-.3 1.19-.66 1.71-1.06l2.49 1c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z" />
-            </svg>
 
-        </a>
-    </div>
     <div id="toast-container"
+
         style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000;"></div>
 
+
+
     <div class="container">
+
         {{define "score_display"}}
+
         <div class="card score-display" id="score-container" hx-get="/current-score" hx-trigger="refresh"
+
             hx-swap="outerHTML">
+
+            <div class="settings-icon-container">
+
+                <a href="/settings" style="text-decoration: none; color: inherit;">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="24px"
+
+                        height="24px">
+
+                        <path d="M0 0h24v24H0z" fill="none" />
+
+                        <path
+
+                            d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.09-.76-1.71-1.06L14.46 2.5c-.05-.24-.27-.42-.51-.42h-4c-.25 0-.46.18-.51.42L9.16 5.27c-.62.3-1.19.66-1.71 1.06l-2.49-1c-.22-.08-.49 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19-.15-.24.42-.12-.64l2 3.46c.12.22.39.3.61-.22l2.49-1c.52.4 1.09.76 1.71 1.06l.36 2.77c.05.24.27.42.51.42h4c.25 0 .46-.18.51.42l.36-2.77c.62-.3 1.19-.66 1.71-1.06l2.49 1c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z" />
+
+                    </svg>
+
+                </a>
+
+            </div>
+
+            <div id="rationale-button-container">
+
+                <a href="/rationale" style="text-decoration: none; color: inherit;">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"
+
+                        fill="white">
+
+                        <path d="M0 0h24v24H0z" fill="none" />
+
+                        <path
+
+                            d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z" />
+
+                    </svg>
+
+                </a>
+
+            </div>
+
             <h2>Health Balance Score</h2>
             <div class="score-value">{{printf "%.0f" .CurrentScore.Score}}</div>
             <div class="progress-bar-container">
@@ -230,15 +268,7 @@
 
     </div>
 
-    <div id="rationale-button-container">
-        <a href="/rationale" style="text-decoration: none; color: inherit;">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="white">
-                <path d="M0 0h24v24H0z" fill="none" />
-                <path
-                    d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z" />
-            </svg>
-        </a>
-    </div>
+
 
     <script>
         function togglePillar(pillarId) {
