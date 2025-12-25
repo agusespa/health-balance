@@ -13,15 +13,14 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 18px 0;
     max-width: 1000px;
-    margin: 0 auto 24px;
+    margin: 0 auto 28px;
 }
 
 .settings-header-main h1 {
     font-size: 1.75rem;
     font-weight: 600;
-    color: var(--text-primary, #111827);
+    color: var(--light-gray);
     margin: 0;
     flex-grow: 1;
     text-align: center;
@@ -31,13 +30,19 @@
 /* ---------- Back Link ---------- */
 .back-link {
     font-size: 1.5rem;
-    color: var(--text-secondary, #4b5563);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 10px;
     text-decoration: none;
-    padding-right: 12px;
+    color: var(--light-gray);
+    border-radius: 50%;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .back-link:hover {
-    color: var(--text-primary, #111827);
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
 }
 
 /* ---------- Section Header ---------- */
@@ -47,6 +52,7 @@
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--border, #e5e7eb);
+    background: var(--surface-muted);
 }
 
 .settings-header h2 {
@@ -72,8 +78,7 @@
     .settings-header-main {
         flex-direction: column;
         align-items: flex-start;
-        padding: 16px 0;
-        margin-bottom: 16px;
+        margin-bottom: 20px;
     }
 
     .settings-header-main h1 {
