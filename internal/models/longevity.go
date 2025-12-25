@@ -231,7 +231,7 @@ func CalculateMasterScore(
 ) (newScore float64, healthScore float64, fitnessScore float64, cognitionScore float64, agingTax float64) {
 
 	age := profile.GetAge()
-	weeklyDecayRate := (float64(age) / 200.0) / 52.0
+	weeklyDecayRate := (float64(age*age) / 200.0) / 52.0
 
 	agingTax = currentScore * weeklyDecayRate
 
