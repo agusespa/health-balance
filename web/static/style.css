@@ -59,6 +59,7 @@ body {
     background: linear-gradient(180deg, #5b6ee1 0%, #4f46e5 100%);
     color: white;
     border: none;
+    padding: 8px 28px 28px 28px;
 }
 
 .score-display h2 {
@@ -77,6 +78,42 @@ body {
 .score-date {
     font-size: 0.85rem;
     opacity: 0.8;
+}
+
+/* ---------- Score Header ---------- */
+.score-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    margin-left: -20px;
+    margin-right: -20px;
+}
+
+.score-header h2 {
+    font-size: 1.2rem;
+    font-weight: 500;
+    opacity: 0.9;
+    margin: 0;
+}
+
+.icon-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.icon-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.icon-link svg {
+    display: block;
 }
 
 /* ---------- Progress ---------- */
@@ -377,19 +414,9 @@ th {
         padding-left: 20px;
         padding-right: 20px;
     }
-}
 
-/* ---------- Icons ---------- */
-.settings-icon-container,
-#rationale-button-container {
-    position: absolute;
-    top: 8px;
-    padding: 8px;
-}
-
-.settings-icon-container {
-    right: 8px;
-}
-#rationale-button-container {
-    left: 8px;
+    .icon-link svg {
+        width: 24px;
+        height: 24px;
+    }
 }
