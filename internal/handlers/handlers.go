@@ -8,7 +8,9 @@ import (
 	"log"
 	"net/http"
 
+	"health-balance/internal/database"
 	"health-balance/internal/models"
+	"health-balance/internal/services"
 )
 
 type Handler struct {
@@ -35,16 +37,16 @@ type DashboardData struct {
 }
 
 func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
-	currentScore, _ := models.GetCurrentMasterScore(h.db)
-	recentHealth, _ := models.GetRecentHealthMetrics(h.db, 5)
-	recentFitness, _ := models.GetRecentFitnessMetrics(h.db, 5)
-	recentCognition, _ := models.GetRecentCognitionMetrics(h.db, 5)
-	profile, _ := models.GetUserProfile(h.db)
+	currentScore, _ := services.GetCurrentMasterScore(h.db)
+	recentHealth, _ := database.GetRecentHealthMetrics(h.db, 5)
+	recentFitness, _ := database.GetRecentFitnessMetrics(h.db, 5)
+	recentCognition, _ := database.GetRecentCognitionMetrics(h.db, 5)
+	profile, _ := database.GetUserProfile(h.db)
 
-	date := models.GetPreviousSundayDate()
-	todayHealth, _ := models.GetHealthMetricsByDate(h.db, date)
-	todayFitness, _ := models.GetFitnessMetricsByDate(h.db, date)
-	todayCognition, _ := models.GetCognitionMetricsByDate(h.db, date)
+	date := database.GetPreviousSundayDate()
+	todayHealth, _ := database.GetHealthMetricsByDate(h.db, date)
+	todayFitness, _ := database.GetFitnessMetricsByDate(h.db, date)
+	todayCognition, _ := database.GetCognitionMetricsByDate(h.db, date)
 
 	data := DashboardData{
 		CurrentScore:    currentScore,
@@ -61,7 +63,7 @@ func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) HandleCurrentScore(w http.ResponseWriter, r *http.Request) {
-	currentScore, _ := models.GetCurrentMasterScore(h.db)
+	currentScore, _ := services.GetCurrentMasterScore(h.db)
 
 	data := struct {
 		CurrentScore *models.MasterScore
@@ -73,7 +75,7 @@ func (h *Handler) HandleCurrentScore(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) HandleScores(w http.ResponseWriter, r *http.Request) {
-	scores, err := models.GetAllWeeklyScores(h.db)
+	scores, err := services.GetAllWeeklyScores(h.db)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -83,7 +85,7 @@ func (h *Handler) HandleScores(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) HandleHealthMetrics(w http.ResponseWriter, r *http.Request) {
-	metrics, err := models.GetRecentHealthMetrics(h.db, 5)
+	metrics, err := database.GetRecentHealthMetrics(h.db, 5)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -92,7 +94,7 @@ func (h *Handler) HandleHealthMetrics(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) HandleFitnessMetrics(w http.ResponseWriter, r *http.Request) {
-	metrics, err := models.GetRecentFitnessMetrics(h.db, 5)
+	metrics, err := database.GetRecentFitnessMetrics(h.db, 5)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -101,7 +103,7 @@ func (h *Handler) HandleFitnessMetrics(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) HandleCognitionMetrics(w http.ResponseWriter, r *http.Request) {
-	metrics, err := models.GetRecentCognitionMetrics(h.db, 5)
+	metrics, err := database.GetRecentCognitionMetrics(h.db, 5)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -124,7 +126,7 @@ func (h *Handler) HandleAddHealthMetrics(w http.ResponseWriter, r *http.Request)
 		NutritionScore: parseFloat(r.FormValue("nutrition_score")),
 	}
 
-	if err := models.SaveHealthMetrics(h.db, health); err != nil {
+	if err := database.SaveHealthMetrics(h.db, health); err != nil {
 		// Return error toast with OOB swap
 		toastData := struct {
 			Message   string
@@ -138,7 +140,7 @@ func (h *Handler) HandleAddHealthMetrics(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Get updated metrics
-	metrics, _ := models.GetRecentHealthMetrics(h.db, 5)
+	metrics, _ := database.GetRecentHealthMetrics(h.db, 5)
 
 	// Render metrics table
 	var metricsHTML bytes.Buffer
@@ -176,7 +178,7 @@ func (h *Handler) HandleAddFitnessMetrics(w http.ResponseWriter, r *http.Request
 		CardioRecovery: parseInt(r.FormValue("cardio_recovery")),
 	}
 
-	if err := models.SaveFitnessMetrics(h.db, fitness); err != nil {
+	if err := database.SaveFitnessMetrics(h.db, fitness); err != nil {
 		// Return error toast with OOB swap
 		toastData := struct {
 			Message   string
@@ -190,7 +192,7 @@ func (h *Handler) HandleAddFitnessMetrics(w http.ResponseWriter, r *http.Request
 	}
 
 	// Get updated metrics
-	metrics, _ := models.GetRecentFitnessMetrics(h.db, 5)
+	metrics, _ := database.GetRecentFitnessMetrics(h.db, 5)
 
 	// Render metrics table
 	var metricsHTML bytes.Buffer
@@ -226,7 +228,7 @@ func (h *Handler) HandleAddCognitionMetrics(w http.ResponseWriter, r *http.Reque
 		WeeklyMindfulness: parseInt(r.FormValue("weekly_mindfulness")),
 	}
 
-	if err := models.SaveCognitionMetrics(h.db, cognition); err != nil {
+	if err := database.SaveCognitionMetrics(h.db, cognition); err != nil {
 		// Return error toast with OOB swap
 		toastData := struct {
 			Message   string
@@ -240,7 +242,7 @@ func (h *Handler) HandleAddCognitionMetrics(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Get updated metrics
-	metrics, _ := models.GetRecentCognitionMetrics(h.db, 5)
+	metrics, _ := database.GetRecentCognitionMetrics(h.db, 5)
 
 	// Render metrics table
 	var metricsHTML bytes.Buffer
@@ -278,7 +280,7 @@ func (h *Handler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get existing profile to get the ID
-	existingProfile, err := models.GetUserProfile(h.db)
+	existingProfile, err := database.GetUserProfile(h.db)
 	if err != nil && err != sql.ErrNoRows {
 		// Handle potential database errors
 		http.Error(w, "Error fetching profile", http.StatusInternalServerError)
@@ -296,7 +298,7 @@ func (h *Handler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request) {
 	profile.Sex = r.FormValue("sex")
 	profile.HeightCm = parseFloat(r.FormValue("height_cm"))
 
-	if err := models.SaveUserProfile(h.db, profile); err != nil {
+	if err := database.SaveUserProfile(h.db, profile); err != nil {
 		// Return error toast with OOB swap
 		toastData := struct {
 			Message   string
@@ -321,7 +323,7 @@ func (h *Handler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) HandleSettings(w http.ResponseWriter, r *http.Request) {
-	profile, err := models.GetUserProfile(h.db)
+	profile, err := database.GetUserProfile(h.db)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -352,7 +354,6 @@ func (h *Handler) HandleSettings(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// HandleRationale renders the rationale.html template.
 func (h *Handler) HandleRationale(w http.ResponseWriter, r *http.Request) {
 	err := h.templates.ExecuteTemplate(w, "rationale.html", nil)
 	if err != nil {

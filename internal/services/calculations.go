@@ -1,79 +1,17 @@
-package models
+package services
 
 import (
 	"database/sql"
+	"health-balance/internal/database"
+	"health-balance/internal/models"
 	"time"
 )
-
-// MasterScore represents the calculated overall longevity score
-type MasterScore struct {
-	Date           string
-	Score          float64
-	HealthScore    float64
-	FitnessScore   float64
-	CognitionScore float64
-	AgingTax       float64
-}
-
-// HealthMetrics represents the Health Pillar
-type HealthMetrics struct {
-	Date           string
-	SleepScore     int     // Weekly avg score (0-100)
-	WaistCm        float64 // Waist circumference in cm
-	RHR            int     // Resting Heart Rate
-	NutritionScore float64 // Manual 1-10 score
-}
-
-// FitnessMetrics represents the Fitness Pillar
-type FitnessMetrics struct {
-	Date           string
-	VO2Max         float64 // Current VO2 Max
-	WeeklyWorkouts int
-	DailySteps     int
-	WeeklyMobility int
-	CardioRecovery int // 60s BPM drop
-}
-
-// CognitionMetrics represents the Cognition Pillar
-type CognitionMetrics struct {
-	Date              string
-	DualNBackLevel    int
-	ReactionTime      int // Current in ms
-	WeeklyMindfulness int
-}
-
-// UserProfile stores user-specific data for calculations
-type UserProfile struct {
-	Id        int
-	BirthDate string  // YYYY-MM-DD format
-	Sex       string  // "male" or "female"
-	HeightCm  float64 // Height in centimeters
-}
-
-// GetAge calculates current age from birth date
-func (p *UserProfile) GetAge() int {
-	birthDate, err := time.Parse("2006-01-02", p.BirthDate)
-	if err != nil {
-		return 30 // default fallback
-	}
-
-	now := time.Now()
-	age := now.Year() - birthDate.Year()
-
-	// Adjust if birthday hasn't occurred this year yet
-	if now.Month() < birthDate.Month() ||
-		(now.Month() == birthDate.Month() && now.Day() < birthDate.Day()) {
-		age--
-	}
-
-	return age
-}
 
 // GetAllWeeklyScores calculates scores for all weeks with COMPLETE data
 // Only calculates when all three pillars have data for the same date
 // This prevents aging tax from being applied multiple times per week
-func GetAllWeeklyScores(db *sql.DB) ([]MasterScore, error) {
-	currentWeekDate := GetPreviousSundayDate()
+func GetAllWeeklyScores(db *sql.DB) ([]models.MasterScore, error) {
+	currentWeekDate := database.GetPreviousSundayDate()
 	// Get dates where we have ALL three pillars (INNER JOIN ensures complete data)
 	rows, err := db.Query(`
 		SELECT h.date 
@@ -98,7 +36,7 @@ func GetAllWeeklyScores(db *sql.DB) ([]MasterScore, error) {
 	}
 
 	// Get profile
-	profile, err := GetUserProfile(db)
+	profile, err := database.GetUserProfile(db)
 	if err != nil {
 		return nil, err
 	}
@@ -107,28 +45,28 @@ func GetAllWeeklyScores(db *sql.DB) ([]MasterScore, error) {
 	}
 
 	// Calculate score for each week (chronological order, oldest first)
-	var scores []MasterScore
+	var scores []models.MasterScore
 	currentScore := 1000.0 // Starting baseline score
 
 	for i := len(dates) - 1; i >= 0; i-- {
 		date := dates[i]
 
-		health, _ := GetHealthMetricsByDate(db, date)
-		fitness, _ := GetFitnessMetricsByDate(db, date)
-		cognition, _ := GetCognitionMetricsByDate(db, date)
+		health, _ := database.GetHealthMetricsByDate(db, date)
+		fitness, _ := database.GetFitnessMetricsByDate(db, date)
+		cognition, _ := database.GetCognitionMetricsByDate(db, date)
 
 		if health != nil && fitness != nil && cognition != nil {
-			rhrBaseline, _ := CalculateRHRBaseline(db)
+			rhrBaseline, _ := database.CalculateRHRBaseline(db)
 			if rhrBaseline == 0 {
 				rhrBaseline = health.RHR
 			}
 
-			age := profile.GetAge()
-			vo2MaxBaseline := GetVO2MaxBaseline(age, profile.Sex)
-			reactionBaseline := GetReactionTimeBaseline(age)
+			age := GetAge(profile)
+			vo2MaxBaseline := models.GetVO2MaxBaseline(age, profile.Sex)
+			reactionBaseline := models.GetReactionTimeBaseline(age)
 			whtr := health.WaistCm / profile.HeightCm
 
-			healthComplete := HealthMetrics{
+			healthComplete := models.HealthMetrics{
 				Date:           health.Date,
 				SleepScore:     health.SleepScore,
 				WaistCm:        health.WaistCm,
@@ -136,7 +74,7 @@ func GetAllWeeklyScores(db *sql.DB) ([]MasterScore, error) {
 				NutritionScore: health.NutritionScore,
 			}
 
-			fitnessComplete := FitnessMetrics{
+			fitnessComplete := models.FitnessMetrics{
 				Date:           fitness.Date,
 				VO2Max:         fitness.VO2Max,
 				WeeklyWorkouts: fitness.WeeklyWorkouts,
@@ -145,7 +83,7 @@ func GetAllWeeklyScores(db *sql.DB) ([]MasterScore, error) {
 				CardioRecovery: fitness.CardioRecovery,
 			}
 
-			cognitionComplete := CognitionMetrics{
+			cognitionComplete := models.CognitionMetrics{
 				Date:              cognition.Date,
 				DualNBackLevel:    cognition.DualNBackLevel,
 				ReactionTime:      cognition.ReactionTime,
@@ -164,7 +102,7 @@ func GetAllWeeklyScores(db *sql.DB) ([]MasterScore, error) {
 				whtr,
 			)
 
-			scores = append([]MasterScore{{
+			scores = append([]models.MasterScore{{
 				Date:           date,
 				Score:          newScore,
 				HealthScore:    healthScore,
@@ -180,10 +118,10 @@ func GetAllWeeklyScores(db *sql.DB) ([]MasterScore, error) {
 	return scores, nil
 }
 
-func GetCurrentMasterScore(db *sql.DB) (*MasterScore, error) {
+func GetCurrentMasterScore(db *sql.DB) (*models.MasterScore, error) {
 	scores, err := GetAllWeeklyScores(db)
 	if err != nil || len(scores) == 0 {
-		return &MasterScore{
+		return &models.MasterScore{
 			Date:  time.Now().Format("2006-01-02"),
 			Score: 1000.0, // Starting baseline score
 		}, nil
@@ -191,7 +129,7 @@ func GetCurrentMasterScore(db *sql.DB) (*MasterScore, error) {
 	return &scores[0], nil
 }
 
-func CalculateHealthPillar(m HealthMetrics, rhrBaseline int, whtr float64) float64 {
+func CalculateHealthPillar(m models.HealthMetrics, rhrBaseline int, whtr float64) float64 {
 	sleepPoints := (m.SleepScore - 75) * 2
 	whtrPoints := (0.48 - whtr) * 1000
 	rhrPoints := (rhrBaseline - m.RHR) * 5
@@ -200,7 +138,7 @@ func CalculateHealthPillar(m HealthMetrics, rhrBaseline int, whtr float64) float
 	return float64(sleepPoints) + whtrPoints + float64(rhrPoints) + nutritionPoints
 }
 
-func CalculateFitnessPillar(m FitnessMetrics, vo2MaxBaseline float64) float64 {
+func CalculateFitnessPillar(m models.FitnessMetrics, vo2MaxBaseline float64) float64 {
 	vo2Points := (m.VO2Max - vo2MaxBaseline) * 20
 	workoutPoints := float64(m.WeeklyWorkouts-3) * 20
 	stepPoints := float64(m.DailySteps-8000) / 150
@@ -210,7 +148,7 @@ func CalculateFitnessPillar(m FitnessMetrics, vo2MaxBaseline float64) float64 {
 	return vo2Points + workoutPoints + stepPoints + mobilityPoints + recoveryPoints
 }
 
-func CalculateCognitionPillar(m CognitionMetrics, reactionBaseline int) float64 {
+func CalculateCognitionPillar(m models.CognitionMetrics, reactionBaseline int) float64 {
 	memoryPoints := float64(m.DualNBackLevel-2) * 20
 	reactionPoints := float64(reactionBaseline-m.ReactionTime) / 2
 	mindfulnessPoints := float64(m.WeeklyMindfulness-3) * 5
@@ -220,17 +158,17 @@ func CalculateCognitionPillar(m CognitionMetrics, reactionBaseline int) float64 
 
 func CalculateMasterScore(
 	currentScore float64,
-	profile UserProfile,
-	health HealthMetrics,
-	fitness FitnessMetrics,
-	cognition CognitionMetrics,
+	profile models.UserProfile,
+	health models.HealthMetrics,
+	fitness models.FitnessMetrics,
+	cognition models.CognitionMetrics,
 	rhrBaseline int,
 	vo2MaxBaseline float64,
 	reactionBaseline int,
 	whtr float64,
 ) (newScore float64, healthScore float64, fitnessScore float64, cognitionScore float64, agingTax float64) {
 
-	age := profile.GetAge()
+	age := GetAge(&profile)
 	weeklyDecayRate := (float64(age*age) / 200.0) / 52.0
 
 	agingTax = currentScore * weeklyDecayRate
@@ -244,4 +182,23 @@ func CalculateMasterScore(
 	newScore = (currentScore - agingTax) + weeklyPerformance
 
 	return
+}
+
+// GetAge calculates current age from birth date
+func GetAge(p *models.UserProfile) int {
+	birthDate, err := time.Parse("2006-01-02", p.BirthDate)
+	if err != nil {
+		return 30 // default fallback
+	}
+
+	now := time.Now()
+	age := now.Year() - birthDate.Year()
+
+	// Adjust if birthday hasn't occurred this year yet
+	if now.Month() < birthDate.Month() ||
+		(now.Month() == birthDate.Month() && now.Day() < birthDate.Day()) {
+		age--
+	}
+
+	return age
 }

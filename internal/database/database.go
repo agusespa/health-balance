@@ -7,14 +7,12 @@ import (
 )
 
 func Init(dbPath string) (*sql.DB, error) {
-	// Enable WAL mode and set a busy timeout for better concurrency
 	dsn := dbPath + "?_journal=WAL&_busy_timeout=5000"
 	db, err := sql.Open("sqlite3", dsn)
 	if err != nil {
 		return nil, err
 	}
 
-	// Standard connection pool settings for SQLite
 	db.SetMaxOpenConns(1)
 
 	if err := createTables(db); err != nil {
