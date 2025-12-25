@@ -1,94 +1,192 @@
 <!DOCTYPE html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Rationale - Health Balance</title>
+        <link rel="stylesheet" href="/static/style.css" />
+        <link rel="stylesheet" href="/static/rationale.css" />
+        <link rel="stylesheet" href="/static/settings.css" />
+        <script src="https://polyfill.io/v3/polyfill.min.min.js?features=es6"></script>
+        <script
+            id="MathJax-script"
+            async
+            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+        ></script>
+    </head>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rationale - Health Balance</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="stylesheet" href="/static/rationale.css">
-    <link rel="stylesheet" href="/static/settings.css">
-    <script src="https://polyfill.io/v3/polyfill.min.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-</head>
-
-<body>
-    <div class="container">
-        <div class="settings-header-main">
-            <a href="/" class="back-link">&#x2190;</a>
-            <h1>How it works</h1>
-        </div>
-    </div>
-
-    <div class="container">
-        <section class="rationale-card main-algo">
-            <div class="rationale-intro-header">
-                <h2>Biological Reserve Score (BRS)</h2>
-                <p class="lead">A quantitative model measuring the balance between physiological entropy and lifestyle
-                    inputs.</p>
+    <body>
+        <div class="container">
+            <div class="settings-header-main">
+                <a href="/" class="back-link">&#x2190;</a>
+                <h1>How it works</h1>
             </div>
+        </div>
 
-            <div class="pillars">
-                <h2>The Master Algorithm: Accelerating Entropy</h2>
-                <p>The system is built on the interaction between two opposing forces: <strong>Exponential Decay</strong> and <strong>Performance</strong>.</p>
+        <div class="container">
+            <section class="rationale-card main-algo">
+                <div class="rationale-intro-header">
+                    <h2>Biological Reserve Score (BRS)</h2>
+                    <p class="lead">
+                        A quantitative model measuring the balance between
+                        physiological entropy and lifestyle inputs.
+                    </p>
+                </div>
 
-                <div class="concept-grid">
-                    <div class="concept-item">
-                        <h3>The Aging Tax (Entropy)</h3>
-                        <div class="math-display">
-                            $$\text{Tax} = \text{Current Score} \times \frac{(\text{Age}^2 / 8000)}{52}$$
+                <div class="pillars">
+                    <h2>The Master Algorithm: Accelerating Entropy</h2>
+                    <p>
+                        The system is built on the interaction between two
+                        opposing forces: <strong>Exponential Decay</strong> and
+                        <strong>Performance</strong>.
+                    </p>
+
+                    <div class="concept-grid">
+                        <div class="concept-item">
+                            <h3>The Aging Tax (Entropy)</h3>
+                            <div class="math-display">
+                                $$\text{Tax} = \text{Score} \times
+                                \frac{(\text{Age}^2 / 8000)}{52}$$
+                            </div>
+                            <p>
+                                This formula reflects the
+                                <strong
+                                    >accelerating nature of biological
+                                    decay</strong
+                                >. Unlike linear models, a quadratic approach
+                                ensures that the "cost" of maintaining your
+                                health reserve starts low in youth but compounds
+                                significantly as you age.
+                            </p>
+                            <p>
+                                The 8000 constant is calibrated to apply a ~20%
+                                annual decay rate at age 40, requiring higher
+                                consistency to stay level as you move into
+                                mid-life.
+                            </p>
                         </div>
-                        <p>Unlike linear models, this formula reflects the <strong>accelerating nature of biological entropy</strong>. As your age increases, the cost of maintenance grows quadratically, requiring higher consistency to preserve your reserve.</p>
-                    </div>
-                    <div class="concept-item">
-                        <h3>The Stability Buffer</h3>
-                        <p>High-value metrics like <strong>VO2 Max</strong> and <strong>WHtR</strong> act as filters. Being slow to change, they provide a mathematical "floor" that protects your score from temporary lifestyle fluctuations.</p>
+                        <div class="concept-item">
+                            <h3>The Stability Buffer</h3>
+                            <p>
+                                Structural metrics like
+                                <strong>VO2 Max</strong> and
+                                <strong>WHtR</strong> act as a mathematical
+                                "floor." Because these biomarkers are slow to
+                                change, they provide a weighted anchor that
+                                protects your score from wild fluctuations based
+                                on a single poor week.
+                            </p>
+                            <p>
+                                This ensures your score remains grounded in
+                                actual physical capacity, even as it tracks
+                                daily habits. For a 40-year-old, the persistent
+                                ~3.8 point weekly tax (per 1,000) creates a
+                                headwind that requires consistent performance to
+                                overcome, ensuring your reserve is earned
+                                through discipline rather than luck.
+                            </p>
+                        </div>
                     </div>
                 </div>
+            </section>
+
+            <div class="pillars-container">
+                <section class="rationale-card">
+                    <h2>Basic Health Pillar</h2>
+                    <p class="pillar-desc">
+                        Measuring the efficiency of internal repair and
+                        metabolic state.
+                    </p>
+                    <ul class="logic-list">
+                        <li>
+                            <strong>Sleep Variance:</strong> Uses a baseline of
+                            75. Deltas represent a
+                            <em>"repair surplus"</em> (positive) or
+                            <em>"repair deficit"</em> (negative).
+                        </li>
+                        <li>
+                            <strong>Structural Ratio (WHtR):</strong> A
+                            high-weight static variable. Small improvements in
+                            body composition relative to height result in
+                            significant long-term score gains.
+                        </li>
+                        <li>
+                            <strong>Resting Heart Rate (RHR):</strong> A
+                            relative comparison against your 3-month rolling
+                            average to detect systemic strain.
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="rationale-card">
+                    <h2>Fitness Pillar</h2>
+                    <p class="pillar-desc">
+                        Measuring cardiovascular ceiling and structural
+                        resilience.
+                    </p>
+                    <ul class="logic-list">
+                        <li>
+                            <strong>VO2 Max (x20):</strong> Our most heavily
+                            weighted function. Uses Age-Adjusted Baselines to
+                            keep the score relevant to your current
+                            physiological potential.
+                        </li>
+                        <li>
+                            <strong>Cardio Recovery:</strong> Measures heart
+                            rate drop in 60s against a 20 BPM baseline,
+                            capturing the nervous system's transition to a
+                            restful state.
+                        </li>
+                        <li>
+                            <strong>Frequency Metrics:</strong> Workouts, Steps,
+                            and Mobility act as
+                            <em>"operational inputs"</em>—the consistent
+                            point-flow needed to offset the weekly entropy tax.
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="rationale-card">
+                    <h2>Cognition Pillar</h2>
+                    <p class="pillar-desc">
+                        Measuring neural efficiency and mental capacity.
+                    </p>
+                    <ul class="logic-list">
+                        <li>
+                            <strong>Working Memory (Dual N-Back):</strong>
+                            Calculated as a deviation from Level 2. Cognitive
+                            contribution grows linearly as your "N-Level"
+                            increases.
+                        </li>
+                        <li>
+                            <strong>Reaction Speed:</strong> Measures the
+                            difference between a 3-month baseline and current
+                            performance to identify acute neurological fatigue.
+                        </li>
+                        <li>
+                            <strong>Mindfulness Frequency:</strong> A
+                            frequency-based function that rewards consistency in
+                            active stress regulation.
+                        </li>
+                    </ul>
+                </section>
             </div>
-        </section>
-
-        <div class="pillars-container">
-            <section class="rationale-card pillars">
-                <h2>Basic Health Pillar</h2>
-                <p class="pillar-desc">Measuring the efficiency of internal repair and metabolic state.</p>
-                <ul class="logic-list">
-                    <li><strong>Sleep Variance:</strong> Uses a baseline of 75. Deltas represent a <em>"repair
-                            surplus"</em> (positive) or <em>"repair deficit"</em> (negative).</li>
-                    <li><strong>Structural Ratio (WHtR):</strong> A high-weight static variable. Small improvements in
-                        body composition relative to height result in significant long-term score gains.</li>
-                    <li><strong>Resting Heart Rate (RHR):</strong> A relative comparison against your 3-month rolling
-                        average to detect systemic strain.</li>
-                </ul>
-            </section>
-
-            <section class="rationale-card">
-                <h2>Fitness Pillar</h2>
-                <p class="pillar-desc">Measuring cardiovascular ceiling and structural resilience.</p>
-                <ul class="logic-list">
-                    <li><strong>VO2 Max (x20):</strong> Our most heavily weighted function. Uses Age-Adjusted Baselines
-                        to keep the score relevant to your current physiological potential.</li>
-                    <li><strong>Cardio Recovery:</strong> Measures heart rate drop in 60s against a 20 BPM baseline,
-                        capturing the nervous system's transition to a restful state.</li>
-                    <li><strong>Frequency Metrics:</strong> Workouts, Steps, and Mobility act as <em>"operational
-                            inputs"</em>—the consistent point-flow needed to offset the weekly entropy tax.</li>
-                </ul>
-            </section>
-
-            <section class="rationale-card">
-                <h2>Cognition Pillar</h2>
-                <p class="pillar-desc">Measuring neural efficiency and mental capacity.</p>
-                <ul class="logic-list">
-                    <li><strong>Working Memory (Dual N-Back):</strong> Calculated as a deviation from Level 2. Cognitive
-                        contribution grows linearly as your "N-Level" increases.</li>
-                    <li><strong>Reaction Speed:</strong> Measures the difference between a 3-month baseline and current
-                        performance to identify acute neurological fatigue.</li>
-                    <li><strong>Mindfulness Frequency:</strong> A frequency-based function that rewards consistency in
-                        active stress regulation.</li>
-                </ul>
-            </section>
         </div>
-    </div>
-</body>
-
+        <footer class="rationale-footer">
+            <div class="container">
+                <div class="disclaimer-box">
+                    <h3>Disclaimer</h3>
+                    <p>
+                        The Biological Reserve Score (BRS) is a motivational
+                        tool designed for general health tracking and lifestyle
+                        optimization. It is a mathematical model, not a medical
+                        diagnostic. These metrics do not replace professional
+                        medical advice, diagnosis, or treatment. Always consult
+                        with a healthcare provider before making significant
+                        changes to your exercise or nutrition routine.
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </body>
 </html>

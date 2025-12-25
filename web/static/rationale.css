@@ -24,7 +24,7 @@
 .rationale-card {
     background: var(--surface, #ffffff);
     border-radius: 14px;
-    padding: 28px;
+    padding: 22px;
     margin-bottom: 20px;
     border: 1px solid var(--border, #e5e7eb);
 }
@@ -115,6 +115,31 @@
     line-height: 1.45;
 }
 
+/* ---------- Disclaimer ---------- */
+.disclaimer-box {
+    background: var(--warning-muted);
+    border: 2px solid var(--warning);
+    padding: 28px;
+    border-radius: var(--radius-lg);
+    margin-top: 20px;
+}
+
+.disclaimer-box h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--warning);
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--warning);
+}
+
+
+.disclaimer-box p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin: 0;
+}
+
 /* ---------- Responsive ---------- */
 @media (min-width: 768px) {
     .pillars-container {
@@ -125,6 +150,12 @@
 @media (max-width: 768px) {
     .pillars {
         padding: 20px;
+    }
+    .rationale-card {
+        padding: 18px;
+    }
+    .main-algo {
+        padding: 0px;
     }
     .concept-grid {
         grid-template-columns: 1fr;
