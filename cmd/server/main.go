@@ -35,7 +35,7 @@ func main() {
 			return a < b
 		},
 	}
-	
+
 	templates := template.Must(template.New("").Funcs(funcMap).ParseGlob("web/templates/*.html"))
 
 	// Initialize handlers
@@ -47,7 +47,7 @@ func main() {
 	http.HandleFunc("/scores", h.HandleScores)
 	http.HandleFunc("/calculate-score", h.HandleCalculateScore)
 	http.HandleFunc("/update-profile", h.HandleUpdateProfile)
-	
+
 	// Metric routes
 	http.HandleFunc("/health-metrics", h.HandleHealthMetrics)
 	http.HandleFunc("/add-health-metrics", h.HandleAddHealthMetrics)

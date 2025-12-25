@@ -5,40 +5,67 @@ import (
 	"time"
 )
 
+
+func GetPreviousSundayDate() string {
+	now := time.Now()
+	weekday := now.Weekday()
+	daysSinceSunday := int(weekday)
+	previousSunday := now.AddDate(0, 0, -daysSinceSunday)
+	return previousSunday.Format("2006-01-02")
+}
+
 func SaveHealthMetrics(db *sql.DB, m HealthMetrics) error {
-	date := time.Now().Format("2006-01-02")
+	date := GetPreviousSundayDate()
 	_, err := db.Exec(`
 		INSERT INTO health_metrics (date, sleep_score, waist_cm, rhr, nutrition_score)
 		VALUES (?, ?, ?, ?, ?)
+		ON CONFLICT(date) DO UPDATE SET
+			sleep_score = excluded.sleep_score,
+			waist_cm = excluded.waist_cm,
+			rhr = excluded.rhr,
+			nutrition_score = excluded.nutrition_score
 	`, date, m.SleepScore, m.WaistCm, m.RHR, m.NutritionScore)
 	return err
 }
 
 func SaveFitnessMetrics(db *sql.DB, m FitnessMetrics) error {
-	date := time.Now().Format("2006-01-02")
+	date := GetPreviousSundayDate()
 	_, err := db.Exec(`
 		INSERT INTO fitness_metrics (date, vo2_max, weekly_workouts, daily_steps, weekly_mobility, cardio_recovery)
 		VALUES (?, ?, ?, ?, ?, ?)
+		ON CONFLICT(date) DO UPDATE SET
+			vo2_max = excluded.vo2_max,
+			weekly_workouts = excluded.weekly_workouts,
+			daily_steps = excluded.daily_steps,
+			weekly_mobility = excluded.weekly_mobility,
+			cardio_recovery = excluded.cardio_recovery
 	`, date, m.VO2Max, m.WeeklyWorkouts, m.DailySteps, m.WeeklyMobility, m.CardioRecovery)
 	return err
 }
 
 func SaveCognitionMetrics(db *sql.DB, m CognitionMetrics) error {
-	date := time.Now().Format("2006-01-02")
+	date := GetPreviousSundayDate()
 	_, err := db.Exec(`
 		INSERT INTO cognition_metrics (date, dual_n_back_level, reaction_time, weekly_mindfulness)
 		VALUES (?, ?, ?, ?)
+		ON CONFLICT(date) DO UPDATE SET
+			dual_n_back_level = excluded.dual_n_back_level,
+			reaction_time = excluded.reaction_time,
+			weekly_mindfulness = excluded.weekly_mindfulness
 	`, date, m.DualNBackLevel, m.ReactionTime, m.WeeklyMindfulness)
 	return err
 }
 
+
 func GetRecentHealthMetrics(db *sql.DB, limit int) ([]HealthMetrics, error) {
+	currentWeekDate := GetPreviousSundayDate()
 	rows, err := db.Query(`
 		SELECT date, sleep_score, waist_cm, rhr, nutrition_score
 		FROM health_metrics
+		WHERE date != ?
 		ORDER BY date DESC
 		LIMIT ?
-	`, limit)
+	`, currentWeekDate, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -58,12 +85,14 @@ func GetRecentHealthMetrics(db *sql.DB, limit int) ([]HealthMetrics, error) {
 }
 
 func GetRecentFitnessMetrics(db *sql.DB, limit int) ([]FitnessMetrics, error) {
+	currentWeekDate := GetPreviousSundayDate()
 	rows, err := db.Query(`
 		SELECT date, vo2_max, weekly_workouts, daily_steps, weekly_mobility, cardio_recovery
 		FROM fitness_metrics
+		WHERE date != ?
 		ORDER BY date DESC
 		LIMIT ?
-	`, limit)
+	`, currentWeekDate, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -83,12 +112,14 @@ func GetRecentFitnessMetrics(db *sql.DB, limit int) ([]FitnessMetrics, error) {
 }
 
 func GetRecentCognitionMetrics(db *sql.DB, limit int) ([]CognitionMetrics, error) {
+	currentWeekDate := GetPreviousSundayDate()
 	rows, err := db.Query(`
 		SELECT date, dual_n_back_level, reaction_time, weekly_mindfulness
 		FROM cognition_metrics
+		WHERE date != ?
 		ORDER BY date DESC
 		LIMIT ?
-	`, limit)
+	`, currentWeekDate, limit)
 	if err != nil {
 		return nil, err
 	}

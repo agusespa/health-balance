@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Longevity Health Tracker</title>
+    <title>Health Balance</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <link rel="stylesheet" href="/static/style.css">
 </head>
@@ -13,24 +13,28 @@
     <div id="toast-container" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000;"></div>
 
     <div class="container">
-        <div class="card score-display" id="score-container" hx-get="/current-score" hx-trigger="refresh" hx-swap="outerHTML">
-            <h2>Longevity Score</h2>
-            <div class="score-value">{{printf "%.0f" .CurrentScore.Score}}</div>
-            <div class="progress-bar-container">
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill {{if lt .CurrentScore.Score 1000.0}}below-baseline{{else}}above-baseline{{end}}"
-                        style="width: {{if gt .CurrentScore.Score 2000.0}}100{{else}}{{printf "%.1f" (divf .CurrentScore.Score 20.0)}}{{end}}%">
-                    </div>
-                    <div class="progress-baseline"></div>
+        {{define "score_display"}}
+    <div class="card score-display" id="score-container" hx-get="/current-score" hx-trigger="refresh" hx-swap="outerHTML">
+        <h2>Health Balance Score</h2>
+        <div class="score-value">{{printf "%.0f" .CurrentScore.Score}}</div>
+        <div class="progress-bar-container">
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill {{if lt .CurrentScore.Score 1000.0}}below-baseline{{else}}above-baseline{{end}}"
+                    style="width: {{if gt .CurrentScore.Score 2000.0}}100{{else}}{{printf "%.1f" (divf .CurrentScore.Score 20.0)}}{{end}}%">
                 </div>
-                <div class="progress-labels">
-                    <span>0</span>
-                    <span class="baseline-label">1000</span>
-                    <span>2000</span>
-                </div>
+                <div class="progress-baseline"></div>
             </div>
-            <p class="score-date">Last updated: {{.CurrentScore.Date}}</p>
+            <div class="progress-labels">
+                <span>0</span>
+                <span class="baseline-label">1000</span>
+                <span>2000</span>
+            </div>
         </div>
+        <p class="score-date">Last updated: {{.CurrentScore.Date}}</p>
+    </div>
+{{end}}
+
+{{template "score_display" .}}
 
         <div class="card pillar-card">
             <div class="pillar-header" onclick="togglePillar('health')">
@@ -46,14 +50,14 @@
                                 <label for="sleep_score">Sleep Quality Score (0-100)</label>
                                 <input type="number" id="sleep_score" name="sleep_score" min="0" max="100"
                                     {{if .TodayHealth}}value="{{.TodayHealth.SleepScore}}"{{end}} required>
-                                <small class="help-text">Weekly average quality. 75+ is good.</small>
+                                <small class="help-text">Weekly average. Values above 75 add to your health reserve.</small>
                             </div>
 
                             <div class="form-group">
                                 <label for="waist_cm">Waist Circumference (cm)</label>
                                 <input type="number" id="waist_cm" name="waist_cm" step="0.1"
                                     {{if .TodayHealth}}value="{{printf "%.1f" .TodayHealth.WaistCm}}"{{end}} required>
-                                <small class="help-text">Used for Waist-to-Height Ratio.</small>
+                                <small class="help-text">Compared against height for Waist-to-Height Ratio. A ratio below 0.48 is the target baseline.</small>
                             </div>
                         </div>
 
@@ -62,6 +66,7 @@
                                 <label for="rhr">Resting Heart Rate (BPM)</label>
                                 <input type="number" id="rhr" name="rhr"
                                     {{if .TodayHealth}}value="{{.TodayHealth.RHR}}"{{end}} required>
+                                <small class="help-text">Deviation from your 3-month rolling average. Lower is better.</small>
                             </div>
 
                             <div class="form-group">
@@ -96,13 +101,14 @@
                                 <label for="vo2_max">VO2 Max</label>
                                 <input type="number" id="vo2_max" name="vo2_max" step="0.1"
                                     {{if .TodayFitness}}value="{{printf "%.1f" .TodayFitness.VO2Max}}"{{end}} required>
-                                <small class="help-text">Higher is better. 40+ is good.</small>
+                                <small class="help-text">Aerobic capacity. Compared against your age-adjusted biological baseline.</small>
                             </div>
 
                             <div class="form-group">
                                 <label for="weekly_workouts">Workout Sessions</label>
                                 <input type="number" id="weekly_workouts" name="weekly_workouts" min="0"
                                     {{if .TodayFitness}}value="{{.TodayFitness.WeeklyWorkouts}}"{{end}} required>
+                                <small class="help-text">Resistance/HIIT sessions. 3 per week is the maintenance baseline.</small>
                             </div>
                         </div>
 
@@ -111,12 +117,14 @@
                                 <label for="daily_steps">Daily Steps</label>
                                 <input type="number" id="daily_steps" name="daily_steps" min="0"
                                     {{if .TodayFitness}}value="{{.TodayFitness.DailySteps}}"{{end}} required>
+                                <small class="help-text">Daily movement average. 8,000 steps is the neutral break-even point.</small>
                             </div>
 
                             <div class="form-group">
                                 <label for="weekly_mobility">Mobility Sessions</label>
                                 <input type="number" id="weekly_mobility" name="weekly_mobility" min="0"
                                     {{if .TodayFitness}}value="{{.TodayFitness.WeeklyMobility}}"{{end}} required>
+                                <small class="help-text">Stretching/Range of motion. 3 per week is the maintenance baseline.</small>
                             </div>
                         </div>
 
@@ -125,6 +133,7 @@
                                 <label for="cardio_recovery">Cardio Recovery (BPM Drop)</label>
                                 <input type="number" id="cardio_recovery" name="cardio_recovery" min="0"
                                     {{if .TodayFitness}}value="{{.TodayFitness.CardioRecovery}}"{{end}} required>
+                                <small class="help-text">Heart rate drop 60s post-exercise. 20 BPM is the healthy baseline.</small>
                             </div>
                         </div>
 
@@ -152,12 +161,14 @@
                                 <label for="dual_n_back">Dual N-Back Level</label>
                                 <input type="number" id="dual_n_back" name="dual_n_back" min="1"
                                     {{if .TodayCognition}}value="{{.TodayCognition.DualNBackLevel}}"{{end}} required>
+                                <small class="help-text">Working memory capacity. Baseline is Level 2.</small>
                             </div>
 
                             <div class="form-group">
                                 <label for="reaction_time">Reaction Time (ms)</label>
                                 <input type="number" id="reaction_time" name="reaction_time" min="0"
                                     {{if .TodayCognition}}value="{{.TodayCognition.ReactionTime}}"{{end}} required>
+                                <small class="help-text">Neural processing speed. Measured against your age-adjusted average.</small>
                             </div>
                         </div>
 
@@ -166,6 +177,7 @@
                                 <label for="weekly_mindfulness">Mindfulness Sessions</label>
                                 <input type="number" id="weekly_mindfulness" name="weekly_mindfulness" min="0"
                                     {{if .TodayCognition}}value="{{.TodayCognition.WeeklyMindfulness}}"{{end}} required>
+                                <small class="help-text">Stress regulation. 3 sessions per week is the maintenance baseline.</small>
                             </div>
                         </div>
 
@@ -200,6 +212,7 @@
                         <div class="form-group">
                             <label for="birth_date">Birth Date</label>
                             <input type="date" id="birth_date" name="birth_date" {{if .Profile}}value="{{.Profile.BirthDate}}"{{end}} required>
+                            <small class="help-text">Used to calculate your weekly biological entropy (Aging Tax).</small>
                         </div>
 
                         <div class="form-group">
@@ -209,6 +222,7 @@
                                 <option value="male" {{if .Profile}}{{if eq .Profile.Sex "male" }}selected{{end}}{{end}}>Male</option>
                                 <option value="female" {{if .Profile}}{{if eq .Profile.Sex "female"}}selected{{end}}{{end}}>Female</option>
                             </select>
+                            <small class="help-text">Used to set the correct biological baseline for VO2 Max scaling.</small>
                         </div>
                     </div>
 
@@ -217,6 +231,7 @@
                             <label for="height_cm">Height (cm)</label>
                             <input type="number" id="height_cm" name="height_cm" step="0.1" min="100" max="250" 
                                 {{if .Profile}}value="{{printf "%.1f" .Profile.HeightCm}}"{{end}} required>
+                            <small class="help-text">Static variable used for Waist-to-Height Ratio (WHtR) calculation.</small>
                         </div>
                     </div>
 

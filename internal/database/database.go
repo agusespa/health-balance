@@ -28,7 +28,7 @@ func createTables(db *sql.DB) error {
 	queries := []string{
 		`CREATE TABLE IF NOT EXISTS health_metrics (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			date TEXT NOT NULL,
+			date TEXT NOT NULL UNIQUE,
 			sleep_score INTEGER,
 			waist_cm REAL,
 			rhr INTEGER,
@@ -36,7 +36,7 @@ func createTables(db *sql.DB) error {
 		);`,
 		`CREATE TABLE IF NOT EXISTS fitness_metrics (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			date TEXT NOT NULL,
+			date TEXT NOT NULL UNIQUE,
 			vo2_max REAL,
 			weekly_workouts INTEGER,
 			daily_steps INTEGER,
@@ -45,7 +45,7 @@ func createTables(db *sql.DB) error {
 		);`,
 		`CREATE TABLE IF NOT EXISTS cognition_metrics (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			date TEXT NOT NULL,
+			date TEXT NOT NULL UNIQUE,
 			dual_n_back_level INTEGER,
 			reaction_time INTEGER,
 			weekly_mindfulness INTEGER

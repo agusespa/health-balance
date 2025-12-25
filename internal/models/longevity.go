@@ -68,19 +68,20 @@ func (p *UserProfile) GetAge() int {
 	return age
 }
 
-// GetAllWeeklyScores calculates scores for all weeks with data
 // GetAllWeeklyScores calculates scores for all weeks with COMPLETE data
 // Only calculates when all three pillars have data for the same date
 // This prevents aging tax from being applied multiple times per week
 func GetAllWeeklyScores(db *sql.DB) ([]MasterScore, error) {
+	currentWeekDate := GetPreviousSundayDate()
 	// Get dates where we have ALL three pillars (INNER JOIN ensures complete data)
 	rows, err := db.Query(`
 		SELECT h.date 
 		FROM health_metrics h
 		INNER JOIN fitness_metrics f ON h.date = f.date
 		INNER JOIN cognition_metrics c ON h.date = c.date
+		WHERE h.date != ?
 		ORDER BY h.date DESC
-	`)
+	`, currentWeekDate)
 	if err != nil {
 		return nil, err
 	}

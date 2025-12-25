@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"time"
 
 	"longevity-tracker/internal/models"
 )
@@ -41,7 +40,7 @@ func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 	recentCognition, _ := models.GetRecentCognitionMetrics(h.db, 5)
 	profile, _ := models.GetUserProfile(h.db)
 
-	date := time.Now().Format("2006-01-02")
+	date := models.GetPreviousSundayDate()
 	todayHealth, _ := models.GetHealthMetricsByDate(h.db, date)
 	todayFitness, _ := models.GetFitnessMetricsByDate(h.db, date)
 	todayCognition, _ := models.GetCognitionMetricsByDate(h.db, date)
@@ -69,7 +68,7 @@ func (h *Handler) HandleCurrentScore(w http.ResponseWriter, r *http.Request) {
 		CurrentScore: currentScore,
 	}
 
-	h.templates.ExecuteTemplate(w, "score_display.html", data)
+	h.templates.ExecuteTemplate(w, "score_display", data)
 }
 
 func (h *Handler) HandleScores(w http.ResponseWriter, r *http.Request) {
