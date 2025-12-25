@@ -29,9 +29,9 @@ func createTables(db *sql.DB) error {
 		`CREATE TABLE IF NOT EXISTS health_metrics (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			date TEXT NOT NULL,
-			sleep_score REAL,
+			sleep_score INTEGER,
 			waist_cm REAL,
-			rhr REAL,
+			rhr INTEGER,
 			nutrition_score REAL
 		);`,
 		`CREATE TABLE IF NOT EXISTS fitness_metrics (

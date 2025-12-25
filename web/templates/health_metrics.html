@@ -13,9 +13,9 @@
         {{range .}}
         <tr>
             <td>{{.Date}}</td>
-            <td>{{printf "%.1f" .SleepScore}}</td>
+            <td>{{.SleepScore}}</td>
             <td>{{printf "%.1f" .WaistCm}}</td>
-            <td>{{printf "%.1f" .RHR}}</td>
+            <td>{{.RHR}}</td>
             <td>{{printf "%.1f" .NutritionScore}}</td>
         </tr>
         {{end}}

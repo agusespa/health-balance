@@ -40,12 +40,12 @@ func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 	recentFitness, _ := models.GetRecentFitnessMetrics(h.db, 5)
 	recentCognition, _ := models.GetRecentCognitionMetrics(h.db, 5)
 	profile, _ := models.GetUserProfile(h.db)
-	
+
 	date := time.Now().Format("2006-01-02")
 	todayHealth, _ := models.GetHealthMetricsByDate(h.db, date)
 	todayFitness, _ := models.GetFitnessMetricsByDate(h.db, date)
 	todayCognition, _ := models.GetCognitionMetricsByDate(h.db, date)
-	
+
 	data := DashboardData{
 		CurrentScore:    currentScore,
 		RecentHealth:    recentHealth,
@@ -56,19 +56,19 @@ func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 		TodayFitness:    todayFitness,
 		TodayCognition:  todayCognition,
 	}
-	
+
 	h.templates.ExecuteTemplate(w, "index.html", data)
 }
 
 func (h *Handler) HandleCurrentScore(w http.ResponseWriter, r *http.Request) {
 	currentScore, _ := models.GetCurrentMasterScore(h.db)
-	
+
 	data := struct {
 		CurrentScore *models.MasterScore
 	}{
 		CurrentScore: currentScore,
 	}
-	
+
 	h.templates.ExecuteTemplate(w, "score_display.html", data)
 }
 
@@ -116,11 +116,11 @@ func (h *Handler) HandleAddHealthMetrics(w http.ResponseWriter, r *http.Request)
 	}
 
 	r.ParseForm()
-	
+
 	health := models.HealthMetrics{
-		SleepScore:     parseFloat(r.FormValue("sleep_score")),
+		SleepScore:     parseInt(r.FormValue("sleep_score")),
 		WaistCm:        parseFloat(r.FormValue("waist_cm")),
-		RHR:            parseFloat(r.FormValue("rhr")),
+		RHR:            parseInt(r.FormValue("rhr")),
 		NutritionScore: parseFloat(r.FormValue("nutrition_score")),
 	}
 
@@ -139,11 +139,11 @@ func (h *Handler) HandleAddHealthMetrics(w http.ResponseWriter, r *http.Request)
 
 	// Get updated metrics
 	metrics, _ := models.GetRecentHealthMetrics(h.db, 5)
-	
+
 	// Render metrics table
 	var metricsHTML bytes.Buffer
 	h.templates.ExecuteTemplate(&metricsHTML, "health_metrics.html", metrics)
-	
+
 	// Render success toast
 	toastData := struct {
 		Message   string
@@ -154,7 +154,7 @@ func (h *Handler) HandleAddHealthMetrics(w http.ResponseWriter, r *http.Request)
 	}
 	var toastHTML bytes.Buffer
 	h.templates.ExecuteTemplate(&toastHTML, "toast.html", toastData)
-	
+
 	// Write both responses
 	w.Write(metricsHTML.Bytes())
 	w.Write(toastHTML.Bytes())
@@ -167,7 +167,7 @@ func (h *Handler) HandleAddFitnessMetrics(w http.ResponseWriter, r *http.Request
 	}
 
 	r.ParseForm()
-	
+
 	fitness := models.FitnessMetrics{
 		VO2Max:         parseFloat(r.FormValue("vo2_max")),
 		WeeklyWorkouts: parseInt(r.FormValue("weekly_workouts")),
@@ -191,11 +191,11 @@ func (h *Handler) HandleAddFitnessMetrics(w http.ResponseWriter, r *http.Request
 
 	// Get updated metrics
 	metrics, _ := models.GetRecentFitnessMetrics(h.db, 5)
-	
+
 	// Render metrics table
 	var metricsHTML bytes.Buffer
 	h.templates.ExecuteTemplate(&metricsHTML, "fitness_metrics.html", metrics)
-	
+
 	// Render success toast
 	toastData := struct {
 		Message   string
@@ -206,7 +206,7 @@ func (h *Handler) HandleAddFitnessMetrics(w http.ResponseWriter, r *http.Request
 	}
 	var toastHTML bytes.Buffer
 	h.templates.ExecuteTemplate(&toastHTML, "toast.html", toastData)
-	
+
 	// Write both responses
 	w.Write(metricsHTML.Bytes())
 	w.Write(toastHTML.Bytes())
@@ -219,7 +219,7 @@ func (h *Handler) HandleAddCognitionMetrics(w http.ResponseWriter, r *http.Reque
 	}
 
 	r.ParseForm()
-	
+
 	cognition := models.CognitionMetrics{
 		DualNBackLevel:    parseInt(r.FormValue("dual_n_back")),
 		ReactionTime:      parseInt(r.FormValue("reaction_time")),
@@ -241,11 +241,11 @@ func (h *Handler) HandleAddCognitionMetrics(w http.ResponseWriter, r *http.Reque
 
 	// Get updated metrics
 	metrics, _ := models.GetRecentCognitionMetrics(h.db, 5)
-	
+
 	// Render metrics table
 	var metricsHTML bytes.Buffer
 	h.templates.ExecuteTemplate(&metricsHTML, "cognition_metrics.html", metrics)
-	
+
 	// Render success toast
 	toastData := struct {
 		Message   string
@@ -256,7 +256,7 @@ func (h *Handler) HandleAddCognitionMetrics(w http.ResponseWriter, r *http.Reque
 	}
 	var toastHTML bytes.Buffer
 	h.templates.ExecuteTemplate(&toastHTML, "toast.html", toastData)
-	
+
 	// Write both responses
 	w.Write(metricsHTML.Bytes())
 	w.Write(toastHTML.Bytes())

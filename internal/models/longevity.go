@@ -18,9 +18,9 @@ type MasterScore struct {
 // HealthMetrics represents the Health Pillar
 type HealthMetrics struct {
 	Date           string
-	SleepScore     float64 // Weekly avg score (0-100)
+	SleepScore     int     // Weekly avg score (0-100)
 	WaistCm        float64 // Waist circumference in cm
-	RHR            float64 // Resting Heart Rate
+	RHR            int     // Resting Heart Rate
 	NutritionScore float64 // Manual 1-10 score
 }
 
@@ -55,16 +55,16 @@ func (p *UserProfile) GetAge() int {
 	if err != nil {
 		return 30 // default fallback
 	}
-	
+
 	now := time.Now()
 	age := now.Year() - birthDate.Year()
-	
+
 	// Adjust if birthday hasn't occurred this year yet
-	if now.Month() < birthDate.Month() || 
-	   (now.Month() == birthDate.Month() && now.Day() < birthDate.Day()) {
+	if now.Month() < birthDate.Month() ||
+		(now.Month() == birthDate.Month() && now.Day() < birthDate.Day()) {
 		age--
 	}
-	
+
 	return age
 }
 
@@ -110,7 +110,7 @@ func GetAllWeeklyScores(db *sql.DB) ([]MasterScore, error) {
 
 	for i := len(dates) - 1; i >= 0; i-- {
 		date := dates[i]
-		
+
 		health, _ := GetHealthMetricsByDate(db, date)
 		fitness, _ := GetFitnessMetricsByDate(db, date)
 		cognition, _ := GetCognitionMetricsByDate(db, date)
@@ -120,7 +120,7 @@ func GetAllWeeklyScores(db *sql.DB) ([]MasterScore, error) {
 			if rhrBaseline == 0 {
 				rhrBaseline = health.RHR
 			}
-			
+
 			age := profile.GetAge()
 			vo2MaxBaseline := GetVO2MaxBaseline(age, profile.Sex)
 			reactionBaseline := GetReactionTimeBaseline(age)
@@ -189,13 +189,13 @@ func GetCurrentMasterScore(db *sql.DB) (*MasterScore, error) {
 	return &scores[0], nil
 }
 
-func CalculateHealthPillar(m HealthMetrics, rhrBaseline float64, whtr float64) float64 {
+func CalculateHealthPillar(m HealthMetrics, rhrBaseline int, whtr float64) float64 {
 	sleepPoints := (m.SleepScore - 75) * 2
 	whtrPoints := (0.48 - whtr) * 1000
 	rhrPoints := (rhrBaseline - m.RHR) * 5
 	nutritionPoints := (m.NutritionScore - 7) * 5
 
-	return sleepPoints + whtrPoints + rhrPoints + nutritionPoints
+	return float64(sleepPoints) + whtrPoints + float64(rhrPoints) + nutritionPoints
 }
 
 func CalculateFitnessPillar(m FitnessMetrics, vo2MaxBaseline float64) float64 {
@@ -222,7 +222,7 @@ func CalculateMasterScore(
 	health HealthMetrics,
 	fitness FitnessMetrics,
 	cognition CognitionMetrics,
-	rhrBaseline float64,
+	rhrBaseline int,
 	vo2MaxBaseline float64,
 	reactionBaseline int,
 	whtr float64,

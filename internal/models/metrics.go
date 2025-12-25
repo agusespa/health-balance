@@ -114,7 +114,7 @@ func GetHealthMetricsByDate(db *sql.DB, date string) (*HealthMetrics, error) {
 		FROM health_metrics
 		WHERE date = ?
 	`, date).Scan(&m.Date, &m.SleepScore, &m.WaistCm, &m.RHR, &m.NutritionScore)
-	
+
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func GetFitnessMetricsByDate(db *sql.DB, date string) (*FitnessMetrics, error) {
 		FROM fitness_metrics
 		WHERE date = ?
 	`, date).Scan(&m.Date, &m.VO2Max, &m.WeeklyWorkouts, &m.DailySteps, &m.WeeklyMobility, &m.CardioRecovery)
-	
+
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func GetCognitionMetricsByDate(db *sql.DB, date string) (*CognitionMetrics, erro
 		FROM cognition_metrics
 		WHERE date = ?
 	`, date).Scan(&m.Date, &m.DualNBackLevel, &m.ReactionTime, &m.WeeklyMindfulness)
-	
+
 	if err != nil {
 		return nil, err
 	}
@@ -150,31 +150,31 @@ func GetCognitionMetricsByDate(db *sql.DB, date string) (*CognitionMetrics, erro
 }
 
 // CalculateRHRBaseline calculates the 3-month average RHR
-func CalculateRHRBaseline(db *sql.DB) (float64, error) {
+func CalculateRHRBaseline(db *sql.DB) (int, error) {
 	threeMonthsAgo := time.Now().AddDate(0, -3, 0).Format("2006-01-02")
-	
-	var baseline float64
+
+	var baseline int
 	err := db.QueryRow(`
 		SELECT AVG(rhr)
 		FROM health_metrics
 		WHERE date >= ?
 	`, threeMonthsAgo).Scan(&baseline)
-	
+
 	if err != nil {
 		return 0, err
 	}
-	
+
 	return baseline, nil
 }
 
 func GetUserProfile(db *sql.DB) (*UserProfile, error) {
 	var profile UserProfile
 	err := db.QueryRow("SELECT birth_date, sex, height_cm FROM user_profile ORDER BY id DESC LIMIT 1").Scan(&profile.BirthDate, &profile.Sex, &profile.HeightCm)
-	
+
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
-	
+
 	return &profile, err
 }
 
