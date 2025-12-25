@@ -1,14 +1,10 @@
-# Variables
-BINARY_NAME=health-balance
+.PHONY: run test lint
 
-run-local:
+run:
 	go run ./cmd/server/main.go
 
-build-local:
-	go build -o $(BINARY_NAME) ./cmd/server/main.go
-
-clean:
-	rm -f $(BINARY_NAME)
-
 test:
-	go test ./...
+	go test -v -race -coverprofile=coverage.out ./...
+
+lint:
+	golangci-lint run ./...
