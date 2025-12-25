@@ -7,15 +7,14 @@ import (
 	"net/http"
 	"os"
 
-	"longevity-tracker/internal/database"
-	"longevity-tracker/internal/handlers"
+	"health-balance/internal/database"
+	"health-balance/internal/handlers"
 )
 
 func main() {
-	// Initialize database
 	dbPath := os.Getenv("DB_PATH")
 	if dbPath == "" {
-		dbPath = "./health.db"
+		dbPath = "./data/health.db"
 	}
 	db, err := database.Init(dbPath)
 	if err != nil {
@@ -38,17 +37,16 @@ func main() {
 
 	templates := template.Must(template.New("").Funcs(funcMap).ParseGlob("web/templates/*.html"))
 
-	// Initialize handlers
 	h := handlers.New(db, templates)
 
-	// Routes
 	http.HandleFunc("/", h.HandleHome)
 	http.HandleFunc("/current-score", h.HandleCurrentScore)
 	http.HandleFunc("/scores", h.HandleScores)
 	http.HandleFunc("/calculate-score", h.HandleCalculateScore)
 	http.HandleFunc("/update-profile", h.HandleUpdateProfile)
+	http.HandleFunc("/settings", h.HandleSettings)
+	http.HandleFunc("/rationale", h.HandleRationale)
 
-	// Metric routes
 	http.HandleFunc("/health-metrics", h.HandleHealthMetrics)
 	http.HandleFunc("/add-health-metrics", h.HandleAddHealthMetrics)
 	http.HandleFunc("/fitness-metrics", h.HandleFitnessMetrics)
@@ -56,7 +54,6 @@ func main() {
 	http.HandleFunc("/cognition-metrics", h.HandleCognitionMetrics)
 	http.HandleFunc("/add-cognition-metrics", h.HandleAddCognitionMetrics)
 
-	// Static files
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
 
 	fmt.Println("Server starting on :8080")

@@ -230,10 +230,6 @@ h3 {
     gap: 15px;
 }
 
-.form-group {
-    margin-bottom: 20px;
-}
-
 label {
     display: block;
     margin-bottom: 8px;
@@ -272,6 +268,12 @@ select {
 select:focus {
     outline: none;
     border-color: #667eea;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 button {
@@ -341,13 +343,11 @@ td {
 
 .score-positive {
     color: #2b8a3e;
-    /* Building Wealth - Green */
     font-weight: 600;
 }
 
 .score-negative {
     color: #c92a2a;
-    /* Accruing Debt - Red */
     font-weight: 600;
 }
 
@@ -406,7 +406,6 @@ td {
     animation: spin 0.6s linear infinite;
 }
 
-/* Show spinner when it has the htmx-indicator class during request */
 .spinner.htmx-request {
     display: inline-block;
 }
@@ -446,4 +445,38 @@ td {
     .pillar-content {
         padding: 0 20px 20px 20px;
     }
+}
+
+.settings-icon-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    transition: transform 0.2s ease-in-out;
+}
+
+.settings-icon-container:hover {
+    transform: scale(1.1);
+}
+
+#rationale-button-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    border-radius: 50%;
+    padding: 10px; /* Increase clickable area */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease-in-out;
+}
+
+#rationale-button-container:hover {
+    transform: scale(1.1);
+}
+
+#rationale-button-container svg {
+    width: 36px;
+    height: 36px;
 }

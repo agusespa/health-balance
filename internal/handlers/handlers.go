@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 
-	"longevity-tracker/internal/models"
+	"health-balance/internal/models"
 )
 
 type Handler struct {
@@ -276,12 +277,24 @@ func (h *Handler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.ParseForm()
-	profile := models.UserProfile{
-		BirthDate: r.FormValue("birth_date"),
-		Sex:       r.FormValue("sex"),
-		HeightCm:  parseFloat(r.FormValue("height_cm")),
+	// Get existing profile to get the ID
+	existingProfile, err := models.GetUserProfile(h.db)
+	if err != nil && err != sql.ErrNoRows {
+		// Handle potential database errors
+		http.Error(w, "Error fetching profile", http.StatusInternalServerError)
+		return
 	}
+
+	// Create a new profile object or use the existing one
+	var profile models.UserProfile
+	if existingProfile != nil {
+		profile = *existingProfile
+	}
+
+	r.ParseForm()
+	profile.BirthDate = r.FormValue("birth_date")
+	profile.Sex = r.FormValue("sex")
+	profile.HeightCm = parseFloat(r.FormValue("height_cm"))
 
 	if err := models.SaveUserProfile(h.db, profile); err != nil {
 		// Return error toast with OOB swap
@@ -305,6 +318,48 @@ func (h *Handler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request) {
 		IsSuccess: true,
 	}
 	h.templates.ExecuteTemplate(w, "toast.html", toastData)
+}
+
+func (h *Handler) HandleSettings(w http.ResponseWriter, r *http.Request) {
+	profile, err := models.GetUserProfile(h.db)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// If no profile exists, create an empty/default one
+	if profile == nil {
+		profile = &models.UserProfile{
+			Id:        1,
+			BirthDate: "",
+			Sex:       "",
+			HeightCm:  0,
+		}
+	}
+
+	data := struct {
+		Profile *models.UserProfile
+	}{
+		Profile: profile,
+	}
+
+	err_t := h.templates.ExecuteTemplate(w, "settings.html", data)
+	if err_t != nil {
+		log.Printf("Template execution error: %v", err_t)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+}
+
+// HandleRationale renders the rationale.html template.
+func (h *Handler) HandleRationale(w http.ResponseWriter, r *http.Request) {
+	err := h.templates.ExecuteTemplate(w, "rationale.html", nil)
+	if err != nil {
+		log.Printf("Template execution error: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 }
 
 func parseInt(s string) int {

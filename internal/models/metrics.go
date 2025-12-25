@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-
 func GetPreviousSundayDate() string {
 	now := time.Now()
 	weekday := now.Weekday()
@@ -55,7 +54,6 @@ func SaveCognitionMetrics(db *sql.DB, m CognitionMetrics) error {
 	`, date, m.DualNBackLevel, m.ReactionTime, m.WeeklyMindfulness)
 	return err
 }
-
 
 func GetRecentHealthMetrics(db *sql.DB, limit int) ([]HealthMetrics, error) {
 	currentWeekDate := GetPreviousSundayDate()
@@ -200,7 +198,8 @@ func CalculateRHRBaseline(db *sql.DB) (int, error) {
 
 func GetUserProfile(db *sql.DB) (*UserProfile, error) {
 	var profile UserProfile
-	err := db.QueryRow("SELECT birth_date, sex, height_cm FROM user_profile ORDER BY id DESC LIMIT 1").Scan(&profile.BirthDate, &profile.Sex, &profile.HeightCm)
+	err := db.QueryRow("SELECT id, birth_date, sex, height_cm FROM user_profile LIMIT 1").
+		Scan(&profile.Id, &profile.BirthDate, &profile.Sex, &profile.HeightCm)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -210,6 +209,25 @@ func GetUserProfile(db *sql.DB) (*UserProfile, error) {
 }
 
 func SaveUserProfile(db *sql.DB, profile UserProfile) error {
-	_, err := db.Exec("INSERT INTO user_profile (birth_date, sex, height_cm) VALUES (?, ?, ?)", profile.BirthDate, profile.Sex, profile.HeightCm)
+	// Check if a profile already exists
+	var existingID int
+	err := db.QueryRow("SELECT id FROM user_profile LIMIT 1").Scan(&existingID)
+
+	if err != nil && err != sql.ErrNoRows {
+		return err // Handle potential database errors
+	}
+
+	if existingID > 0 {
+		// Update existing profile
+		_, err = db.Exec(`
+			UPDATE user_profile SET birth_date = ?, sex = ?, height_cm = ? WHERE id = ?
+		`, profile.BirthDate, profile.Sex, profile.HeightCm, existingID)
+	} else {
+		// Insert new profile
+		_, err = db.Exec(`
+			INSERT INTO user_profile (birth_date, sex, height_cm) VALUES (?, ?, ?)
+		`, profile.BirthDate, profile.Sex, profile.HeightCm)
+	}
+
 	return err
 }

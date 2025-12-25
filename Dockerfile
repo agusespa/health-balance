@@ -1,4 +1,4 @@
-FROM golang:1.21 AS builder
+FROM golang:1.25 AS builder
 
 WORKDIR /app
 
@@ -7,7 +7,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=1 GOOS=linux go build -o longevity-tracker ./cmd/server
+RUN CGO_ENABLED=1 GOOS=linux go build -o health-balance ./cmd/server
 
 FROM debian:bookworm-slim
 
@@ -18,11 +18,11 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-COPY --from=builder /app/longevity-tracker .
+COPY --from=builder /app/health-banalce .
 COPY --from=builder /app/web ./web
 
 RUN mkdir -p /app/data
 
 EXPOSE 8080
 
-CMD ["./longevity-tracker"]
+CMD ["./health-balance"]

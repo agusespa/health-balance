@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Health Balance</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/settings.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="settings-header-main">
+            <a href="/" class="back-link">&#x2190;</a>
+            <h1>Settings</h1>
+        </div>
+
+        <div class="settings-container">
+            <div class="settings-card">
+                <div class="settings-header">
+                    <h2>Biomarkers</h2>
+                </div>
+                <div class="settings-content" id="settings-content">
+                    <form hx-post="/update-profile" hx-indicator="#settings-spinner" hx-swap="none">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="birth_date">Birth Date</label>
+                                <input type="date" id="birth_date" name="birth_date" {{if
+                                    .Profile}}value="{{.Profile.BirthDate}}" {{end}} required>
+                                <small class="help-text">Used to calculate your weekly biological entropy (Aging
+                                    Tax).</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="sex">Biological Sex</label>
+                                <select id="sex" name="sex" required>
+                                    <option value="">Select...</option>
+                                    <option value="male" {{if .Profile}}{{if eq .Profile.Sex "male"
+                                        }}selected{{end}}{{end}}>Male</option>
+                                    <option value="female" {{if .Profile}}{{if eq .Profile.Sex "female"
+                                        }}selected{{end}}{{end}}>Female</option>
+                                </select>
+                                <small class="help-text">Used to set the correct biological baseline for VO2 Max
+                                    scaling.</small>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="height_cm">Height (cm)</label>
+                                <input type="number" id="height_cm" name="height_cm" step="0.1" min="100" max="250" {{if
+                                    .Profile}}value="{{printf "%.1f" .Profile.HeightCm}}"{{end}} required>
+                                <small class="help-text">Static variable used for Waist-to-Height Ratio (WHtR)
+                                    calculation.</small>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="settings-button">
+                            <span class="button-text">Update Profile</span>
+                            <div id="settings-spinner" class="spinner htmx-indicator"></div>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

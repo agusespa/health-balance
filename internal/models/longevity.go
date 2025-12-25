@@ -44,6 +44,7 @@ type CognitionMetrics struct {
 
 // UserProfile stores user-specific data for calculations
 type UserProfile struct {
+	Id        int
 	BirthDate string  // YYYY-MM-DD format
 	Sex       string  // "male" or "female"
 	HeightCm  float64 // Height in centimeters

@@ -10,69 +10,87 @@
 </head>
 
 <body>
-    <div id="toast-container" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000;"></div>
+    <div class="settings-icon-container">
+        <a href="/settings" style="text-decoration: none; color: inherit;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="24px" height="24px">
+                <path d="M0 0h24v24H0z" fill="none" />
+                <path
+                    d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.09-.76-1.71-1.06L14.46 2.5c-.05-.24-.27-.42-.51-.42h-4c-.25 0-.46.18-.51.42L9.16 5.27c-.62.3-1.19.66-1.71 1.06l-2.49-1c-.22-.08-.49 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19-.15-.24.42-.12-.64l2 3.46c.12.22.39.3.61-.22l2.49-1c.52.4 1.09.76 1.71 1.06l.36 2.77c.05.24.27.42.51.42h4c.25 0 .46-.18.51.42l.36-2.77c.62-.3 1.19-.66 1.71-1.06l2.49 1c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z" />
+            </svg>
+
+        </a>
+    </div>
+    <div id="toast-container"
+        style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000;"></div>
 
     <div class="container">
         {{define "score_display"}}
-    <div class="card score-display" id="score-container" hx-get="/current-score" hx-trigger="refresh" hx-swap="outerHTML">
-        <h2>Health Balance Score</h2>
-        <div class="score-value">{{printf "%.0f" .CurrentScore.Score}}</div>
-        <div class="progress-bar-container">
-            <div class="progress-bar-bg">
-                <div class="progress-bar-fill {{if lt .CurrentScore.Score 1000.0}}below-baseline{{else}}above-baseline{{end}}"
-                    style="width: {{if gt .CurrentScore.Score 2000.0}}100{{else}}{{printf "%.1f" (divf .CurrentScore.Score 20.0)}}{{end}}%">
+        <div class="card score-display" id="score-container" hx-get="/current-score" hx-trigger="refresh"
+            hx-swap="outerHTML">
+            <h2>Health Balance Score</h2>
+            <div class="score-value">{{printf "%.0f" .CurrentScore.Score}}</div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill {{if lt .CurrentScore.Score 1000.0}}below-baseline{{else}}above-baseline{{end}}"
+                        style="width: {{if gt .CurrentScore.Score 2000.0}}100{{else}}{{printf " %.1f" (divf
+                        .CurrentScore.Score 20.0)}}{{end}}%">
+                    </div>
+                    <div class="progress-baseline"></div>
                 </div>
-                <div class="progress-baseline"></div>
+                <div class="progress-labels">
+                    <span>0</span>
+                    <span class="baseline-label">1000</span>
+                    <span>2000</span>
+                </div>
             </div>
-            <div class="progress-labels">
-                <span>0</span>
-                <span class="baseline-label">1000</span>
-                <span>2000</span>
-            </div>
+            <p class="score-date">Last updated: {{.CurrentScore.Date}}</p>
         </div>
-        <p class="score-date">Last updated: {{.CurrentScore.Date}}</p>
-    </div>
-{{end}}
+        {{end}}
 
-{{template "score_display" .}}
+        {{template "score_display" .}}
 
         <div class="card pillar-card">
             <div class="pillar-header" onclick="togglePillar('health')">
-                <h2>Health Pillar</h2>
+                <h2>Basic Health</h2>
                 <span class="toggle-icon" id="health-icon">▶</span>
             </div>
             <div class="pillar-content" id="health-content" style="display: none;">
                 <div class="add-data-section">
                     <h3>This Week's Data</h3>
-                    <form hx-post="/add-health-metrics" hx-target="#health-metrics" hx-swap="innerHTML" hx-indicator="#health-spinner">
+                    <form hx-post="/add-health-metrics" hx-target="#health-metrics" hx-swap="innerHTML"
+                        hx-indicator="#health-spinner">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="sleep_score">Sleep Quality Score (0-100)</label>
-                                <input type="number" id="sleep_score" name="sleep_score" min="0" max="100"
-                                    {{if .TodayHealth}}value="{{.TodayHealth.SleepScore}}"{{end}} required>
-                                <small class="help-text">Weekly average. Values above 75 add to your health reserve.</small>
+                                <input type="number" id="sleep_score" name="sleep_score" min="0" max="100" {{if
+                                    .TodayHealth}}value="{{.TodayHealth.SleepScore}}" {{end}} required>
+                                <small class="help-text">Weekly average. Values above 75 add to your health
+                                    reserve.</small>
                             </div>
 
                             <div class="form-group">
                                 <label for="waist_cm">Waist Circumference (cm)</label>
-                                <input type="number" id="waist_cm" name="waist_cm" step="0.1"
-                                    {{if .TodayHealth}}value="{{printf "%.1f" .TodayHealth.WaistCm}}"{{end}} required>
-                                <small class="help-text">Compared against height for Waist-to-Height Ratio. A ratio below 0.48 is the target baseline.</small>
+                                <input type="number" id="waist_cm" name="waist_cm" step="0.1" {{if
+                                    .TodayHealth}}value="{{printf " %.1f" .TodayHealth.WaistCm}}"{{end}} required>
+                                <small class="help-text">Compared against height for Waist-to-Height Ratio. A ratio
+                                    below 0.48 is the target baseline.</small>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="rhr">Resting Heart Rate (BPM)</label>
-                                <input type="number" id="rhr" name="rhr"
-                                    {{if .TodayHealth}}value="{{.TodayHealth.RHR}}"{{end}} required>
-                                <small class="help-text">Deviation from your 3-month rolling average. Lower is better.</small>
+                                <input type="number" id="rhr" name="rhr" {{if .TodayHealth}}value="{{.TodayHealth.RHR}}"
+                                    {{end}} required>
+                                <small class="help-text">Deviation from your 3-month rolling average. Lower is
+                                    better.</small>
                             </div>
 
                             <div class="form-group">
                                 <label for="nutrition_score">Nutrition Quality (1-10)</label>
-                                <input type="number" id="nutrition_score" name="nutrition_score" min="1" max="10" step="0.1"
-                                    {{if .TodayHealth}}value="{{printf "%.1f" .TodayHealth.NutritionScore}}"{{end}} required>
+                                <input type="number" id="nutrition_score" name="nutrition_score" min="1" max="10"
+                                    step="0.1" {{if .TodayHealth}}value="{{printf " %.1f"
+                                    .TodayHealth.NutritionScore}}"{{end}} required>
                                 <small class="help-text">Self-assessment. 7+ is good.</small>
                             </div>
                         </div>
@@ -89,51 +107,57 @@
 
         <div class="card pillar-card">
             <div class="pillar-header" onclick="togglePillar('fitness')">
-                <h2>Fitness Pillar</h2>
+                <h2>Fitness</h2>
                 <span class="toggle-icon" id="fitness-icon">▶</span>
             </div>
             <div class="pillar-content" id="fitness-content" style="display: none;">
                 <div class="add-data-section">
                     <h3>This Week's Data</h3>
-                    <form hx-post="/add-fitness-metrics" hx-target="#fitness-metrics" hx-swap="innerHTML" hx-indicator="#fitness-spinner">
+                    <form hx-post="/add-fitness-metrics" hx-target="#fitness-metrics" hx-swap="innerHTML"
+                        hx-indicator="#fitness-spinner">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="vo2_max">VO2 Max</label>
-                                <input type="number" id="vo2_max" name="vo2_max" step="0.1"
-                                    {{if .TodayFitness}}value="{{printf "%.1f" .TodayFitness.VO2Max}}"{{end}} required>
-                                <small class="help-text">Aerobic capacity. Compared against your age-adjusted biological baseline.</small>
+                                <input type="number" id="vo2_max" name="vo2_max" step="0.1" {{if
+                                    .TodayFitness}}value="{{printf " %.1f" .TodayFitness.VO2Max}}"{{end}} required>
+                                <small class="help-text">Aerobic capacity. Compared against your age-adjusted biological
+                                    baseline.</small>
                             </div>
 
                             <div class="form-group">
                                 <label for="weekly_workouts">Workout Sessions</label>
-                                <input type="number" id="weekly_workouts" name="weekly_workouts" min="0"
-                                    {{if .TodayFitness}}value="{{.TodayFitness.WeeklyWorkouts}}"{{end}} required>
-                                <small class="help-text">Resistance/HIIT sessions. 3 per week is the maintenance baseline.</small>
+                                <input type="number" id="weekly_workouts" name="weekly_workouts" min="0" {{if
+                                    .TodayFitness}}value="{{.TodayFitness.WeeklyWorkouts}}" {{end}} required>
+                                <small class="help-text">Resistance/HIIT sessions. 3 per week is the maintenance
+                                    baseline.</small>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="daily_steps">Daily Steps</label>
-                                <input type="number" id="daily_steps" name="daily_steps" min="0"
-                                    {{if .TodayFitness}}value="{{.TodayFitness.DailySteps}}"{{end}} required>
-                                <small class="help-text">Daily movement average. 8,000 steps is the neutral break-even point.</small>
+                                <input type="number" id="daily_steps" name="daily_steps" min="0" {{if
+                                    .TodayFitness}}value="{{.TodayFitness.DailySteps}}" {{end}} required>
+                                <small class="help-text">Daily movement average. 8,000 steps is the neutral break-even
+                                    point.</small>
                             </div>
 
                             <div class="form-group">
                                 <label for="weekly_mobility">Mobility Sessions</label>
-                                <input type="number" id="weekly_mobility" name="weekly_mobility" min="0"
-                                    {{if .TodayFitness}}value="{{.TodayFitness.WeeklyMobility}}"{{end}} required>
-                                <small class="help-text">Stretching/Range of motion. 3 per week is the maintenance baseline.</small>
+                                <input type="number" id="weekly_mobility" name="weekly_mobility" min="0" {{if
+                                    .TodayFitness}}value="{{.TodayFitness.WeeklyMobility}}" {{end}} required>
+                                <small class="help-text">Stretching/Range of motion. 3 per week is the maintenance
+                                    baseline.</small>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="cardio_recovery">Cardio Recovery (BPM Drop)</label>
-                                <input type="number" id="cardio_recovery" name="cardio_recovery" min="0"
-                                    {{if .TodayFitness}}value="{{.TodayFitness.CardioRecovery}}"{{end}} required>
-                                <small class="help-text">Heart rate drop 60s post-exercise. 20 BPM is the healthy baseline.</small>
+                                <input type="number" id="cardio_recovery" name="cardio_recovery" min="0" {{if
+                                    .TodayFitness}}value="{{.TodayFitness.CardioRecovery}}" {{end}} required>
+                                <small class="help-text">Heart rate drop 60s post-exercise. 20 BPM is the healthy
+                                    baseline.</small>
                             </div>
                         </div>
 
@@ -149,35 +173,38 @@
 
         <div class="card pillar-card">
             <div class="pillar-header" onclick="togglePillar('cognition')">
-                <h2>Cognition Pillar</h2>
+                <h2>Cognition</h2>
                 <span class="toggle-icon" id="cognition-icon">▶</span>
             </div>
             <div class="pillar-content" id="cognition-content" style="display: none;">
                 <div class="add-data-section">
                     <h3>This Week's Data</h3>
-                    <form hx-post="/add-cognition-metrics" hx-target="#cognition-metrics" hx-swap="innerHTML" hx-indicator="#cognition-spinner">
+                    <form hx-post="/add-cognition-metrics" hx-target="#cognition-metrics" hx-swap="innerHTML"
+                        hx-indicator="#cognition-spinner">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="dual_n_back">Dual N-Back Level</label>
-                                <input type="number" id="dual_n_back" name="dual_n_back" min="1"
-                                    {{if .TodayCognition}}value="{{.TodayCognition.DualNBackLevel}}"{{end}} required>
+                                <input type="number" id="dual_n_back" name="dual_n_back" min="1" {{if
+                                    .TodayCognition}}value="{{.TodayCognition.DualNBackLevel}}" {{end}} required>
                                 <small class="help-text">Working memory capacity. Baseline is Level 2.</small>
                             </div>
 
                             <div class="form-group">
                                 <label for="reaction_time">Reaction Time (ms)</label>
-                                <input type="number" id="reaction_time" name="reaction_time" min="0"
-                                    {{if .TodayCognition}}value="{{.TodayCognition.ReactionTime}}"{{end}} required>
-                                <small class="help-text">Neural processing speed. Measured against your age-adjusted average.</small>
+                                <input type="number" id="reaction_time" name="reaction_time" min="0" {{if
+                                    .TodayCognition}}value="{{.TodayCognition.ReactionTime}}" {{end}} required>
+                                <small class="help-text">Neural processing speed. Measured against your age-adjusted
+                                    average.</small>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="weekly_mindfulness">Mindfulness Sessions</label>
-                                <input type="number" id="weekly_mindfulness" name="weekly_mindfulness" min="0"
-                                    {{if .TodayCognition}}value="{{.TodayCognition.WeeklyMindfulness}}"{{end}} required>
-                                <small class="help-text">Stress regulation. 3 sessions per week is the maintenance baseline.</small>
+                                <input type="number" id="weekly_mindfulness" name="weekly_mindfulness" min="0" {{if
+                                    .TodayCognition}}value="{{.TodayCognition.WeeklyMindfulness}}" {{end}} required>
+                                <small class="help-text">Stress regulation. 3 sessions per week is the maintenance
+                                    baseline.</small>
                             </div>
                         </div>
 
@@ -201,47 +228,16 @@
             </div>
         </div>
 
-        <div class="card pillar-card">
-            <div class="pillar-header" onclick="togglePillar('settings')">
-                <h2>Biomarkers</h2>
-                <span class="toggle-icon" id="settings-icon">▶</span>
-            </div>
-            <div class="pillar-content" id="settings-content" style="display: none;">
-                <form hx-post="/update-profile" hx-indicator="#settings-spinner" hx-swap="none">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="birth_date">Birth Date</label>
-                            <input type="date" id="birth_date" name="birth_date" {{if .Profile}}value="{{.Profile.BirthDate}}"{{end}} required>
-                            <small class="help-text">Used to calculate your weekly biological entropy (Aging Tax).</small>
-                        </div>
+    </div>
 
-                        <div class="form-group">
-                            <label for="sex">Biological Sex</label>
-                            <select id="sex" name="sex" required>
-                                <option value="">Select...</option>
-                                <option value="male" {{if .Profile}}{{if eq .Profile.Sex "male" }}selected{{end}}{{end}}>Male</option>
-                                <option value="female" {{if .Profile}}{{if eq .Profile.Sex "female"}}selected{{end}}{{end}}>Female</option>
-                            </select>
-                            <small class="help-text">Used to set the correct biological baseline for VO2 Max scaling.</small>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="height_cm">Height (cm)</label>
-                            <input type="number" id="height_cm" name="height_cm" step="0.1" min="100" max="250" 
-                                {{if .Profile}}value="{{printf "%.1f" .Profile.HeightCm}}"{{end}} required>
-                            <small class="help-text">Static variable used for Waist-to-Height Ratio (WHtR) calculation.</small>
-                        </div>
-                    </div>
-
-                    <button type="submit">
-                        <span class="button-text">Update Profile</span>
-                        <div id="settings-spinner" class="spinner htmx-indicator"></div>
-                    </button>
-                </form>
-            </div>
-        </div>
+    <div id="rationale-button-container">
+        <a href="/rationale" style="text-decoration: none; color: inherit;">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="white">
+                <path d="M0 0h24v24H0z" fill="none" />
+                <path
+                    d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z" />
+            </svg>
+        </a>
     </div>
 
     <script>
@@ -263,4 +259,5 @@
         }
     </script>
 </body>
+
 </html>
