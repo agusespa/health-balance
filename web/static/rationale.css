@@ -1,106 +1,121 @@
+/* ---------- Header ---------- */
 .rationale-header {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 36px;
 }
 
 .rationale-header h1 {
-    font-size: 2em;
-    color: #333;
+    font-size: 1.9rem;
+    font-weight: 600;
+    color: var(--text-primary, #111827);
     margin-bottom: 10px;
-    line-height: 1.2;
+    line-height: 1.25;
 }
 
 .rationale-header p.lead {
-    font-size: 1.1em;
-    color: #555;
-    line-height: 1.5;
+    font-size: 1rem;
+    color: var(--text-secondary, #4b5563);
+    line-height: 1.55;
+    max-width: 680px;
+    margin: 0 auto;
 }
 
+/* ---------- Cards ---------- */
 .rationale-card {
-    background: white;
-    border-radius: 12px;
-    padding: 30px;
+    background: var(--surface, #ffffff);
+    border-radius: 14px;
+    padding: 28px;
     margin-bottom: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border, #e5e7eb);
 }
 
 .main-algo {
-    padding: 0px;
+    padding: 0;
 }
 
-.rationale-intro {
-    padding: 30px;
+.pillars {
+    padding: 28px;
 }
 
+/* ---------- Intro Block ---------- */
 .rationale-intro-header {
-    background: #f8f9fa;
+    background: var(--surface-muted, #f9fafb);
     border-radius: 12px;
-    padding: 30px;
-    margin-bottom: 20px;
+    padding: 26px;
 }
 
+/* ---------- Section Titles ---------- */
 .rationale-card h2 {
-    font-size: 1.5em;
-    color: #667eea;
-    margin-bottom: 15px;
-    border-bottom: 2px solid #667eea;
-    padding-bottom: 8px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--accent, #5b6ee1);
+    margin-bottom: 14px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border, #e5e7eb);
 }
 
+/* ---------- Concepts ---------- */
 .concept-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    gap: 18px;
     margin-top: 20px;
 }
 
 .concept-item {
-    background: #f8f9fa;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background: var(--surface-muted, #f9fafb);
+    border-radius: 10px;
+    padding: 18px;
+    border: 1px solid var(--border, #e5e7eb);
 }
 
 .concept-item h3 {
-    font-size: 1.1em;
-    color: #333;
-    margin-bottom: 10px;
-    border-bottom: none;
-    padding-bottom: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary, #111827);
+    margin-bottom: 8px;
 }
 
+/* ---------- Math ---------- */
 .math-display {
     text-align: center;
-    font-size: 1.2em;
-    margin: 15px 0;
-    color: #495057;
-    font-family: "Times New Roman", serif;
+    font-size: 1.05rem;
+    margin: 16px 0;
+    color: var(--text-secondary, #4b5563);
+    font-family: "Times New Roman", Georgia, serif;
+    letter-spacing: 0.01em;
 }
 
+/* ---------- Pillars ---------- */
 .pillars-container {
-    margin-top: 40px;
+    margin-top: 36px;
     display: grid;
     grid-template-columns: 1fr;
     gap: 20px;
 }
 
 .pillar-desc {
+    font-size: 0.85rem;
     font-style: italic;
-    color: #6c757d;
-    margin-bottom: 15px;
+    color: var(--text-muted, #6b7280);
+    margin-bottom: 14px;
+    line-height: 1.5;
 }
 
+/* ---------- Logic Lists ---------- */
 .logic-list {
     list-style-type: disc;
-    margin-left: 20px;
-    color: #495057;
+    margin-left: 18px;
+    color: var(--text-secondary, #4b5563);
+    font-size: 0.9rem;
 }
 
 .logic-list li {
     margin-bottom: 8px;
-    line-height: 1.4;
+    line-height: 1.45;
 }
 
+/* ---------- Responsive ---------- */
 @media (min-width: 768px) {
     .pillars-container {
         grid-template-columns: repeat(3, 1fr);
@@ -108,7 +123,7 @@
 }
 
 @media (max-width: 768px) {
-    .rationale-card {
+    .pillars {
         padding: 20px;
     }
     .concept-grid {
