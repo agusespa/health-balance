@@ -297,7 +297,7 @@ select {
 }
 
 .help-text {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     color: var(--text-muted);
     margin-top: 4px;
 }
@@ -523,6 +523,7 @@ th {
     color: #f87171;
     font-weight: 600;
 }
+
 .history-toggle .toggle-icon {
     color: white;
 }

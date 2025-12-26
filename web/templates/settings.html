@@ -4,9 +4,11 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Health Balance</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="stylesheet" href="/static/settings.css">
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
 </head>
 
 <body>
@@ -50,7 +52,7 @@
                             <div class="form-group">
                                 <label for="height_cm">Height (cm)</label>
                                 <input type="number" id="height_cm" name="height_cm" step="0.1" min="100" max="250" {{if
-                                    .Profile}}value="{{printf "%.1f" .Profile.HeightCm}}"{{end}} required>
+                                    .Profile}}value="{{printf " %.1f" .Profile.HeightCm}}"{{end}} required>
                                 <small class="help-text">Static variable used for Waist-to-Height Ratio (WHtR)
                                     calculation.</small>
                             </div>
@@ -63,8 +65,186 @@
                     </form>
                 </div>
             </div>
+
+            <div class="settings-card">
+                <div class="settings-header">
+                    <h2>Weekly Reminders</h2>
+                </div>
+                <div class="settings-content">
+                    <form id="notification-form" onsubmit="subscribeToPush(event)">
+                        <div class="toggle-row">
+                            <p class="help-text" style="margin: 0;">Enable Weekly Reminders</p>
+                            <label class="switch">
+                                <input type="checkbox" id="notification-toggle" onchange="toggleNotificationUI()" {{if
+                                    not .VapidPublicKey}}disabled{{else}}{{if .Subscription}}checked{{end}}{{end}}>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        {{if not .VapidPublicKey}}
+                        <div class="warning-box"
+                            style="margin-bottom: 1.25rem; padding: 12px; background: rgba(255, 193, 7, 0.1); border: 1px solid #ffc107; border-radius: 8px;">
+                            <p class="help-text" style="margin: 0; color: #856404; font-size: 0.85rem;">
+                                <strong>Notifications Not Configured:</strong> To enable reminders, you must provide
+                                <code>VAPID_PUBLIC_KEY</code> and <code>VAPID_PRIVATE_KEY</code> in your environment.
+                                See the README for instructions.
+                            </p>
+                        </div>
+                        {{end}}
+
+                        <div id="notification-settings"
+                            class="{{if or (not .Subscription) (not .VapidPublicKey)}}hidden{{end}}">
+                            <p class="help-text" style="margin-bottom: 1.25rem;">Receive a cross-platform push
+                                notification to record your metrics. <strong>Note for iOS:</strong> You must "Add to
+                                Home Screen" first.</p>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="reminder_day">Reminder Day</label>
+                                    <select id="reminder_day" name="reminder_day">
+                                        <option value="0" {{if .Subscription}}{{if eq .Subscription.ReminderDay
+                                            0}}selected{{end}}{{end}}>Sunday</option>
+                                        <option value="1" {{if .Subscription}}{{if eq .Subscription.ReminderDay
+                                            1}}selected{{end}}{{else}}selected{{end}}>Monday</option>
+                                        <option value="2" {{if .Subscription}}{{if eq .Subscription.ReminderDay
+                                            2}}selected{{end}}{{end}}>Tuesday</option>
+                                        <option value="3" {{if .Subscription}}{{if eq .Subscription.ReminderDay
+                                            3}}selected{{end}}{{end}}>Wednesday</option>
+                                        <option value="4" {{if .Subscription}}{{if eq .Subscription.ReminderDay
+                                            4}}selected{{end}}{{end}}>Thursday</option>
+                                        <option value="5" {{if .Subscription}}{{if eq .Subscription.ReminderDay
+                                            5}}selected{{end}}{{end}}>Friday</option>
+                                        <option value="6" {{if .Subscription}}{{if eq .Subscription.ReminderDay
+                                            6}}selected{{end}}{{end}}>Saturday</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reminder_time">Reminder Time</label>
+                                    <input type="time" id="reminder_time" name="reminder_time"
+                                        value="{{if .Subscription}}{{.Subscription.ReminderTime}}{{else}}09:00{{end}}">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="settings-button" id="subscribe-btn">
+                                <span class="button-text">{{if .Subscription}}Update Preferences{{else}}Enable
+                                    Notifications{{end}}</span>
+                                <div id="subscribe-spinner" class="spinner htmx-indicator"></div>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script>
+        const VAPID_PUBLIC_KEY = '{{.VapidPublicKey}}';
+
+        // Register Service Worker immediately
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').then(reg => {
+                console.log('SW registered:', reg.scope);
+            }).catch(err => {
+                console.error('SW registration failed:', err);
+            });
+        }
+
+        function toggleNotificationUI() {
+            const toggle = document.getElementById('notification-toggle');
+            const settingsSection = document.getElementById('notification-settings');
+            if (toggle.checked) {
+                settingsSection.classList.remove('hidden');
+            } else {
+                settingsSection.classList.add('hidden');
+            }
+        }
+
+        async function subscribeToPush(event) {
+            if (event) event.preventDefault();
+            const btn = document.getElementById('subscribe-btn');
+            const btnText = btn.querySelector('.button-text');
+            const spinner = document.getElementById('subscribe-spinner');
+
+            try {
+                btn.disabled = true;
+                if (spinner) spinner.classList.add('htmx-request');
+
+                if (!('serviceWorker' in navigator)) {
+                    throw new Error('Service Workers are not supported');
+                }
+
+                const registration = await navigator.serviceWorker.ready;
+                if (!registration.pushManager) {
+                    throw new Error('Push messaging not supported');
+                }
+
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    throw new Error('Permission denied');
+                }
+
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+                });
+
+                const reminderDay = parseInt(document.getElementById('reminder_day').value);
+                const reminderTime = document.getElementById('reminder_time').value;
+
+                const arrayBufferToBase64 = (buffer) => {
+                    const bytes = new Uint8Array(buffer);
+                    let binary = '';
+                    for (let i = 0; i < bytes.byteLength; i++) {
+                        binary += String.fromCharCode(bytes[i]);
+                    }
+                    return window.btoa(binary);
+                };
+
+                const payload = {
+                    subscription: {
+                        endpoint: subscription.endpoint,
+                        p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
+                        auth: arrayBufferToBase64(subscription.getKey('auth'))
+                    },
+                    reminder_day: reminderDay,
+                    reminder_time: reminderTime
+                };
+
+                const response = await fetch('/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    if (btnText) btnText.textContent = 'Update Preferences';
+                } else {
+                    throw new Error('Server error');
+                }
+            } catch (error) {
+                console.error('Subscription error:', error);
+                alert('Could not update notification preferences: ' + error.message);
+            } finally {
+                if (spinner) spinner.classList.remove('htmx-request');
+                btn.disabled = false;
+            }
+        }
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/\-/g, '+')
+                .replace(/_/g, '/');
+
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+    </script>
 </body>
 
 </html>

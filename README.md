@@ -14,6 +14,15 @@ It goes beyond simple activity tracking to assess Intrinsic Capacity —the tota
 > [!TIP]
 > To know more about it, run the app and visit the /rationale page.
 
+## Configuration
+The application is configured using environment variables. Most are **optional**:
+- `VAPID_PUBLIC_KEY`: (Optional) Your Web Push public key. Required to enable weekly reminders.
+- `VAPID_PRIVATE_KEY`: (Optional) Your Web Push private key. Required to enable weekly reminders.
+- `PORT`: (Optional) The port to listen on (default: `8080`).
+
+> [!NOTE]
+> If VAPID keys are not provided, the "Weekly Reminders" feature will be disabled in the settings UI.
+
 ## Quick Start
 
 You can run the application directly using Docker. Create a `docker-compose.yml` file with the following content:
@@ -26,6 +35,8 @@ services:
       - "8080:8080"
     environment:
       - DB_PATH=/data/health.db
+      - VAPID_PUBLIC_KEY=your_public_key_here
+      - VAPID_PRIVATE_KEY=your_private_key_here
     volumes:
       - ./data:/data
 ```

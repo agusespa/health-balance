@@ -22,6 +22,10 @@ type Querier interface {
 	GetRHRBaseline() (int, error)
 	GetUserProfile() (*models.UserProfile, error)
 	SaveUserProfile(profile models.UserProfile) error
+	SavePushSubscription(sub models.PushSubscription) error
+	GetSubscriptionsForNotification(day int, timeStr string) ([]models.PushSubscription, error)
+	GetAnyPushSubscription() (*models.PushSubscription, error)
+	DeletePushSubscription(endpoint string) error
 	Close() error
 }
 
@@ -289,5 +293,59 @@ func (db *DB) SaveUserProfile(profile models.UserProfile) error {
 		`, profile.BirthDate, profile.Sex, profile.HeightCm)
 	}
 
+	return err
+}
+
+func (db *DB) SavePushSubscription(sub models.PushSubscription) error {
+	_, err := db.Exec(`
+		INSERT INTO push_subscriptions (endpoint, p256dh, auth, reminder_day, reminder_time)
+		VALUES (?, ?, ?, ?, ?)
+		ON CONFLICT(endpoint) DO UPDATE SET
+			p256dh = excluded.p256dh,
+			auth = excluded.auth,
+			reminder_day = excluded.reminder_day,
+			reminder_time = excluded.reminder_time
+	`, sub.Endpoint, sub.P256dh, sub.Auth, sub.ReminderDay, sub.ReminderTime)
+	return err
+}
+
+func (db *DB) GetSubscriptionsForNotification(day int, timeStr string) ([]models.PushSubscription, error) {
+	rows, err := db.Query(`
+		SELECT id, endpoint, p256dh, auth, reminder_day, reminder_time
+		FROM push_subscriptions
+		WHERE reminder_day = ? AND reminder_time = ?
+	`, day, timeStr)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var subs []models.PushSubscription
+	for rows.Next() {
+		var s models.PushSubscription
+		if err := rows.Scan(&s.Id, &s.Endpoint, &s.P256dh, &s.Auth, &s.ReminderDay, &s.ReminderTime); err != nil {
+			return nil, err
+		}
+		subs = append(subs, s)
+	}
+	return subs, nil
+}
+
+func (db *DB) GetAnyPushSubscription() (*models.PushSubscription, error) {
+	var s models.PushSubscription
+	err := db.QueryRow(`
+		SELECT id, endpoint, p256dh, auth, reminder_day, reminder_time
+		FROM push_subscriptions
+		ORDER BY id DESC LIMIT 1
+	`).Scan(&s.Id, &s.Endpoint, &s.P256dh, &s.Auth, &s.ReminderDay, &s.ReminderTime)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return &s, err
+}
+
+func (db *DB) DeletePushSubscription(endpoint string) error {
+	_, err := db.Exec("DELETE FROM push_subscriptions WHERE endpoint = ?", endpoint)
 	return err
 }

@@ -9,6 +9,7 @@ import (
 
 	"health-balance/internal/database"
 	"health-balance/internal/handlers"
+	"health-balance/internal/services"
 )
 
 func main() {
@@ -59,6 +60,12 @@ func main() {
 	mux.HandleFunc("/add-fitness-metrics", h.HandleAddFitnessMetrics)
 	mux.HandleFunc("/cognition-metrics", h.HandleCognitionMetrics)
 	mux.HandleFunc("/add-cognition-metrics", h.HandleAddCognitionMetrics)
+	mux.HandleFunc("/subscribe", h.HandleSubscribe)
+	mux.HandleFunc("/sw.js", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "web/static/sw.js")
+	})
+
+	services.StartNotificationScheduler(db)
 
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
 

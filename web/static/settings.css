@@ -24,7 +24,8 @@
     margin: 0;
     flex-grow: 1;
     text-align: center;
-    transform: translateX(-12px); /* visual centering */
+    transform: translateX(-12px);
+    /* visual centering */
 }
 
 /* ---------- Back Link ---------- */
@@ -68,9 +69,86 @@
 }
 
 /* ---------- Settings Button ---------- */
-/* intentionally minimal; inherits base button behavior */
 .settings-button {
     margin-top: 12px;
+    width: 100%;
+}
+
+/* ---------- Form Normalization ---------- */
+input[type="time"],
+input[type="date"],
+input[type="number"],
+select {
+    height: 45px;
+    /* Force consistent height for all controls */
+}
+
+/* ---------- Toggle Switch ---------- */
+.toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border, #ccc);
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: var(--accent, #007bff);
+}
+
+input:checked+.slider:before {
+    transform: translateX(24px);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Specific font size adjustments for readability */
+.toggle-row .help-text {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+#notification-settings .help-text {
+    font-size: 0.9rem;
+    line-height: 1.5;
 }
 
 /* ---------- Responsive ---------- */

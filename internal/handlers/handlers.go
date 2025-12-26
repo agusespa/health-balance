@@ -12,6 +12,8 @@ import (
 	"health-balance/internal/models"
 	"health-balance/internal/services"
 	"health-balance/internal/utils"
+	"encoding/json"
+	"os"
 )
 
 type Handler struct {
@@ -72,7 +74,17 @@ func (h *Handler) HandleSettings(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	data := struct{ Profile *models.UserProfile }{Profile: profile}
+	sub, _ := h.db.GetAnyPushSubscription()
+
+	data := struct {
+		Profile         *models.UserProfile
+		Subscription    *models.PushSubscription
+		VapidPublicKey string
+	}{
+		Profile:        profile,
+		Subscription:   sub,
+		VapidPublicKey: os.Getenv("VAPID_PUBLIC_KEY"),
+	}
 	err_t := h.templates.ExecuteTemplate(w, "settings.html", data)
 	if err_t != nil {
 		log.Printf("Template execution error: %v", err_t)
@@ -292,6 +304,33 @@ func (h *Handler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte("Profile updated successfully."))
+}
+
+func (h *Handler) HandleSubscribe(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req models.PushSubscriptionRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("Error decoding subscription: %v", err)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	sub := req.Subscription
+	sub.ReminderDay = req.ReminderDay
+	sub.ReminderTime = req.ReminderTime
+
+	if err := h.db.SavePushSubscription(sub); err != nil {
+		log.Printf("Error saving subscription: %v", err)
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
 }
 
 // Helpers
