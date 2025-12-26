@@ -7,8 +7,25 @@ import (
 	"time"
 )
 
+type Querier interface {
+	GetAllDatesWithData() ([]string, error)
+	GetRecentHealthMetrics(limit int) ([]models.HealthMetrics, error)
+	GetRecentFitnessMetrics(limit int) ([]models.FitnessMetrics, error)
+	GetRecentCognitionMetrics(limit int) ([]models.CognitionMetrics, error)
+	SaveHealthMetrics(m models.HealthMetrics) error
+	SaveFitnessMetrics(m models.FitnessMetrics) error
+	SaveCognitionMetrics(m models.CognitionMetrics) error
+	GetHealthMetricsByDate(date string) (*models.HealthMetrics, error)
+	GetFitnessMetricsByDate(date string) (*models.FitnessMetrics, error)
+	GetCognitionMetricsByDate(date string) (*models.CognitionMetrics, error)
+	GetRHRBaseline() (int, error)
+	GetUserProfile() (*models.UserProfile, error)
+	SaveUserProfile(profile models.UserProfile) error
+	Close() error
+}
+
 // GetAllDatesWithData retrieves a unique, sorted list of all dates that have an entry in any of the three metric tables
-func GetAllDatesWithData(db *sql.DB) ([]string, error) {
+func (db *DB) GetAllDatesWithData() ([]string, error) {
 	query := `
 		SELECT date FROM health_metrics
 		UNION
@@ -39,7 +56,7 @@ func GetAllDatesWithData(db *sql.DB) ([]string, error) {
 	return dates, nil
 }
 
-func GetRecentHealthMetrics(db *sql.DB, limit int) ([]models.HealthMetrics, error) {
+func (db *DB) GetRecentHealthMetrics(limit int) ([]models.HealthMetrics, error) {
 	currentWeekDate := utils.GetPreviousSundayDate()
 	rows, err := db.Query(`
 		SELECT date, sleep_score, waist_cm, rhr, nutrition_score
@@ -66,7 +83,7 @@ func GetRecentHealthMetrics(db *sql.DB, limit int) ([]models.HealthMetrics, erro
 	return metrics, nil
 }
 
-func GetRecentFitnessMetrics(db *sql.DB, limit int) ([]models.FitnessMetrics, error) {
+func (db *DB) GetRecentFitnessMetrics(limit int) ([]models.FitnessMetrics, error) {
 	currentWeekDate := utils.GetPreviousSundayDate()
 	rows, err := db.Query(`
 		SELECT date, vo2_max, weekly_workouts, daily_steps, weekly_mobility, cardio_recovery
@@ -93,7 +110,7 @@ func GetRecentFitnessMetrics(db *sql.DB, limit int) ([]models.FitnessMetrics, er
 	return metrics, nil
 }
 
-func GetRecentCognitionMetrics(db *sql.DB, limit int) ([]models.CognitionMetrics, error) {
+func (db *DB) GetRecentCognitionMetrics(limit int) ([]models.CognitionMetrics, error) {
 	currentWeekDate := utils.GetPreviousSundayDate()
 	rows, err := db.Query(`
 		SELECT date, dual_n_back_level, reaction_time, weekly_mindfulness
@@ -120,7 +137,7 @@ func GetRecentCognitionMetrics(db *sql.DB, limit int) ([]models.CognitionMetrics
 	return metrics, nil
 }
 
-func SaveHealthMetrics(db *sql.DB, m models.HealthMetrics) error {
+func (db *DB) SaveHealthMetrics(m models.HealthMetrics) error {
 	date := utils.GetPreviousSundayDate()
 	_, err := db.Exec(`
 		INSERT INTO health_metrics (date, sleep_score, waist_cm, rhr, nutrition_score)
@@ -134,7 +151,7 @@ func SaveHealthMetrics(db *sql.DB, m models.HealthMetrics) error {
 	return err
 }
 
-func SaveFitnessMetrics(db *sql.DB, m models.FitnessMetrics) error {
+func (db *DB) SaveFitnessMetrics(m models.FitnessMetrics) error {
 	date := utils.GetPreviousSundayDate()
 	_, err := db.Exec(`
 		INSERT INTO fitness_metrics (date, vo2_max, weekly_workouts, daily_steps, weekly_mobility, cardio_recovery)
@@ -149,7 +166,7 @@ func SaveFitnessMetrics(db *sql.DB, m models.FitnessMetrics) error {
 	return err
 }
 
-func SaveCognitionMetrics(db *sql.DB, m models.CognitionMetrics) error {
+func (db *DB) SaveCognitionMetrics(m models.CognitionMetrics) error {
 	date := utils.GetPreviousSundayDate()
 	_, err := db.Exec(`
 		INSERT INTO cognition_metrics (date, dual_n_back_level, reaction_time, weekly_mindfulness)
@@ -162,7 +179,7 @@ func SaveCognitionMetrics(db *sql.DB, m models.CognitionMetrics) error {
 	return err
 }
 
-func GetHealthMetricsByDate(db *sql.DB, date string) (*models.HealthMetrics, error) {
+func (db *DB) GetHealthMetricsByDate(date string) (*models.HealthMetrics, error) {
 	var m models.HealthMetrics
 	err := db.QueryRow(`
 		SELECT date, sleep_score, waist_cm, rhr, nutrition_score
@@ -176,7 +193,7 @@ func GetHealthMetricsByDate(db *sql.DB, date string) (*models.HealthMetrics, err
 	return &m, nil
 }
 
-func GetFitnessMetricsByDate(db *sql.DB, date string) (*models.FitnessMetrics, error) {
+func (db *DB) GetFitnessMetricsByDate(date string) (*models.FitnessMetrics, error) {
 	var m models.FitnessMetrics
 	err := db.QueryRow(`
 		SELECT date, vo2_max, weekly_workouts, daily_steps, weekly_mobility, cardio_recovery
@@ -190,7 +207,7 @@ func GetFitnessMetricsByDate(db *sql.DB, date string) (*models.FitnessMetrics, e
 	return &m, nil
 }
 
-func GetCognitionMetricsByDate(db *sql.DB, date string) (*models.CognitionMetrics, error) {
+func (db *DB) GetCognitionMetricsByDate(date string) (*models.CognitionMetrics, error) {
 	var m models.CognitionMetrics
 	err := db.QueryRow(`
 		SELECT date, dual_n_back_level, reaction_time, weekly_mindfulness
@@ -205,7 +222,7 @@ func GetCognitionMetricsByDate(db *sql.DB, date string) (*models.CognitionMetric
 }
 
 // GetRHRBaseline calculates the 3-month average RHR
-func GetRHRBaseline(db *sql.DB) (int, error) {
+func (db *DB) GetRHRBaseline() (int, error) {
 	threeMonthsAgo := time.Now().AddDate(0, -3, 0).Format("2006-01-02")
 
 	var baseline int
@@ -222,7 +239,7 @@ func GetRHRBaseline(db *sql.DB) (int, error) {
 	return baseline, nil
 }
 
-func GetUserProfile(db *sql.DB) (*models.UserProfile, error) {
+func (db *DB) GetUserProfile() (*models.UserProfile, error) {
 	var profile models.UserProfile
 	err := db.QueryRow("SELECT id, birth_date, sex, height_cm FROM user_profile ORDER BY id DESC LIMIT 1").
 		Scan(&profile.Id, &profile.BirthDate, &profile.Sex, &profile.HeightCm)
@@ -234,7 +251,7 @@ func GetUserProfile(db *sql.DB) (*models.UserProfile, error) {
 	return &profile, err
 }
 
-func SaveUserProfile(db *sql.DB, profile models.UserProfile) error {
+func (db *DB) SaveUserProfile(profile models.UserProfile) error {
 	// Check if a profile already exists
 	var existingID int
 	err := db.QueryRow("SELECT id FROM user_profile LIMIT 1").Scan(&existingID)

@@ -1,7 +1,6 @@
 package services
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"health-balance/internal/database"
@@ -11,7 +10,7 @@ import (
 	"time"
 )
 
-func GetCurrentMasterScore(db *sql.DB) (*models.MasterScore, error) {
+func GetCurrentMasterScore(db database.Querier) (*models.MasterScore, error) {
 	scores, err := GetAllWeeklyScores(db)
 	if err != nil || len(scores) == 0 {
 		return &models.MasterScore{
@@ -22,13 +21,13 @@ func GetCurrentMasterScore(db *sql.DB) (*models.MasterScore, error) {
 	return &scores[0], nil
 }
 
-func GetAllWeeklyScores(db *sql.DB) ([]models.MasterScore, error) {
-	allDates, err := database.GetAllDatesWithData(db)
+func GetAllWeeklyScores(db database.Querier) ([]models.MasterScore, error) {
+	allDates, err := db.GetAllDatesWithData()
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch dates: %w", err)
 	}
 
-	profile, err := database.GetUserProfile(db)
+	profile, err := db.GetUserProfile()
 	if err != nil || profile == nil {
 		return nil, errors.New("profile required for master score calculation")
 	}
@@ -44,16 +43,16 @@ func GetAllWeeklyScores(db *sql.DB) ([]models.MasterScore, error) {
 			return nil, fmt.Errorf("calculation aborted: invalid profile for date %s: %w", date, err)
 		}
 
-		h, _ := database.GetHealthMetricsByDate(db, date)
-		f, _ := database.GetFitnessMetricsByDate(db, date)
-		c, _ := database.GetCognitionMetricsByDate(db, date)
+		h, _ := db.GetHealthMetricsByDate(date)
+		f, _ := db.GetFitnessMetricsByDate(date)
+		c, _ := db.GetCognitionMetricsByDate(date)
 
 		// Only calculate if all three pillars exist for this date
 		if h == nil || f == nil || c == nil {
 			continue
 		}
 
-		rhrBaseline, _ := database.GetRHRBaseline(db)
+		rhrBaseline, _ := db.GetRHRBaseline()
 		if rhrBaseline == 0 {
 			rhrBaseline = h.RHR
 		}

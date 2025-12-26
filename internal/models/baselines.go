@@ -1,5 +1,7 @@
 package models
 
+import "strings"
+
 // GetVO2MaxBaseline returns the age and sex-based VO2 Max baseline
 func GetVO2MaxBaseline(age int, sex string) float64 {
 	var baseline float64
@@ -19,7 +21,7 @@ func GetVO2MaxBaseline(age int, sex string) float64 {
 		baseline = 24.0
 	}
 
-	if sex == "male" {
+	if strings.ToLower(sex) == "male" {
 		baseline += 6.0
 	}
 
