@@ -1,16 +1,18 @@
 package handlers
 
 import (
-	"bytes"
 	"database/sql"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"health-balance/internal/database"
 	"health-balance/internal/models"
 	"health-balance/internal/services"
+	"health-balance/internal/utils"
 )
 
 type Handler struct {
@@ -38,28 +40,62 @@ type DashboardData struct {
 
 func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 	currentScore, _ := services.GetCurrentMasterScore(h.db)
-	recentHealth, _ := database.GetRecentHealthMetrics(h.db, 5)
-	recentFitness, _ := database.GetRecentFitnessMetrics(h.db, 5)
-	recentCognition, _ := database.GetRecentCognitionMetrics(h.db, 5)
 	profile, _ := database.GetUserProfile(h.db)
-
-	date := database.GetPreviousSundayDate()
+	date := utils.GetPreviousSundayDate()
 	todayHealth, _ := database.GetHealthMetricsByDate(h.db, date)
 	todayFitness, _ := database.GetFitnessMetricsByDate(h.db, date)
 	todayCognition, _ := database.GetCognitionMetricsByDate(h.db, date)
 
 	data := DashboardData{
-		CurrentScore:    currentScore,
-		RecentHealth:    recentHealth,
-		RecentFitness:   recentFitness,
-		RecentCognition: recentCognition,
-		Profile:         profile,
-		TodayHealth:     todayHealth,
-		TodayFitness:    todayFitness,
-		TodayCognition:  todayCognition,
+		CurrentScore:   currentScore,
+		Profile:        profile,
+		TodayHealth:    todayHealth,
+		TodayFitness:   todayFitness,
+		TodayCognition: todayCognition,
 	}
 
 	h.templates.ExecuteTemplate(w, "index.html", data)
+}
+
+func (h *Handler) HandleSettings(w http.ResponseWriter, r *http.Request) {
+	profile, err := database.GetUserProfile(h.db)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// If no profile exists, create an empty/default one
+	if profile == nil {
+		profile = &models.UserProfile{
+			Id:        1,
+			BirthDate: "",
+			Sex:       "",
+			HeightCm:  0,
+		}
+	}
+
+	data := struct {
+		Profile *models.UserProfile
+	}{
+		Profile: profile,
+	}
+
+	err_t := h.templates.ExecuteTemplate(w, "settings.html", data)
+	if err_t != nil {
+		log.Printf("Template execution error: %v", err_t)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+}
+
+func (h *Handler) HandleRationale(w http.ResponseWriter, r *http.Request) {
+	err := h.templates.ExecuteTemplate(w, "rationale.html", nil)
+	if err != nil {
+		log.Printf("Template execution error: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *Handler) HandleCurrentScore(w http.ResponseWriter, r *http.Request) {
@@ -119,47 +155,41 @@ func (h *Handler) HandleAddHealthMetrics(w http.ResponseWriter, r *http.Request)
 
 	r.ParseForm()
 
-	health := models.HealthMetrics{
-		SleepScore:     parseInt(r.FormValue("sleep_score")),
-		WaistCm:        parseFloat(r.FormValue("waist_cm")),
-		RHR:            parseInt(r.FormValue("rhr")),
-		NutritionScore: parseFloat(r.FormValue("nutrition_score")),
+	var errs []string
+	getF := func(key string) float64 {
+		val, err := parseFormFloat(r, key)
+		if err != nil {
+			errs = append(errs, err.Error())
+		}
+		return val
+	}
+	getI := func(key string) int {
+		val, err := parseFormInt(r, key)
+		if err != nil {
+			errs = append(errs, err.Error())
+		}
+		return val
 	}
 
-	if err := database.SaveHealthMetrics(h.db, health); err != nil {
-		// Return error toast with OOB swap
-		toastData := struct {
-			Message   string
-			IsSuccess bool
-		}{
-			Message:   "❌ Error saving data",
-			IsSuccess: false,
-		}
-		h.templates.ExecuteTemplate(w, "toast.html", toastData)
+	health := models.HealthMetrics{
+		SleepScore:     getI("sleep_score"),
+		WaistCm:        getF("waist_cm"),
+		RHR:            getI("rhr"),
+		NutritionScore: getF("nutrition_score"),
+	}
+
+	if len(errs) > 0 {
+		http.Error(w, strings.Join(errs, ", "), http.StatusBadRequest)
 		return
 	}
 
-	// Get updated metrics
-	metrics, _ := database.GetRecentHealthMetrics(h.db, 5)
-
-	// Render metrics table
-	var metricsHTML bytes.Buffer
-	h.templates.ExecuteTemplate(&metricsHTML, "health_metrics.html", metrics)
-
-	// Render success toast
-	toastData := struct {
-		Message   string
-		IsSuccess bool
-	}{
-		Message:   "✅ Health data saved!",
-		IsSuccess: true,
+	if err := database.SaveHealthMetrics(h.db, health); err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
 	}
-	var toastHTML bytes.Buffer
-	h.templates.ExecuteTemplate(&toastHTML, "toast.html", toastData)
 
-	// Write both responses
-	w.Write(metricsHTML.Bytes())
-	w.Write(toastHTML.Bytes())
+	w.Header().Set("HX-Trigger", "refreshScore")
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *Handler) HandleAddFitnessMetrics(w http.ResponseWriter, r *http.Request) {
@@ -170,48 +200,42 @@ func (h *Handler) HandleAddFitnessMetrics(w http.ResponseWriter, r *http.Request
 
 	r.ParseForm()
 
-	fitness := models.FitnessMetrics{
-		VO2Max:         parseFloat(r.FormValue("vo2_max")),
-		WeeklyWorkouts: parseInt(r.FormValue("weekly_workouts")),
-		DailySteps:     parseInt(r.FormValue("daily_steps")),
-		WeeklyMobility: parseInt(r.FormValue("weekly_mobility")),
-		CardioRecovery: parseInt(r.FormValue("cardio_recovery")),
+	var errs []string
+	getI := func(key string) int {
+		val, err := parseFormInt(r, key)
+		if err != nil {
+			errs = append(errs, err.Error())
+		}
+		return val
+	}
+	getF := func(key string) float64 {
+		val, err := parseFormFloat(r, key)
+		if err != nil {
+			errs = append(errs, err.Error())
+		}
+		return val
 	}
 
-	if err := database.SaveFitnessMetrics(h.db, fitness); err != nil {
-		// Return error toast with OOB swap
-		toastData := struct {
-			Message   string
-			IsSuccess bool
-		}{
-			Message:   "❌ Error saving data",
-			IsSuccess: false,
-		}
-		h.templates.ExecuteTemplate(w, "toast.html", toastData)
+	fitness := models.FitnessMetrics{
+		VO2Max:         getF("vo2_max"),
+		WeeklyWorkouts: getI("weekly_workouts"),
+		DailySteps:     getI("daily_steps"),
+		WeeklyMobility: getI("weekly_mobility"),
+		CardioRecovery: getI("cardio_recovery"),
+	}
+
+	if len(errs) > 0 {
+		http.Error(w, strings.Join(errs, ", "), http.StatusBadRequest)
 		return
 	}
 
-	// Get updated metrics
-	metrics, _ := database.GetRecentFitnessMetrics(h.db, 5)
-
-	// Render metrics table
-	var metricsHTML bytes.Buffer
-	h.templates.ExecuteTemplate(&metricsHTML, "fitness_metrics.html", metrics)
-
-	// Render success toast
-	toastData := struct {
-		Message   string
-		IsSuccess bool
-	}{
-		Message:   "✅ Fitness data saved!",
-		IsSuccess: true,
+	if err := database.SaveFitnessMetrics(h.db, fitness); err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
 	}
-	var toastHTML bytes.Buffer
-	h.templates.ExecuteTemplate(&toastHTML, "toast.html", toastData)
 
-	// Write both responses
-	w.Write(metricsHTML.Bytes())
-	w.Write(toastHTML.Bytes())
+	w.Header().Set("HX-Trigger", "refreshScore")
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *Handler) HandleAddCognitionMetrics(w http.ResponseWriter, r *http.Request) {
@@ -222,46 +246,33 @@ func (h *Handler) HandleAddCognitionMetrics(w http.ResponseWriter, r *http.Reque
 
 	r.ParseForm()
 
-	cognition := models.CognitionMetrics{
-		DualNBackLevel:    parseInt(r.FormValue("dual_n_back")),
-		ReactionTime:      parseInt(r.FormValue("reaction_time")),
-		WeeklyMindfulness: parseInt(r.FormValue("weekly_mindfulness")),
+	var errs []string
+	getI := func(key string, label string) int {
+		val, err := parseFormInt(r, key)
+		if err != nil {
+			errs = append(errs, fmt.Sprintf("%s is required and must be a number", label))
+		}
+		return val
 	}
 
-	if err := database.SaveCognitionMetrics(h.db, cognition); err != nil {
-		// Return error toast with OOB swap
-		toastData := struct {
-			Message   string
-			IsSuccess bool
-		}{
-			Message:   "❌ Error saving data",
-			IsSuccess: false,
-		}
-		h.templates.ExecuteTemplate(w, "toast.html", toastData)
+	cognition := models.CognitionMetrics{
+		DualNBackLevel:    getI("dual_n_back", "Dual N-Back Level"),
+		ReactionTime:      getI("reaction_time", "Reaction Time"),
+		WeeklyMindfulness: getI("weekly_mindfulness", "Weekly Mindfulness"),
+	}
+
+	if len(errs) > 0 {
+		http.Error(w, strings.Join(errs, ", "), http.StatusBadRequest)
 		return
 	}
 
-	// Get updated metrics
-	metrics, _ := database.GetRecentCognitionMetrics(h.db, 5)
-
-	// Render metrics table
-	var metricsHTML bytes.Buffer
-	h.templates.ExecuteTemplate(&metricsHTML, "cognition_metrics.html", metrics)
-
-	// Render success toast
-	toastData := struct {
-		Message   string
-		IsSuccess bool
-	}{
-		Message:   "✅ Cognition data saved!",
-		IsSuccess: true,
+	if err := database.SaveCognitionMetrics(h.db, cognition); err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
 	}
-	var toastHTML bytes.Buffer
-	h.templates.ExecuteTemplate(&toastHTML, "toast.html", toastData)
 
-	// Write both responses
-	w.Write(metricsHTML.Bytes())
-	w.Write(toastHTML.Bytes())
+	w.Header().Set("HX-Trigger", "refreshScore")
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *Handler) HandleCalculateScore(w http.ResponseWriter, r *http.Request) {
@@ -279,15 +290,12 @@ func (h *Handler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get existing profile to get the ID
 	existingProfile, err := database.GetUserProfile(h.db)
 	if err != nil && err != sql.ErrNoRows {
-		// Handle potential database errors
 		http.Error(w, "Error fetching profile", http.StatusInternalServerError)
 		return
 	}
 
-	// Create a new profile object or use the existing one
 	var profile models.UserProfile
 	if existingProfile != nil {
 		profile = *existingProfile
@@ -296,81 +304,41 @@ func (h *Handler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	profile.BirthDate = r.FormValue("birth_date")
 	profile.Sex = r.FormValue("sex")
-	profile.HeightCm = parseFloat(r.FormValue("height_cm"))
+
+	height, err := parseFormFloat(r, "height_cm")
+	if err != nil {
+		http.Error(w, "Invalid height value", http.StatusBadRequest)
+		return
+	}
+	profile.HeightCm = height
 
 	if err := database.SaveUserProfile(h.db, profile); err != nil {
-		// Return error toast with OOB swap
-		toastData := struct {
-			Message   string
-			IsSuccess bool
-		}{
-			Message:   "❌ Error updating profile",
-			IsSuccess: false,
-		}
-		h.templates.ExecuteTemplate(w, "toast.html", toastData)
+		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
-	// Return success toast with OOB swap
-	toastData := struct {
-		Message   string
-		IsSuccess bool
-	}{
-		Message:   "✅ Profile updated!",
-		IsSuccess: true,
-	}
-	h.templates.ExecuteTemplate(w, "toast.html", toastData)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Profile updated successfully."))
 }
 
-func (h *Handler) HandleSettings(w http.ResponseWriter, r *http.Request) {
-	profile, err := database.GetUserProfile(h.db)
+func parseFormInt(r *http.Request, key string) (int, error) {
+	val := r.FormValue(key)
+	if val == "" {
+		return 0, fmt.Errorf("%s is required", key)
+	}
+	return strconv.Atoi(val)
+}
+
+func parseFormFloat(r *http.Request, key string) (float64, error) {
+	val := r.FormValue(key)
+	if val == "" {
+		return 0, fmt.Errorf("%s is required", key)
+	}
+
+	f, err := strconv.ParseFloat(val, 64)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
+		return 0, fmt.Errorf("%s must be a valid decimal number", key)
 	}
 
-	// If no profile exists, create an empty/default one
-	if profile == nil {
-		profile = &models.UserProfile{
-			Id:        1,
-			BirthDate: "",
-			Sex:       "",
-			HeightCm:  0,
-		}
-	}
-
-	data := struct {
-		Profile *models.UserProfile
-	}{
-		Profile: profile,
-	}
-
-	err_t := h.templates.ExecuteTemplate(w, "settings.html", data)
-	if err_t != nil {
-		log.Printf("Template execution error: %v", err_t)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-}
-
-func (h *Handler) HandleRationale(w http.ResponseWriter, r *http.Request) {
-	err := h.templates.ExecuteTemplate(w, "rationale.html", nil)
-	if err != nil {
-		log.Printf("Template execution error: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-}
-
-func parseInt(s string) int {
-	var i int
-	fmt.Sscanf(s, "%d", &i)
-	return i
-}
-
-func parseFloat(s string) float64 {
-	var f float64
-	fmt.Sscanf(s, "%f", &f)
-	return f
+	return f, nil
 }

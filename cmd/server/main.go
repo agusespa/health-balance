@@ -44,10 +44,10 @@ func main() {
 	http.HandleFunc("/settings", h.HandleSettings)
 	http.HandleFunc("/rationale", h.HandleRationale)
 
+	http.HandleFunc("/update-profile", h.HandleUpdateProfile)
+
 	http.HandleFunc("/current-score", h.HandleCurrentScore)
 	http.HandleFunc("/scores", h.HandleScores)
-	http.HandleFunc("/calculate-score", h.HandleCalculateScore)
-	http.HandleFunc("/update-profile", h.HandleUpdateProfile)
 
 	http.HandleFunc("/health-metrics", h.HandleHealthMetrics)
 	http.HandleFunc("/add-health-metrics", h.HandleAddHealthMetrics)

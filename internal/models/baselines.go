@@ -1,43 +1,32 @@
 package models
 
 // GetVO2MaxBaseline returns the age and sex-based VO2 Max baseline
-// Based on standard fitness norms
 func GetVO2MaxBaseline(age int, sex string) float64 {
-	if sex == "male" {
-		switch {
-		case age < 30:
-			return 44.0
-		case age < 40:
-			return 42.0
-		case age < 50:
-			return 39.0
-		case age < 60:
-			return 36.0
-		case age < 70:
-			return 33.0
-		default:
-			return 30.0
-		}
-	} else { // female
-		switch {
-		case age < 30:
-			return 38.0
-		case age < 40:
-			return 36.0
-		case age < 50:
-			return 33.0
-		case age < 60:
-			return 30.0
-		case age < 70:
-			return 27.0
-		default:
-			return 24.0
-		}
+	var baseline float64
+
+	switch {
+	case age < 30:
+		baseline = 38.0
+	case age < 40:
+		baseline = 36.0
+	case age < 50:
+		baseline = 33.0
+	case age < 60:
+		baseline = 30.0
+	case age < 70:
+		baseline = 27.0
+	default:
+		baseline = 24.0
 	}
+
+	if sex == "male" {
+		baseline += 6.0
+	}
+
+	return baseline
 }
 
 // GetReactionTimeBaseline returns the age-based reaction time baseline in ms
-// Based on human performance research
 func GetReactionTimeBaseline(age int) int {
 	switch {
 	case age < 20:
