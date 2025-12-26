@@ -14,7 +14,15 @@ It goes beyond simple activity tracking to assess Intrinsic Capacity —the tota
 > [!TIP]
 > To know more about it, run the app and visit the /rationale page.
 
-## Configuration
+## Quick Start
+
+The application is distributed as a multi-platform Docker image via the GitHub Container Registry. For the best experience on a local machine, use the provided docker-compose.yml.
+Navigate to the project root and run:
+```bash
+docker-compose up -d
+```
+
+### Configuration
 The application is configured using environment variables. Most are **optional**:
 - `VAPID_PUBLIC_KEY`: (Optional) Your Web Push public key. Required to enable weekly reminders.
 - `VAPID_PRIVATE_KEY`: (Optional) Your Web Push private key. Required to enable weekly reminders.
@@ -23,29 +31,18 @@ The application is configured using environment variables. Most are **optional**
 > [!NOTE]
 > If VAPID keys are not provided, the "Weekly Reminders" feature will be disabled in the settings UI.
 
-## Quick Start
-
-You can run the application directly using Docker. Create a `docker-compose.yml` file with the following content:
-
-```yaml
-services:
-  app:
-    image: ghcr.io/agusespa/health-balance:latest
-    ports:
-      - "8080:8080"
-    environment:
-      - DB_PATH=/data/health.db
-      - VAPID_PUBLIC_KEY=your_public_key_here
-      - VAPID_PRIVATE_KEY=your_private_key_here
-    volumes:
-      - ./data:/data
-```
-
-Then run:
-
+To provide variables, create a .env file in the same directory as the docker-compose.yml:
 ```bash
-docker-compose up -d
+VAPID_PUBLIC_KEY=your_key_here
+VAPID_PRIVATE_KEY=your_key_here
 ```
+Use the provided script to generate them:
+```sh
+chmod +x scripts/generate-keys.sh
+./scripts/generate-keys.sh
+```
+
+Bash
 
 ## Data Persistence
 

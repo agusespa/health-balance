@@ -1,9 +1,14 @@
 services:
   app:
-    build: .
+    image: ghcr.io/agusespa/health-balance:latest
+    container_name: health-balance
+    restart: unless-stopped
     ports:
       - "8080:8080"
     environment:
-      - DB_PATH=/data/health.db
+      - DB_PATH=/app/data/health.db
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
+      - PORT=8080
     volumes:
-      - ./data:/data
+      - ./data:/app/data

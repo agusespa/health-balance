@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 COVERAGE_THRESHOLD=70
 
 echo ">> Running security audit..."
