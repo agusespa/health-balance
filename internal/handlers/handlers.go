@@ -8,11 +8,11 @@ import (
 	"strconv"
 	"strings"
 
+	"encoding/json"
 	"health-balance/internal/database"
 	"health-balance/internal/models"
 	"health-balance/internal/services"
 	"health-balance/internal/utils"
-	"encoding/json"
 	"os"
 )
 
@@ -77,8 +77,8 @@ func (h *Handler) HandleSettings(w http.ResponseWriter, r *http.Request) {
 	sub, _ := h.db.GetAnyPushSubscription()
 
 	data := struct {
-		Profile         *models.UserProfile
-		Subscription    *models.PushSubscription
+		Profile        *models.UserProfile
+		Subscription   *models.PushSubscription
 		VapidPublicKey string
 	}{
 		Profile:        profile,
@@ -330,7 +330,9 @@ func (h *Handler) HandleSubscribe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+	if err := json.NewEncoder(w).Encode(map[string]string{"status": "success"}); err != nil {
+		log.Printf("Error encoding response: %v", err)
+	}
 }
 
 // Helpers

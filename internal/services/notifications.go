@@ -1,6 +1,7 @@
 package services
 
 import (
+	"crypto/ecdh"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -28,16 +29,14 @@ func getVapidKeys() (string, string) {
 func StartNotificationScheduler(db database.Querier) {
 	ticker := time.NewTicker(1 * time.Minute)
 	go func() {
-		for {
-			select {
-			case now := <-ticker.C:
-				checkAndSendNotifications(db, now)
-			}
+		for range ticker.C {
+			checkAndSendNotifications(db)
 		}
 	}()
 }
 
-func checkAndSendNotifications(db database.Querier, now time.Time) {
+func checkAndSendNotifications(db database.Querier) {
+	now := time.Now()
 	day := int(now.Weekday())
 	timeStr := now.Format("15:04")
 
@@ -112,7 +111,11 @@ func sendPush(db database.Querier, sub models.PushSubscription, priv *ecdsa.Priv
 		log.Printf("Failed to send push to %s: %v", sub.Endpoint, err)
 		return
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Printf("Error closing response body: %v", err)
+		}
+	}()
 
 	if resp.StatusCode == http.StatusGone || resp.StatusCode == http.StatusNotFound {
 		log.Printf("Push subscription stale (%d), purging from database: %s", resp.StatusCode, sub.Endpoint)
@@ -138,17 +141,25 @@ func decodePrivateKey(encoded string) (*ecdsa.PrivateKey, error) {
 		return nil, fmt.Errorf("invalid private key length: %d", len(raw))
 	}
 
-	priv := new(ecdsa.PrivateKey)
-	priv.Curve = elliptic.P256()
-	priv.D = new(big.Int).SetBytes(raw)
-	priv.PublicKey.Curve = elliptic.P256()
-	priv.PublicKey.X, priv.PublicKey.Y = priv.Curve.ScalarBaseMult(raw)
-	return priv, nil
+	k, err := ecdh.P256().NewPrivateKey(raw)
+	if err != nil {
+		return nil, err
+	}
+
+	pubBytes := k.PublicKey().Bytes() // 0x04 + X (32 bytes) + Y (32 bytes)
+	return &ecdsa.PrivateKey{
+		PublicKey: ecdsa.PublicKey{
+			Curve: elliptic.P256(),
+			X:     new(big.Int).SetBytes(pubBytes[1:33]),
+			Y:     new(big.Int).SetBytes(pubBytes[33:]),
+		},
+		D: new(big.Int).SetBytes(raw),
+	}, nil
 }
 
 func createVAPIDToken(audience string, priv *ecdsa.PrivateKey) (string, error) {
 	header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"ES256","typ":"JWT"}`))
-	
+
 	payloadMap := map[string]interface{}{
 		"aud": audience,
 		"exp": time.Now().Add(24 * time.Hour).Unix(),
@@ -167,7 +178,7 @@ func createVAPIDToken(audience string, priv *ecdsa.PrivateKey) (string, error) {
 	// ES256 signature is R and S concatenated (32 bytes each)
 	rBytes := r.Bytes()
 	sBytes := s.Bytes()
-	
+
 	// Pad to 32 bytes if necessary
 	sig := make([]byte, 64)
 	copy(sig[32-len(rBytes):32], rBytes)

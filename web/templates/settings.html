@@ -52,7 +52,7 @@
                             <div class="form-group">
                                 <label for="height_cm">Height (cm)</label>
                                 <input type="number" id="height_cm" name="height_cm" step="0.1" min="100" max="250" {{if
-                                    .Profile}}value="{{printf " %.1f" .Profile.HeightCm}}"{{end}} required>
+                                    .Profile}}value="{{printf "%.1f" .Profile.HeightCm}}"{{end}} required>
                                 <small class="help-text">Static variable used for Waist-to-Height Ratio (WHtR)
                                     calculation.</small>
                             </div>

@@ -318,7 +318,11 @@ func (db *DB) GetSubscriptionsForNotification(day int, timeStr string) ([]models
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("error closing rows: %v", err)
+		}
+	}()
 
 	var subs []models.PushSubscription
 	for rows.Next() {
