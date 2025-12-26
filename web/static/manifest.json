@@ -1,0 +1,15 @@
+{
+  "name": "Health Balance",
+  "short_name": "Health",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#262626",
+  "theme_color": "#5b6ee1",
+  "icons": [
+    {
+      "src": "/static/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

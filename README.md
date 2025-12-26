@@ -1,6 +1,7 @@
 # Health Balance Tracker
 
-It keeps track of a Biological Reserve Score, a weighted algorithm that measures functional longevity. It moves beyond simple activity tracking to assess Intrinsic Capacity —the total sum of your physical and mental resources.
+A PWA that keeps track of your Biological Reserve Score, a weighted algorithm that measures functional longevity. 
+It goes beyond simple activity tracking to assess Intrinsic Capacity —the total sum of your physical and mental resources.
 
 ### Features
 - **Overall Score Algorithm**: Starting at 1000 points, your score evolves weekly based on performance and aging.
@@ -34,8 +35,6 @@ Then run:
 ```bash
 docker-compose up -d
 ```
-
-Access the application at [http://localhost:8080](http://localhost:8080).
 
 ## Data Persistence
 
