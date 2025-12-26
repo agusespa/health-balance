@@ -19,6 +19,9 @@ type Querier interface {
 	GetHealthMetricsByDate(date string) (*models.HealthMetrics, error)
 	GetFitnessMetricsByDate(date string) (*models.FitnessMetrics, error)
 	GetCognitionMetricsByDate(date string) (*models.CognitionMetrics, error)
+	DeleteHealthMetrics(date string) error
+	DeleteFitnessMetrics(date string) error
+	DeleteCognitionMetrics(date string) error
 	GetRHRBaseline() (int, error)
 	GetUserProfile() (*models.UserProfile, error)
 	SaveUserProfile(profile models.UserProfile) error
@@ -240,6 +243,21 @@ func (db *DB) GetCognitionMetricsByDate(date string) (*models.CognitionMetrics, 
 		return nil, err
 	}
 	return &m, nil
+}
+
+func (db *DB) DeleteHealthMetrics(date string) error {
+	_, err := db.Exec("DELETE FROM health_metrics WHERE date = ?", date)
+	return err
+}
+
+func (db *DB) DeleteFitnessMetrics(date string) error {
+	_, err := db.Exec("DELETE FROM fitness_metrics WHERE date = ?", date)
+	return err
+}
+
+func (db *DB) DeleteCognitionMetrics(date string) error {
+	_, err := db.Exec("DELETE FROM cognition_metrics WHERE date = ?", date)
+	return err
 }
 
 // GetRHRBaseline calculates the 3-month average RHR

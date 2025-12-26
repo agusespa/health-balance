@@ -56,10 +56,13 @@ func main() {
 	mux.HandleFunc("/scores", h.HandleScores)
 	mux.HandleFunc("/health-metrics", h.HandleHealthMetrics)
 	mux.HandleFunc("/add-health-metrics", h.HandleAddHealthMetrics)
+	mux.HandleFunc("/delete-health-metric", h.HandleDeleteHealthMetric)
 	mux.HandleFunc("/fitness-metrics", h.HandleFitnessMetrics)
 	mux.HandleFunc("/add-fitness-metrics", h.HandleAddFitnessMetrics)
+	mux.HandleFunc("/delete-fitness-metric", h.HandleDeleteFitnessMetric)
 	mux.HandleFunc("/cognition-metrics", h.HandleCognitionMetrics)
 	mux.HandleFunc("/add-cognition-metrics", h.HandleAddCognitionMetrics)
+	mux.HandleFunc("/delete-cognition-metric", h.HandleDeleteCognitionMetric)
 	mux.HandleFunc("/subscribe", h.HandleSubscribe)
 	mux.HandleFunc("/sw.js", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "web/static/sw.js")

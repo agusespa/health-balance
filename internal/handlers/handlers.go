@@ -98,7 +98,7 @@ func (h *Handler) HandleRationale(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleCurrentScore(w http.ResponseWriter, r *http.Request) {
 	currentScore, _ := services.GetCurrentMasterScore(h.db)
 	data := struct{ CurrentScore *models.MasterScore }{CurrentScore: currentScore}
-	h.render(w, "score_display.html", data)
+	h.render(w, "score_display", data)
 }
 
 func (h *Handler) HandleScores(w http.ResponseWriter, r *http.Request) {
@@ -273,6 +273,72 @@ func (h *Handler) HandleAddCognitionMetrics(w http.ResponseWriter, r *http.Reque
 
 	w.Header().Set("HX-Trigger", "refreshScore")
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Handler) HandleDeleteHealthMetric(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	date := r.URL.Query().Get("date")
+	if date == "" {
+		http.Error(w, "Date is required", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.db.DeleteHealthMetrics(date); err != nil {
+		log.Printf("Error deleting health metric: %v", err)
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("HX-Trigger", "refreshScore")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handler) HandleDeleteFitnessMetric(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	date := r.URL.Query().Get("date")
+	if date == "" {
+		http.Error(w, "Date is required", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.db.DeleteFitnessMetrics(date); err != nil {
+		log.Printf("Error deleting fitness metric: %v", err)
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("HX-Trigger", "refreshScore")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handler) HandleDeleteCognitionMetric(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	date := r.URL.Query().Get("date")
+	if date == "" {
+		http.Error(w, "Date is required", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.db.DeleteCognitionMetrics(date); err != nil {
+		log.Printf("Error deleting cognition metric: %v", err)
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("HX-Trigger", "refreshScore")
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *Handler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request) {

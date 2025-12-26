@@ -583,4 +583,42 @@ th {
     background: var(--negative);
     color: white;
     border: none;
+}/* ---------- Icon Buttons ---------- */
+.icon-button {
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px; /* Squarcle-ish */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    min-width: auto;
+}
+
+.delete-btn {
+    background-color: transparent;
+    color: var(--text-muted);
+    border: 1px solid transparent;
+}
+
+.delete-btn:hover {
+    background-color: #fee2e2;
+    color: var(--negative);
+    border-color: #fecaca;
+    opacity: 1;
+}
+
+/* Fix table alignment for actions */
+td[data-label="Actions"] {
+    text-align: right;
+    width: 50px; /* Minimal width for the action column */
+}
+
+/* Responsive adjustment for actions */
+@media (max-width: 768px) {
+    td[data-label="Actions"] {
+        text-align: right;
+        justify-content: flex-end;
+    }
 }

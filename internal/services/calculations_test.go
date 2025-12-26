@@ -40,6 +40,9 @@ func (m *MockDB) GetSubscriptionsForNotification(d int, t string) ([]models.Push
 }
 func (m *MockDB) GetAnyPushSubscription() (*models.PushSubscription, error) { return nil, nil }
 func (m *MockDB) DeletePushSubscription(endpoint string) error              { return nil }
+func (m *MockDB) DeleteHealthMetrics(date string) error                     { return nil }
+func (m *MockDB) DeleteFitnessMetrics(date string) error                    { return nil }
+func (m *MockDB) DeleteCognitionMetrics(date string) error                  { return nil }
 func (m *MockDB) Close() error                                              { return nil }
 
 func TestCalculatePillars(t *testing.T) {
