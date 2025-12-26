@@ -50,7 +50,7 @@ The application uses a **Bind Mount** to ensure your health data persists on you
 - **Mount Point**: `/data` (inside the container)
 - **Database File**: `./data/health.db`
 
-## Backups
+## Backups & Recovery
 
 The database is configured with **Write-Ahead Logging (WAL)** mode, which allows for safe "hot" backups while the application is running.
 
@@ -68,3 +68,10 @@ sqlite3 ./data/health.db ".backup '/path/to/your/nas/health_backup.db'"
 > ```bash
 > 0 3 * * * sqlite3 /path/to/health-balance/data/health.db ".backup '/path/to/nas/health_backup_$(date +\%Y\%m\%d).db'"
 > ```
+
+### Restore Procedure
+If you need to recover data from a backup:
+1. Stop the container: docker-compose down.
+2. Overwrite the current DB: `cp ./backups/health_20240101.db ./data/health.db`.
+3. Ensure permissions: Run `chmod 666 ./data/health.db` to ensure the container can write to it.
+4. Start the container: `docker-compose up -d`.
