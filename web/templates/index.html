@@ -240,6 +240,17 @@
 
 
 
+    <dialog id="confirm-dialog" class="confirm-dialog">
+        <div class="dialog-content">
+            <h3 id="confirm-title">Confirm Action</h3>
+            <p id="confirm-message">Are you sure you want to proceed?</p>
+            <div class="dialog-actions">
+                <button id="confirm-cancel" class="btn-secondary">Cancel</button>
+                <button id="confirm-ok" class="btn-danger">Delete</button>
+            </div>
+        </div>
+    </dialog>
+
     <script>
         function togglePillar(pillarId) {
             const content = document.getElementById(pillarId + '-content');

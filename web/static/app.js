@@ -25,3 +25,40 @@ function createToastContainer() {
     document.body.appendChild(container);
     return container;
 }
+
+document.addEventListener('htmx:confirm', function (evt) {
+    // The message is provided via the hx-confirm attribute
+    const message = evt.detail.question;
+    const dialog = document.getElementById('confirm-dialog');
+
+    if (dialog && message) {
+        // Prevent the default browser confirm
+        evt.preventDefault();
+
+        const messageEl = document.getElementById('confirm-message');
+        const okBtn = document.getElementById('confirm-ok');
+        const cancelBtn = document.getElementById('confirm-cancel');
+
+        messageEl.textContent = message;
+
+        // Function to handle the result
+        const handleResult = (confirmed) => {
+            dialog.close();
+            if (confirmed) {
+                // This resumes the HTMX request
+                evt.detail.issueRequest(true);
+            }
+            // Cleanup listeners
+            okBtn.onclick = null;
+            cancelBtn.onclick = null;
+        };
+
+        okBtn.onclick = () => handleResult(true);
+        cancelBtn.onclick = () => handleResult(false);
+
+        // Also handle escape key / clicking outside
+        dialog.onclose = () => handleResult(false);
+
+        dialog.showModal();
+    }
+});
