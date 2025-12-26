@@ -1,5 +1,5 @@
 {{if .}}
-<table class="metrics-table">
+<table class="metrics-table responsive-table">
     <thead>
         <tr>
             <th>Week</th>
@@ -13,12 +13,12 @@
     <tbody>
         {{range .}}
         <tr>
-            <td>{{.Date}}</td>
-            <td>{{printf "%.1f" .VO2Max}}</td>
-            <td>{{.WeeklyWorkouts}}</td>
-            <td>{{.DailySteps}}</td>
-            <td>{{.WeeklyMobility}}</td>
-            <td>{{.CardioRecovery}}</td>
+            <td data-label="Week">{{.Date}}</td>
+            <td data-label="VO2 Max">{{printf "%.1f" .VO2Max}}</td>
+            <td data-label="Workouts">{{.WeeklyWorkouts}}</td>
+            <td data-label="Steps">{{.DailySteps}}</td>
+            <td data-label="Mobility">{{.WeeklyMobility}}</td>
+            <td data-label="Recovery">{{.CardioRecovery}}</td>
         </tr>
         {{end}}
     </tbody>

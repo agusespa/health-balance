@@ -1,5 +1,5 @@
 {{if .}}
-<table class="metrics-table">
+<table class="metrics-table responsive-table">
     <thead>
         <tr>
             <th>Week</th>
@@ -11,10 +11,10 @@
     <tbody>
         {{range .}}
         <tr>
-            <td>{{.Date}}</td>
-            <td>{{.DualNBackLevel}}</td>
-            <td>{{.ReactionTime}}</td>
-            <td>{{.WeeklyMindfulness}}</td>
+            <td data-label="Week">{{.Date}}</td>
+            <td data-label="N-Back">{{.DualNBackLevel}}</td>
+            <td data-label="Reaction (ms)">{{.ReactionTime}}</td>
+            <td data-label="Mindfulness">{{.WeeklyMindfulness}}</td>
         </tr>
         {{end}}
     </tbody>

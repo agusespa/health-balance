@@ -1,5 +1,5 @@
 {{if .}}
-<table class="metrics-table">
+<table class="metrics-table responsive-table">
     <thead>
         <tr>
             <th>Week</th>
@@ -12,11 +12,11 @@
     <tbody>
         {{range .}}
         <tr>
-            <td>{{.Date}}</td>
-            <td>{{.SleepScore}}</td>
-            <td>{{printf "%.1f" .WaistCm}}</td>
-            <td>{{.RHR}}</td>
-            <td>{{printf "%.1f" .NutritionScore}}</td>
+            <td data-label="Week">{{.Date}}</td>
+            <td data-label="Sleep">{{.SleepScore}}</td>
+            <td data-label="Waist (cm)">{{printf "%.1f" .WaistCm}}</td>
+            <td data-label="RHR">{{.RHR}}</td>
+            <td data-label="Nutrition">{{printf "%.1f" .NutritionScore}}</td>
         </tr>
         {{end}}
     </tbody>

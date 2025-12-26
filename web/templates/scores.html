@@ -1,5 +1,5 @@
 {{if .}}
-<table>
+<table class="responsive-table">
     <thead>
         <tr>
             <th>Date</th>
@@ -13,19 +13,19 @@
     <tbody>
         {{range .}}
         <tr>
-            <td>{{.Date}}</td>
-            <td class="score">{{printf "%.1f" .Score}}</td>
-            <td class="{{if gt .HealthScore 0.0}}score-positive{{else if lt .HealthScore 0.0}}score-negative{{end}}">
+            <td data-label="Date">{{.Date}}</td>
+            <td data-label="Master Score" class="score">{{printf "%.1f" .Score}}</td>
+            <td data-label="Health" class="{{if gt .HealthScore 0.0}}score-positive{{else if lt .HealthScore 0.0}}score-negative{{end}}">
                 {{printf "%.1f" .HealthScore}}
             </td>
-            <td class="{{if gt .FitnessScore 0.0}}score-positive{{else if lt .FitnessScore 0.0}}score-negative{{end}}">
+            <td data-label="Fitness" class="{{if gt .FitnessScore 0.0}}score-positive{{else if lt .FitnessScore 0.0}}score-negative{{end}}">
                 {{printf "%.1f" .FitnessScore}}
             </td>
-            <td
+            <td data-label="Cognition"
                 class="{{if gt .CognitionScore 0.0}}score-positive{{else if lt .CognitionScore 0.0}}score-negative{{end}}">
                 {{printf "%.1f" .CognitionScore}}
             </td>
-            <td>{{printf "%.1f" .AgingTax}}</td>
+            <td data-label="Aging Tax">{{printf "%.1f" .AgingTax}}</td>
         </tr>
         {{end}}
     </tbody>
