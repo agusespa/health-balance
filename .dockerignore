@@ -1,7 +1,25 @@
-*.json
-*.db
+# Version Control
 .git
 .gitignore
+
+# Database & Data (Crucial to avoid "hot" DB corruption during build)
+*.db
+*.db-journal
+*.db-wal
+data/
+
+# Documentation & Metadata
 README.md
 LICENSE
-data/
+.github/
+
+# Local Build Artifacts
+app/
+health-balance
+*.exe
+*.test
+*.out
+
+# OS Generated Files
+.DS_Store
+Thumbs.db

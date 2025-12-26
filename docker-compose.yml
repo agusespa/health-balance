@@ -6,7 +6,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - DB_PATH=/app/data/health.db
+      - DATABASE_URL=/app/data/health.db
       - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
       - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
       - PORT=8080
