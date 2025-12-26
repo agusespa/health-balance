@@ -42,7 +42,7 @@ if [ -f coverage.out ]; then
     is_low=$(awk -v cov="$coverage" -v thr="$COVERAGE_THRESHOLD" 'BEGIN {print (cov < thr ? 1 : 0)}')
     
     if [ "$is_low" -eq 1 ]; then
-        echo "⚠️  Warning: Coverage is ${coverage}% (minimum: ${COVERAGE_THRESHOLD}%)"
+        echo "⚠️ Warning: Coverage is ${coverage}% (minimum: ${COVERAGE_THRESHOLD}%)"
     else
         echo "✅ Coverage is ${coverage}%"
     fi

@@ -12,7 +12,6 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # 1. Verification Job: Ensures code quality before building anything
   test:
     runs-on: ubuntu-latest
     steps:
@@ -24,18 +23,36 @@ jobs:
           go-version: '1.24'
           cache: true
 
-      - name: Install Linting & Security Tools
-        run: |
-          go install golang.org/x/vuln/cmd/govulncheck@latest
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.60.3
+      - name: Run govulncheck
+        uses: golang/govulncheck-action@v1
+        with:
+          go-version-input: '1.24'
 
-      - name: Run Verification Script
-        run: |
-          # Ensure the script is executable and run it
-          chmod +x scripts/verify.sh
-          ./scripts/verify.sh
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
 
-  # 2. Build Job: Packages the app into a Docker image
+      - name: Run Tests, Race Detection, and Build
+        run: |
+          echo ">> Running dependency check..."
+          go mod verify
+
+          echo ">> Running go fmt check..."
+          if [ -n "$(gofmt -l .)" ]; then
+            echo "ERROR: Code not formatted. Run 'go fmt ./...'"
+            exit 1
+          fi
+
+          echo ">> Running tests..."
+          go test ./...
+
+          echo ">> Running tests with race detection..."
+          go test -race ./...
+
+          echo ">> Running type check and build..."
+          go build -o /dev/null ./...
+
   build-and-push:
     needs: test
     if: github.event_name != 'pull_request'
@@ -67,11 +84,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # Always tag the latest commit on main as 'latest'
             type=raw,value=latest,enable={{is_default_branch}}
-            # If you push a tag like v1.0.0, this tags the image as '1.0.0'
             type=semver,pattern={{version}}
-            # Creates a 'sha-xxxxxx' tag for every build
             type=sha,format=short
 
       - name: Build and push Docker image
