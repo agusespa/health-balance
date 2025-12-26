@@ -286,7 +286,6 @@ textarea {
     min-height: 100px;
 }
 
-/* Select arrow */
 select {
     padding-right: 40px;
     background-image: linear-gradient(45deg, transparent 50%, #6b7280 50%),
@@ -415,7 +414,6 @@ th {
         height: 24px;
     }
 
-    /* Responsive Table Styles */
     .responsive-table {
         border: none;
         border-radius: 0;
@@ -583,12 +581,14 @@ th {
     background: var(--negative);
     color: white;
     border: none;
-}/* ---------- Icon Buttons ---------- */
+}
+
+/* ---------- Icon Buttons ---------- */
 .icon-button {
     padding: 0;
     width: 36px;
     height: 36px;
-    border-radius: 10px; /* Squarcle-ish */
+    border-radius: 10px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -609,16 +609,48 @@ th {
     opacity: 1;
 }
 
-/* Fix table alignment for actions */
-td[data-label="Actions"] {
+.metrics-table td:last-child {
     text-align: right;
-    width: 50px; /* Minimal width for the action column */
+    width: 50px;
 }
 
-/* Responsive adjustment for actions */
 @media (max-width: 768px) {
-    td[data-label="Actions"] {
-        text-align: right;
+    .metrics-table td:last-child {
+        display: flex;
         justify-content: flex-end;
+        text-align: right;
+        width: 100%;
     }
+
+    /* Ensure no label for the action cell */
+    .metrics-table td:last-child::before {
+        display: none;
+    }
+}
+
+.metrics-table th {
+    text-align: left;
+}
+
+.pillar-history-toggle {
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0 10px 0;
+    margin-top: 10px;
+    border-top: 1px solid var(--border);
+}
+
+.pillar-history-toggle h3 {
+    margin: 0;
+    padding: 0;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.pillar-history-toggle .toggle-icon {
+    font-size: 0.8rem;
+    color: var(--text-muted);
 }
