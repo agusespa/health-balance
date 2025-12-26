@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.25 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.24 AS builder
 
 # Required for SQLite
 RUN apt-get update && apt-get install -y gcc libc6-dev
