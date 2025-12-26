@@ -2,9 +2,6 @@
 
 COVERAGE_THRESHOLD=70
 
-echo "> Running verification..."
-set -e
-
 echo ">> Running security audit..."
 govulncheck ./... > /dev/null 2>&1 || { echo "ERROR: Security audit failed"; exit 1; }
 
@@ -42,6 +39,3 @@ fi
 
 echo ">> Running type check and build..."
 go build -o /dev/null ./... > /dev/null 2>&1 || { echo "ERROR: Build failed"; exit 1; }
-
-echo "✓ All checks passed!"
-exit 0

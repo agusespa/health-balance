@@ -1,0 +1,10 @@
+#!/bin/sh
+
+echo "> Running pre-push hook..."
+
+set -e
+
+./scripts/verify.sh
+
+echo "✓ All checks passed!"
+exit 0
