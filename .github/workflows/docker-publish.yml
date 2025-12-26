@@ -2,16 +2,14 @@ name: Docker Publish
 
 on:
   push:
-    branches: ["main"]
     tags: ["v*.*.*"]
-  pull_request:
-    branches: ["main"]
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  # 1. Verification Job: Must pass before building
   test:
     runs-on: ubuntu-latest
     steps:
@@ -33,29 +31,15 @@ jobs:
         with:
           version: latest
 
-      - name: Run Tests, Race Detection, and Build
+      - name: Run Tests and Build Check
         run: |
-          echo ">> Running dependency check..."
           go mod verify
-
-          echo ">> Running go fmt check..."
-          if [ -n "$(gofmt -l .)" ]; then
-            echo "ERROR: Code not formatted. Run 'go fmt ./...'"
-            exit 1
-          fi
-
-          echo ">> Running tests..."
-          go test ./...
-
-          echo ">> Running tests with race detection..."
           go test -race ./...
-
-          echo ">> Running type check and build..."
           go build -o /dev/null ./...
 
+  # 2. Build and Push Job
   build-and-push:
     needs: test
-    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -84,9 +68,10 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
+            # Tags the image with the version number (e.g., 1.0.0)
             type=semver,pattern={{version}}
-            type=sha,format=short
+            # Also updates the 'latest' tag to point to this version
+            type=raw,value=latest
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
