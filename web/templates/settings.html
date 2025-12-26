@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Health Balance</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="/static/app.js"></script>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="stylesheet" href="/static/settings.css">
     <link rel="manifest" href="/static/manifest.json">
@@ -24,7 +25,8 @@
                     <h2>Biomarkers</h2>
                 </div>
                 <div class="settings-content" id="settings-content">
-                    <form hx-post="/update-profile" hx-indicator="#settings-spinner" hx-swap="none">
+                    <form hx-post="/update-profile" hx-indicator="#settings-spinner" hx-swap="none"
+                        hx-on::after-request="if(event.detail.successful) showToast('Biomarkers updated successfully', 'success'); else showToast('Failed to update biomarkers', 'error')">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="birth_date">Birth Date</label>
@@ -218,12 +220,13 @@
 
                 if (response.ok) {
                     if (btnText) btnText.textContent = 'Update Preferences';
+                    showToast('Notification preferences updated', 'success');
                 } else {
                     throw new Error('Server error');
                 }
             } catch (error) {
                 console.error('Subscription error:', error);
-                alert('Could not update notification preferences: ' + error.message);
+                showToast('Could not update notification preferences: ' + error.message, 'error');
             } finally {
                 if (spinner) spinner.classList.remove('htmx-request');
                 btn.disabled = false;

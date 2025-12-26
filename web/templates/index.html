@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Health Balance</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="/static/app.js"></script>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
@@ -74,7 +75,8 @@
             <div class="pillar-content" id="health-content" style="display: none;">
                 <div class="add-data-section">
                     <h3>This Week's Data</h3>
-                    <form hx-post="/add-health-metrics" hx-swap="none" hx-indicator="#health-spinner">
+                    <form hx-post="/add-health-metrics" hx-swap="none" hx-indicator="#health-spinner"
+                        hx-on::after-request="if(event.detail.successful) showToast('Health data saved successfully', 'success'); else showToast('Failed to save health data', 'error')">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="sleep_score">Sleep Quality Score (0-100)</label>
@@ -129,7 +131,8 @@
             <div class="pillar-content" id="fitness-content" style="display: none;">
                 <div class="add-data-section">
                     <h3>This Week's Data</h3>
-                    <form hx-post="/add-fitness-metrics" hx-swap="none" hx-indicator="#fitness-spinner">
+                    <form hx-post="/add-fitness-metrics" hx-swap="none" hx-indicator="#fitness-spinner"
+                        hx-on::after-request="if(event.detail.successful) showToast('Fitness data saved successfully', 'success'); else showToast('Failed to save fitness data', 'error')">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="vo2_max">VO2 Max</label>
@@ -194,7 +197,8 @@
             <div class="pillar-content" id="cognition-content" style="display: none;">
                 <div class="add-data-section">
                     <h3>This Week's Data</h3>
-                    <form hx-post="/add-cognition-metrics" hx-swap="none" hx-indicator="#cognition-spinner">
+                    <form hx-post="/add-cognition-metrics" hx-swap="none" hx-indicator="#cognition-spinner"
+                        hx-on::after-request="if(event.detail.successful) showToast('Cognition data saved successfully', 'success'); else showToast('Failed to save cognition data', 'error')">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="dual_n_back">Dual N-Back Level</label>
