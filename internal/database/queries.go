@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"health-balance/internal/models"
 	"health-balance/internal/utils"
+	"log"
 	"time"
 )
 
@@ -38,7 +39,11 @@ func (db *DB) GetAllDatesWithData() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Printf("error closing database: %v", err)
+		}
+	}()
 
 	var dates []string
 	for rows.Next() {
@@ -68,7 +73,11 @@ func (db *DB) GetRecentHealthMetrics(limit int) ([]models.HealthMetrics, error) 
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Printf("error closing database: %v", err)
+		}
+	}()
 
 	var metrics []models.HealthMetrics
 	for rows.Next() {
@@ -95,7 +104,11 @@ func (db *DB) GetRecentFitnessMetrics(limit int) ([]models.FitnessMetrics, error
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Printf("error closing database: %v", err)
+		}
+	}()
 
 	var metrics []models.FitnessMetrics
 	for rows.Next() {
@@ -122,7 +135,11 @@ func (db *DB) GetRecentCognitionMetrics(limit int) ([]models.CognitionMetrics, e
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Printf("error closing database: %v", err)
+		}
+	}()
 
 	var metrics []models.CognitionMetrics
 	for rows.Next() {

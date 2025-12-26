@@ -54,7 +54,7 @@ func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 		TodayCognition: todayCognition,
 	}
 
-	h.templates.ExecuteTemplate(w, "index.html", data)
+	h.render(w, "index.html", data)
 }
 
 func (h *Handler) HandleSettings(w http.ResponseWriter, r *http.Request) {
@@ -80,13 +80,13 @@ func (h *Handler) HandleSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) HandleRationale(w http.ResponseWriter, r *http.Request) {
-	h.templates.ExecuteTemplate(w, "rationale.html", nil)
+	h.render(w, "rationale.html", nil)
 }
 
 func (h *Handler) HandleCurrentScore(w http.ResponseWriter, r *http.Request) {
 	currentScore, _ := services.GetCurrentMasterScore(h.db)
 	data := struct{ CurrentScore *models.MasterScore }{CurrentScore: currentScore}
-	h.templates.ExecuteTemplate(w, "score_display", data)
+	h.render(w, "score_display.html", data)
 }
 
 func (h *Handler) HandleScores(w http.ResponseWriter, r *http.Request) {
@@ -95,7 +95,7 @@ func (h *Handler) HandleScores(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	h.templates.ExecuteTemplate(w, "scores.html", scores)
+	h.render(w, "scores.html", scores)
 }
 
 func (h *Handler) HandleHealthMetrics(w http.ResponseWriter, r *http.Request) {
@@ -104,7 +104,7 @@ func (h *Handler) HandleHealthMetrics(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	h.templates.ExecuteTemplate(w, "health_metrics.html", metrics)
+	h.render(w, "health_metrics.html", metrics)
 }
 
 func (h *Handler) HandleFitnessMetrics(w http.ResponseWriter, r *http.Request) {
@@ -113,7 +113,7 @@ func (h *Handler) HandleFitnessMetrics(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	h.templates.ExecuteTemplate(w, "fitness_metrics.html", metrics)
+	h.render(w, "fitness_metrics.html", metrics)
 }
 
 func (h *Handler) HandleCognitionMetrics(w http.ResponseWriter, r *http.Request) {
@@ -122,7 +122,7 @@ func (h *Handler) HandleCognitionMetrics(w http.ResponseWriter, r *http.Request)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	h.templates.ExecuteTemplate(w, "cognition_metrics.html", metrics)
+	h.render(w, "cognition_metrics.html", metrics)
 }
 
 func (h *Handler) HandleAddHealthMetrics(w http.ResponseWriter, r *http.Request) {
@@ -131,7 +131,12 @@ func (h *Handler) HandleAddHealthMetrics(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	r.ParseForm()
+	if err := r.ParseForm(); err != nil {
+		log.Printf("Error parsing form: %v", err)
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
 	var errs []string
 	getF := func(key string) float64 {
 		val, err := parseFormFloat(r, key)
@@ -173,7 +178,12 @@ func (h *Handler) HandleAddFitnessMetrics(w http.ResponseWriter, r *http.Request
 	if r.Method != http.MethodPost {
 		return
 	}
-	r.ParseForm()
+
+	if err := r.ParseForm(); err != nil {
+		log.Printf("Error parsing form: %v", err)
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
 
 	var errs []string
 	getI := func(key string) int {
@@ -217,7 +227,12 @@ func (h *Handler) HandleAddCognitionMetrics(w http.ResponseWriter, r *http.Reque
 	if r.Method != http.MethodPost {
 		return
 	}
-	r.ParseForm()
+
+	if err := r.ParseForm(); err != nil {
+		log.Printf("Error parsing form: %v", err)
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
 
 	var errs []string
 	getI := func(key string, label string) int {
@@ -253,13 +268,18 @@ func (h *Handler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := r.ParseForm(); err != nil {
+		log.Printf("Error parsing form: %v", err)
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
 	existingProfile, _ := h.db.GetUserProfile()
 	var profile models.UserProfile
 	if existingProfile != nil {
 		profile = *existingProfile
 	}
 
-	r.ParseForm()
 	profile.BirthDate = r.FormValue("birth_date")
 	profile.Sex = r.FormValue("sex")
 	height, _ := parseFormFloat(r, "height_cm")
@@ -271,7 +291,7 @@ func (h *Handler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Profile updated successfully."))
+	_, _ = w.Write([]byte("Profile updated successfully."))
 }
 
 // Helpers
@@ -289,4 +309,11 @@ func parseFormFloat(r *http.Request, key string) (float64, error) {
 		return 0, fmt.Errorf("%s is required", key)
 	}
 	return strconv.ParseFloat(val, 64)
+}
+
+func (h *Handler) render(w http.ResponseWriter, name string, data any) {
+	if err := h.templates.ExecuteTemplate(w, name, data); err != nil {
+		log.Printf("Render error [%s]: %v", name, err)
+		http.Error(w, "An unexpected error occurred", http.StatusInternalServerError)
+	}
 }

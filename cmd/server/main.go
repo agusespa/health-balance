@@ -25,7 +25,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Printf("error closing database: %v", err)
+		}
+	}()
 
 	funcMap := template.FuncMap{
 		"divf": func(a, b float64) float64 {
