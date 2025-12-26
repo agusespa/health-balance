@@ -51,6 +51,14 @@
                 </div>
             </div>
             <p class="score-date">Last updated: {{.CurrentScore.Date}}</p>
+
+            <div class="history-toggle" onclick="toggleHistory()">
+                <h2>Score History</h2>
+                <span class="toggle-icon" id="history-icon">▶</span>
+            </div>
+            <div class="history-content" id="history-content" style="display: none;">
+                <div id="scores" hx-get="/scores" hx-trigger="loadHistory from:body" hx-swap="innerHTML"></div>
+            </div>
         </div>
         {{end}}
 
@@ -222,16 +230,6 @@
             </div>
         </div>
 
-        <div class="card pillar-card">
-            <div class="pillar-header" onclick="togglePillar('history')">
-                <h2>Score History</h2>
-                <span class="toggle-icon" id="history-icon">▶</span>
-            </div>
-            <div class="pillar-content" id="history-content" style="display: none;">
-                <div id="scores" hx-get="/scores" hx-trigger="load"></div>
-            </div>
-        </div>
-
     </div>
 
 
@@ -244,8 +242,24 @@
                 content.style.display = 'block';
                 icon.textContent = '▼';
                 if (!content.dataset.loaded) {
-                    const targetId = pillarId === 'history' ? '#scores' : `#${pillarId}-metrics`;
+                    const targetId = `#${pillarId}-metrics`;
                     if (document.querySelector(targetId)) htmx.trigger(targetId, 'load');
+                    content.dataset.loaded = 'true';
+                }
+            } else {
+                content.style.display = 'none';
+                icon.textContent = '▶';
+            }
+        }
+
+        function toggleHistory() {
+            const content = document.getElementById('history-content');
+            const icon = document.getElementById('history-icon');
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.textContent = '▼';
+                if (!content.dataset.loaded) {
+                    htmx.trigger(document.body, 'loadHistory');
                     content.dataset.loaded = 'true';
                 }
             } else {

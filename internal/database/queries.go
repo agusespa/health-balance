@@ -40,8 +40,8 @@ func (db *DB) GetAllDatesWithData() ([]string, error) {
 		return nil, err
 	}
 	defer func() {
-		if err := db.Close(); err != nil {
-			log.Printf("error closing database: %v", err)
+		if err := rows.Close(); err != nil {
+			log.Printf("error closing rows for GetAllDatesWithData: %v", err)
 		}
 	}()
 
@@ -74,8 +74,8 @@ func (db *DB) GetRecentHealthMetrics(limit int) ([]models.HealthMetrics, error) 
 		return nil, err
 	}
 	defer func() {
-		if err := db.Close(); err != nil {
-			log.Printf("error closing database: %v", err)
+		if err := rows.Close(); err != nil {
+			log.Printf("error closing rows: %v", err)
 		}
 	}()
 
@@ -105,8 +105,8 @@ func (db *DB) GetRecentFitnessMetrics(limit int) ([]models.FitnessMetrics, error
 		return nil, err
 	}
 	defer func() {
-		if err := db.Close(); err != nil {
-			log.Printf("error closing database: %v", err)
+		if err := rows.Close(); err != nil {
+			log.Printf("error closing rows: %v", err)
 		}
 	}()
 
@@ -136,8 +136,8 @@ func (db *DB) GetRecentCognitionMetrics(limit int) ([]models.CognitionMetrics, e
 		return nil, err
 	}
 	defer func() {
-		if err := db.Close(); err != nil {
-			log.Printf("error closing database: %v", err)
+		if err := rows.Close(); err != nil {
+			log.Printf("error closing rows: %v", err)
 		}
 	}()
 
