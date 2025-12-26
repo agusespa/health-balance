@@ -15,7 +15,7 @@
 
         {{define "score_display"}}
 
-        <div class="card score-display" id="score-container" hx-get="/current-score" hx-trigger="refreshScore"
+        <div class="card score-display" id="score-container" hx-get="/current-score" hx-trigger="refreshScore from:body"
             hx-swap="outerHTML">
             <div class="score-header">
                 <a href="/rationale" class="icon-link">
