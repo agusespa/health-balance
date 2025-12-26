@@ -1,7 +1,12 @@
 FROM --platform=$BUILDPLATFORM golang:1.24 AS builder
 
-# Required for SQLite
-RUN apt-get update && apt-get install -y gcc libc6-dev
+ARG TARGETARCH
+
+RUN apt-get update && apt-get install -y \
+    gcc-aarch64-linux-gnu \
+    gcc-x86-64-linux-gnu \
+    libc6-dev-arm64-cross \
+    libc6-dev-amd64-cross
 
 WORKDIR /app
 
@@ -10,10 +15,12 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=1 GOOS=linux go build -o health-balance ./cmd/server
-
-# Use CGO_ENABLED=1 but allow Go to handle the cross-architecture build
-RUN CGO_ENABLED=1 GOOS=linux go build -o health-balance ./cmd/server
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+      export CC=aarch64-linux-gnu-gcc; \
+    else \
+      export CC=x86_64-linux-gnu-gcc; \
+    fi && \
+    CGO_ENABLED=1 GOOS=linux GOARCH=$TARGETARCH go build -o health-balance ./cmd/server
 
 FROM debian:bookworm-slim
 
@@ -28,9 +35,7 @@ COPY --from=builder /app/health-balance .
 COPY --from=builder /app/web ./web
 
 RUN mkdir -p /app/data
-
 ENV DATABASE_URL=/app/data/health.db
-
 EXPOSE 8080
 
 CMD ["./health-balance"]
