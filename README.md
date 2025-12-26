@@ -42,6 +42,12 @@ chmod +x scripts/generate-keys.sh
 ./scripts/generate-keys.sh
 ```
 
+## Secure Hosting
+
+Since this application does not yet have built-in authentication, it is highly recommended to host it on a local server and expose it securely using a Cloudflare Tunnel. This allows you to access the app from anywhere without opening any ports on your router.
+A Cloudflare Tunnel (cloudflared) creates a secure, outbound-only connection to Cloudflare’s network.
+To prevent anyone from accessing your data, add an Access Application in the Cloudflare Dashboard and configure a Policy to only allow your specific email address.
+
 ## Data Persistence
 
 The application uses a **Bind Mount** to ensure your health data persists on your host machine.
