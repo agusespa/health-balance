@@ -43,6 +43,7 @@ document.addEventListener('htmx:confirm', function (evt) {
 
         // Function to handle the result
         const handleResult = (confirmed) => {
+            dialog.onclose = null; // Prevent recursion from dialog.close()
             dialog.close();
             if (confirmed) {
                 // This resumes the HTMX request
@@ -60,5 +61,14 @@ document.addEventListener('htmx:confirm', function (evt) {
         dialog.onclose = () => handleResult(false);
 
         dialog.showModal();
+    }
+});
+
+// Global listener for showToast events (can be triggered from backend via HX-Trigger)
+document.addEventListener('showToast', function (evt) {
+    const message = evt.detail.value || evt.detail.message;
+    const type = evt.detail.type || 'success';
+    if (message) {
+        showToast(message, type);
     }
 });

@@ -25,8 +25,7 @@
                     <h2>Biomarkers</h2>
                 </div>
                 <div class="settings-content" id="settings-content">
-                    <form hx-post="/update-profile" hx-indicator="#settings-spinner" hx-swap="none"
-                        hx-on::after-request="if(event.detail.successful) showToast('Biomarkers updated successfully', 'success'); else showToast('Failed to update biomarkers', 'error')">
+                    <form hx-post="/update-profile" hx-indicator="#settings-spinner" hx-swap="none">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="birth_date">Birth Date</label>
