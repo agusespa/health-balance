@@ -304,8 +304,9 @@ select {
 
 /* ---------- Buttons ---------- */
 button {
+    position: relative;
     margin-top: 12px;
-    padding: 12px;
+    padding: 12px 48px;
     border-radius: var(--radius-md);
     border: none;
     font-size: 0.9rem;
@@ -367,6 +368,9 @@ th {
 
 /* ---------- Spinner ---------- */
 .spinner {
+    position: absolute;
+    right: 16px;
+    top: calc(50% - 7px);
     width: 14px;
     height: 14px;
     border: 2px solid rgba(255, 255, 255, 0.4);
@@ -381,6 +385,10 @@ th {
 }
 
 @keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
     to {
         transform: rotate(360deg);
     }
