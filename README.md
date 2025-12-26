@@ -42,8 +42,6 @@ chmod +x scripts/generate-keys.sh
 ./scripts/generate-keys.sh
 ```
 
-Bash
-
 ## Data Persistence
 
 The application uses a **Bind Mount** to ensure your health data persists on your host machine.
