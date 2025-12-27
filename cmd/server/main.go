@@ -70,6 +70,7 @@ func main() {
 
 	services.StartNotificationScheduler(db)
 
+	mux.HandleFunc("/health", h.HandleAppHealth)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
 
 	fmt.Println("Server starting on :8080")

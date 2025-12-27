@@ -401,6 +401,13 @@ func (h *Handler) HandleSubscribe(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) HandleAppHealth(w http.ResponseWriter, r *http.Request) {
+	_, err := fmt.Fprint(w, "OK")
+	if err != nil {
+		log.Printf("Failed to write health check response: %v", err)
+	}
+}
+
 // Helpers
 func parseFormInt(r *http.Request, key string) (int, error) {
 	val := r.FormValue(key)
