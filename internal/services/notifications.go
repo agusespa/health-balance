@@ -130,8 +130,6 @@ func sendPush(db database.Querier, sub models.PushSubscription, priv *ecdsa.Priv
 	}
 }
 
-// Manual VAPID/JWT Helpers (No dependencies)
-
 func decodePrivateKey(encoded string) (*ecdsa.PrivateKey, error) {
 	raw, err := base64.RawURLEncoding.DecodeString(encoded)
 	if err != nil {
@@ -160,7 +158,7 @@ func decodePrivateKey(encoded string) (*ecdsa.PrivateKey, error) {
 func createVAPIDToken(audience string, priv *ecdsa.PrivateKey) (string, error) {
 	header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"ES256","typ":"JWT"}`))
 
-	payloadMap := map[string]interface{}{
+	payloadMap := map[string]any{
 		"aud": audience,
 		"exp": time.Now().Add(24 * time.Hour).Unix(),
 		"sub": "mailto:admin@health-balance.local",

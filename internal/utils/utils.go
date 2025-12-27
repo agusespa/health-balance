@@ -15,7 +15,7 @@ func GetPreviousSundayDate() string {
 	return previousSunday.Format("2006-01-02")
 }
 
-func GetAge(p *models.UserProfile) (int, error) {
+func GetAge(p *models.UserProfile, now time.Time) (int, error) {
 	if p.BirthDate == "" {
 		return 0, errors.New("birth date is missing from user profile")
 	}
@@ -25,10 +25,8 @@ func GetAge(p *models.UserProfile) (int, error) {
 		return 0, fmt.Errorf("invalid birth date format '%s': %w", p.BirthDate, err)
 	}
 
-	now := time.Now()
 	age := now.Year() - birthDate.Year()
 
-	// Adjust if birthday hasn't occurred this year yet
 	if now.Month() < birthDate.Month() ||
 		(now.Month() == birthDate.Month() && now.Day() < birthDate.Day()) {
 		age--

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -9,6 +8,7 @@ import (
 
 	"health-balance/internal/database"
 	"health-balance/internal/handlers"
+	"health-balance/internal/middleware"
 	"health-balance/internal/services"
 )
 
@@ -65,15 +65,15 @@ func main() {
 	mux.HandleFunc("/delete-cognition-metric", h.HandleDeleteCognitionMetric)
 	mux.HandleFunc("/subscribe", h.HandleSubscribe)
 	mux.HandleFunc("/unsubscribe", h.HandleUnsubscribe)
+	mux.HandleFunc("/health", h.HandleAppHealth)
+
 	mux.HandleFunc("/sw.js", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "web/static/sw.js")
 	})
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
 
 	services.StartNotificationScheduler(db)
 
-	mux.HandleFunc("/health", h.HandleAppHealth)
-	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
-
-	fmt.Println("Server starting on :8080")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	log.Println("Server starting on :8080")
+	log.Fatal(http.ListenAndServe(":8080", middleware.RequestLogger(mux)))
 }

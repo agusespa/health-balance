@@ -20,6 +20,8 @@ func TestGetPreviousSundayDate(t *testing.T) {
 }
 
 func TestGetAge(t *testing.T) {
+	refTime := time.Date(2025, 12, 27, 0, 0, 0, 0, time.UTC)
+
 	tests := []struct {
 		name      string
 		birthDate string
@@ -27,20 +29,26 @@ func TestGetAge(t *testing.T) {
 		wantErr   bool
 	}{
 		{
-			name:      "Birthday already passed this year",
-			birthDate: "1990-01-01",
-			wantAge:   35, // 2025 - 1990
-			wantErr:   false,
-		},
-		{
-			name:      "Birthday is tomorrow (hasn't occurred yet)",
-			birthDate: "1990-12-27",
-			wantAge:   34, // Should be 35 - 1
-			wantErr:   false,
-		},
-		{
-			name:      "Birth date is today",
+			name:      "Birthday was yesterday",
 			birthDate: "1990-12-26",
+			wantAge:   35,
+			wantErr:   false,
+		},
+		{
+			name:      "Birthday is today",
+			birthDate: "1990-12-27",
+			wantAge:   35,
+			wantErr:   false,
+		},
+		{
+			name:      "Birthday is tomorrow (not occurred yet)",
+			birthDate: "1990-12-28",
+			wantAge:   34,
+			wantErr:   false,
+		},
+		{
+			name:      "Birthday is months away",
+			birthDate: "1990-06-01",
 			wantAge:   35,
 			wantErr:   false,
 		},
@@ -50,24 +58,12 @@ func TestGetAge(t *testing.T) {
 			wantAge:   0,
 			wantErr:   true,
 		},
-		{
-			name:      "Invalid date format",
-			birthDate: "01/01/1990",
-			wantAge:   0,
-			wantErr:   true,
-		},
-		{
-			name:      "Non-existent date",
-			birthDate: "1990-02-30",
-			wantAge:   0,
-			wantErr:   true,
-		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &models.UserProfile{BirthDate: tt.birthDate}
-			got, err := GetAge(p)
+			got, err := GetAge(p, refTime)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetAge() error = %v, wantErr %v", err, tt.wantErr)

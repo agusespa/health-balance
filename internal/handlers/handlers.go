@@ -178,6 +178,7 @@ func (h *Handler) HandleAddHealthMetrics(w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := h.db.SaveHealthMetrics(health); err != nil {
+		log.Printf("Error saving health metrics: %v", err)
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
@@ -227,6 +228,7 @@ func (h *Handler) HandleAddFitnessMetrics(w http.ResponseWriter, r *http.Request
 	}
 
 	if err := h.db.SaveFitnessMetrics(fitness); err != nil {
+		log.Printf("Error saving fitness metrics: %v", err)
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
@@ -267,6 +269,7 @@ func (h *Handler) HandleAddCognitionMetrics(w http.ResponseWriter, r *http.Reque
 	}
 
 	if err := h.db.SaveCognitionMetrics(cognition); err != nil {
+		log.Printf("Error saving cognition metrics: %v", err)
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
@@ -364,6 +367,7 @@ func (h *Handler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request) {
 	profile.HeightCm = height
 
 	if err := h.db.SaveUserProfile(profile); err != nil {
+		log.Printf("Error saving user profile: %v", err)
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}

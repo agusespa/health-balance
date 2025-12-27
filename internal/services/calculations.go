@@ -38,7 +38,7 @@ func GetAllWeeklyScores(db database.Querier) ([]models.MasterScore, error) {
 	for i := len(allDates) - 1; i >= 0; i-- {
 		date := allDates[i]
 
-		age, err := utils.GetAge(profile)
+		age, err := utils.GetAge(profile, time.Now())
 		if err != nil {
 			return nil, fmt.Errorf("calculation aborted: invalid profile for date %s: %w", date, err)
 		}
@@ -122,7 +122,7 @@ func CalculateMasterScore(
 	reactionBaseline int,
 	whtr float64,
 ) (float64, float64, float64, float64, float64) {
-	age, _ := utils.GetAge(&profile)
+	age, _ := utils.GetAge(&profile, time.Now())
 	weeklyDecayRate := (float64(age*age) / 8000.0) / 52.0
 
 	tax := currentScore * weeklyDecayRate
