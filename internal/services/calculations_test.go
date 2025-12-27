@@ -35,7 +35,7 @@ func (m *MockDB) SaveFitnessMetrics(f models.FitnessMetrics) error              
 func (m *MockDB) SaveCognitionMetrics(c models.CognitionMetrics) error               { return nil }
 func (m *MockDB) SaveUserProfile(p models.UserProfile) error                         { return nil }
 func (m *MockDB) SavePushSubscription(sub models.PushSubscription) error             { return nil }
-func (m *MockDB) GetSubscriptionsForNotification(d int, t string) ([]models.PushSubscription, error) {
+func (m *MockDB) GetAllSubscriptions() ([]models.PushSubscription, error) {
 	return nil, nil
 }
 func (m *MockDB) GetAnyPushSubscription() (*models.PushSubscription, error) { return nil, nil }
