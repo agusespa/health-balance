@@ -392,6 +392,7 @@ func (h *Handler) HandleSubscribe(w http.ResponseWriter, r *http.Request) {
 	sub := req.Subscription
 	sub.ReminderDay = req.ReminderDay
 	sub.ReminderTime = req.ReminderTime
+	sub.Timezone = req.Timezone
 
 	if err := h.db.SavePushSubscription(sub); err != nil {
 		log.Printf("Error saving subscription: %v", err)

@@ -26,7 +26,7 @@ type Querier interface {
 	GetUserProfile() (*models.UserProfile, error)
 	SaveUserProfile(profile models.UserProfile) error
 	SavePushSubscription(sub models.PushSubscription) error
-	GetSubscriptionsForNotification(day int, timeStr string) ([]models.PushSubscription, error)
+	GetAllSubscriptions() ([]models.PushSubscription, error)
 	GetAnyPushSubscription() (*models.PushSubscription, error)
 	DeletePushSubscription(endpoint string) error
 	Close() error
@@ -291,12 +291,11 @@ func (db *DB) GetUserProfile() (*models.UserProfile, error) {
 }
 
 func (db *DB) SaveUserProfile(profile models.UserProfile) error {
-	// Check if a profile already exists
 	var existingID int
 	err := db.QueryRow("SELECT id FROM user_profile LIMIT 1").Scan(&existingID)
 
 	if err != nil && err != sql.ErrNoRows {
-		return err // Handle potential database errors
+		return err
 	}
 
 	if existingID > 0 {
@@ -316,23 +315,23 @@ func (db *DB) SaveUserProfile(profile models.UserProfile) error {
 
 func (db *DB) SavePushSubscription(sub models.PushSubscription) error {
 	_, err := db.Exec(`
-		INSERT INTO push_subscriptions (endpoint, p256dh, auth, reminder_day, reminder_time)
-		VALUES (?, ?, ?, ?, ?)
+		INSERT INTO push_subscriptions (endpoint, p256dh, auth, reminder_day, reminder_time, timezone)
+		VALUES (?, ?, ?, ?, ?, ?)
 		ON CONFLICT(endpoint) DO UPDATE SET
 			p256dh = excluded.p256dh,
 			auth = excluded.auth,
 			reminder_day = excluded.reminder_day,
-			reminder_time = excluded.reminder_time
-	`, sub.Endpoint, sub.P256dh, sub.Auth, sub.ReminderDay, sub.ReminderTime)
+			reminder_time = excluded.reminder_time,
+			timezone = excluded.timezone
+	`, sub.Endpoint, sub.P256dh, sub.Auth, sub.ReminderDay, sub.ReminderTime, sub.Timezone)
 	return err
 }
 
-func (db *DB) GetSubscriptionsForNotification(day int, timeStr string) ([]models.PushSubscription, error) {
+func (db *DB) GetAllSubscriptions() ([]models.PushSubscription, error) {
 	rows, err := db.Query(`
-		SELECT id, endpoint, p256dh, auth, reminder_day, reminder_time
+		SELECT id, endpoint, p256dh, auth, reminder_day, reminder_time, timezone
 		FROM push_subscriptions
-		WHERE reminder_day = ? AND reminder_time = ?
-	`, day, timeStr)
+	`)
 	if err != nil {
 		return nil, err
 	}
@@ -345,7 +344,7 @@ func (db *DB) GetSubscriptionsForNotification(day int, timeStr string) ([]models
 	var subs []models.PushSubscription
 	for rows.Next() {
 		var s models.PushSubscription
-		if err := rows.Scan(&s.Id, &s.Endpoint, &s.P256dh, &s.Auth, &s.ReminderDay, &s.ReminderTime); err != nil {
+		if err := rows.Scan(&s.Id, &s.Endpoint, &s.P256dh, &s.Auth, &s.ReminderDay, &s.ReminderTime, &s.Timezone); err != nil {
 			return nil, err
 		}
 		subs = append(subs, s)
@@ -356,10 +355,10 @@ func (db *DB) GetSubscriptionsForNotification(day int, timeStr string) ([]models
 func (db *DB) GetAnyPushSubscription() (*models.PushSubscription, error) {
 	var s models.PushSubscription
 	err := db.QueryRow(`
-		SELECT id, endpoint, p256dh, auth, reminder_day, reminder_time
+		SELECT id, endpoint, p256dh, auth, reminder_day, reminder_time, timezone
 		FROM push_subscriptions
 		ORDER BY id DESC LIMIT 1
-	`).Scan(&s.Id, &s.Endpoint, &s.P256dh, &s.Auth, &s.ReminderDay, &s.ReminderTime)
+	`).Scan(&s.Id, &s.Endpoint, &s.P256dh, &s.Auth, &s.ReminderDay, &s.ReminderTime, &s.Timezone)
 
 	if err == sql.ErrNoRows {
 		return nil, nil

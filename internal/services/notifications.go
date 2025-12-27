@@ -36,11 +36,7 @@ func StartNotificationScheduler(db database.Querier) {
 }
 
 func checkAndSendNotifications(db database.Querier) {
-	now := time.Now()
-	day := int(now.Weekday())
-	timeStr := now.Format("15:04")
-
-	subs, err := db.GetSubscriptionsForNotification(day, timeStr)
+	subs, err := db.GetAllSubscriptions()
 	if err != nil {
 		log.Printf("Scheduler error: failed to get subscriptions: %v", err)
 		return
@@ -56,12 +52,11 @@ func checkAndSendNotifications(db database.Querier) {
 	f, _ := db.GetFitnessMetricsByDate(currentWeekDate)
 	c, _ := db.GetCognitionMetricsByDate(currentWeekDate)
 
-	if h != nil && f != nil && c != nil {
-		log.Printf("Scheduler: Skipping notifications for %s - data is complete for week %s", timeStr, currentWeekDate)
+	dataComplete := h != nil && f != nil && c != nil
+	if dataComplete {
+		log.Printf("Scheduler: Skipping - data complete for week %s", currentWeekDate)
 		return
 	}
-
-	log.Printf("Scheduler: Sending %d notifications for %s (Day %d)", len(subs), timeStr, day)
 
 	// Decode private key once
 	_, privKeyStr := getVapidKeys()
@@ -76,7 +71,26 @@ func checkAndSendNotifications(db database.Querier) {
 	}
 
 	for _, sub := range subs {
-		go sendPush(db, sub, priv)
+		shouldSend := false
+
+		location, err := time.LoadLocation(sub.Timezone)
+		if err != nil {
+			// Fallback to UTC if timezone is invalid
+			location = time.UTC
+		}
+
+		nowInLoc := time.Now().In(location)
+		day := int(nowInLoc.Weekday())
+		timeStr := nowInLoc.Format("15:04")
+
+		if day == sub.ReminderDay && timeStr == sub.ReminderTime {
+			shouldSend = true
+		}
+
+		if shouldSend {
+			log.Printf("Scheduler: Sending notification to %s (Timezone: %s, Local Time: %s)", sub.Endpoint, sub.Timezone, timeStr)
+			go sendPush(db, sub, priv)
+		}
 	}
 }
 

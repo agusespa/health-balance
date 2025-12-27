@@ -64,12 +64,22 @@ func createTables(db *sql.DB) error {
 			p256dh TEXT NOT NULL,
 			auth TEXT NOT NULL,
 			reminder_day INTEGER NOT NULL DEFAULT 0,
-			reminder_time TEXT NOT NULL DEFAULT '09:00'
+			reminder_time TEXT NOT NULL DEFAULT '15:00',
+			timezone TEXT NOT NULL DEFAULT 'UTC'
 		);`,
 	}
 
 	for _, query := range queries {
 		if _, err := db.Exec(query); err != nil {
+			return err
+		}
+	}
+
+	// Migration: Add timezone column if it doesn't exist
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('push_subscriptions') WHERE name='timezone'").Scan(&count)
+	if err == nil && count == 0 {
+		if _, err := db.Exec("ALTER TABLE push_subscriptions ADD COLUMN timezone TEXT NOT NULL DEFAULT 'UTC'"); err != nil {
 			return err
 		}
 	}
