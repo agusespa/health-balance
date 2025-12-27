@@ -111,7 +111,7 @@ select {
     right: 0;
     bottom: 0;
     background-color: var(--border, #ccc);
-    transition: .4s;
+    transition: 0.4s;
     border-radius: 34px;
 }
 
@@ -123,15 +123,15 @@ select {
     left: 4px;
     bottom: 4px;
     background-color: white;
-    transition: .4s;
+    transition: 0.4s;
     border-radius: 50%;
 }
 
-input:checked+.slider {
+input:checked + .slider {
     background-color: var(--accent, #007bff);
 }
 
-input:checked+.slider:before {
+input:checked + .slider:before {
     transform: translateX(24px);
 }
 
@@ -168,7 +168,7 @@ input:checked+.slider:before {
     }
 
     .back-link {
-        padding-right: 0;
+        padding: 8px 0px;
     }
 
     .settings-card {
