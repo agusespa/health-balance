@@ -141,15 +141,6 @@
     <script>
         const VAPID_PUBLIC_KEY = '{{.VapidPublicKey}}';
 
-        // Register Service Worker immediately
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').then(reg => {
-                console.log('SW registered:', reg.scope);
-            }).catch(err => {
-                console.error('SW registration failed:', err);
-            });
-        }
-
         async function toggleNotificationUI() {
             const toggle = document.getElementById('notification-toggle');
             const settingsSection = document.getElementById('notification-settings');

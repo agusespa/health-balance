@@ -75,14 +75,5 @@ func createTables(db *sql.DB) error {
 		}
 	}
 
-	// Migration: Add timezone column if it doesn't exist
-	var count int
-	err := db.QueryRow("SELECT COUNT(*) FROM pragma_table_info('push_subscriptions') WHERE name='timezone'").Scan(&count)
-	if err == nil && count == 0 {
-		if _, err := db.Exec("ALTER TABLE push_subscriptions ADD COLUMN timezone TEXT NOT NULL DEFAULT 'UTC'"); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }

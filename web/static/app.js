@@ -1,43 +1,44 @@
-function showToast(message, type = 'success') {
-    const existingToasts = document.querySelectorAll('.toast');
-    existingToasts.forEach(t => t.remove());
+function showToast(message, type = "success") {
+    const existingToasts = document.querySelectorAll(".toast");
+    existingToasts.forEach((t) => t.remove());
 
-    const toast = document.createElement('div');
+    const toast = document.createElement("div");
     toast.className = `toast toast-${type}`;
     toast.textContent = message;
 
-    const container = document.querySelector('.toast-container') || createToastContainer();
+    const container =
+        document.querySelector(".toast-container") || createToastContainer();
     container.appendChild(toast);
 
     // Trigger reflow for animation
     void toast.offsetWidth;
-    toast.classList.add('show');
+    toast.classList.add("show");
 
     setTimeout(() => {
-        toast.classList.remove('show');
+        toast.classList.remove("show");
         setTimeout(() => toast.remove(), 300);
     }, 4000);
 }
 
 function createToastContainer() {
-    const container = document.createElement('div');
-    container.className = 'toast-container';
+    const container = document.createElement("div");
+    container.className = "toast-container";
     document.body.appendChild(container);
     return container;
 }
 
-document.addEventListener('htmx:confirm', function (evt) {
+document.addEventListener("htmx:confirm", function (evt) {
     // The message is provided via the hx-confirm attribute
     const message = evt.detail.question;
-    const dialog = document.getElementById('confirm-dialog');
+    const dialog = document.getElementById("confirm-dialog");
 
     if (dialog && message) {
         // Prevent the default browser confirm
         evt.preventDefault();
 
-        const messageEl = document.getElementById('confirm-message');
-        const okBtn = document.getElementById('confirm-ok');
-        const cancelBtn = document.getElementById('confirm-cancel');
+        const messageEl = document.getElementById("confirm-message");
+        const okBtn = document.getElementById("confirm-ok");
+        const cancelBtn = document.getElementById("confirm-cancel");
 
         messageEl.textContent = message;
 
@@ -65,10 +66,45 @@ document.addEventListener('htmx:confirm', function (evt) {
 });
 
 // Global listener for showToast events (can be triggered from backend via HX-Trigger)
-document.addEventListener('showToast', function (evt) {
+document.addEventListener("showToast", function (evt) {
     const message = evt.detail.value || evt.detail.message;
-    const type = evt.detail.type || 'success';
+    const type = evt.detail.type || "success";
     if (message) {
         showToast(message, type);
     }
 });
+
+function registerServiceWorker() {
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+            navigator.serviceWorker
+                .getRegistration("/sw.js")
+                .then((registration) => {
+                    if (!registration) {
+                        navigator.serviceWorker
+                            .register("/sw.js")
+                            .then((reg) => {
+                                console.log(
+                                    "ServiceWorker registration successful with scope: ",
+                                    reg.scope
+                                );
+                            })
+                            .catch((err) => {
+                                console.error(
+                                    "ServiceWorker registration failed: ",
+                                    err
+                                );
+                            });
+                    } else {
+                        console.log(
+                            "ServiceWorker already registered with scope: ",
+                            registration.scope
+                        );
+                    }
+                });
+        });
+    }
+}
+
+// Auto-register on load
+registerServiceWorker();
