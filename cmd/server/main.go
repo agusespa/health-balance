@@ -64,6 +64,7 @@ func main() {
 	mux.HandleFunc("/add-cognition-metrics", h.HandleAddCognitionMetrics)
 	mux.HandleFunc("/delete-cognition-metric", h.HandleDeleteCognitionMetric)
 	mux.HandleFunc("/subscribe", h.HandleSubscribe)
+	mux.HandleFunc("/unsubscribe", h.HandleUnsubscribe)
 	mux.HandleFunc("/sw.js", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "web/static/sw.js")
 	})

@@ -401,6 +401,45 @@ func (h *Handler) HandleSubscribe(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) HandleUnsubscribe(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Endpoint string `json:"endpoint"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("Error decoding unsubscribe: %v", err)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.Endpoint == "" {
+		// Fallback: delete the most recent subscription if no endpoint provided
+		sub, err := h.db.GetAnyPushSubscription()
+		if err != nil {
+			log.Printf("Error getting any subscription for unsubscribe: %v", err)
+		} else if sub != nil {
+			req.Endpoint = sub.Endpoint
+		}
+	}
+
+	if req.Endpoint != "" {
+		if err := h.db.DeletePushSubscription(req.Endpoint); err != nil {
+			log.Printf("Error deleting subscription: %v", err)
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(map[string]string{"status": "success"}); err != nil {
+		log.Printf("Error encoding response: %v", err)
+	}
+}
+
 func (h *Handler) HandleAppHealth(w http.ResponseWriter, r *http.Request) {
 	_, err := fmt.Fprint(w, "OK")
 	if err != nil {
