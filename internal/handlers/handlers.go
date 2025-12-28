@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
 	"log"
@@ -14,6 +15,9 @@ import (
 	"health-balance/internal/services"
 	"health-balance/internal/utils"
 	"os"
+
+	"github.com/microcosm-cc/bluemonday"
+	"github.com/yuin/goldmark"
 )
 
 type Handler struct {
@@ -452,7 +456,35 @@ func (h *Handler) HandleAppHealth(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Helpers
+func (h *Handler) HandleAiSummary(w http.ResponseWriter, r *http.Request) {
+	summary, err := services.GetHealthSummary(h.db)
+	if err != nil {
+		log.Printf("AI summary error: %v", err)
+		if _, err := fmt.Fprintf(w, `<div class="text-red-600 p-4 bg-red-50 rounded">Failed to generate AI summary. Please ensure API_KEY is set.</div>`); err != nil {
+			log.Printf("Error writing error response: %v", err)
+		}
+		return
+	}
+
+	// Convert markdown to HTML
+	var buf bytes.Buffer
+	if err := goldmark.Convert([]byte(summary), &buf); err != nil {
+		log.Printf("Markdown conversion error: %v", err)
+		if _, err := fmt.Fprintf(w, `<div class="text-red-600 p-4 bg-red-50 rounded">Failed to render summary.</div>`); err != nil {
+			log.Printf("Error writing error response: %v", err)
+		}
+		return
+	}
+
+	// Sanitize HTML to only allow safe tags
+	policy := bluemonday.UGCPolicy()
+	safeHTML := policy.SanitizeBytes(buf.Bytes())
+
+	if _, err := fmt.Fprintf(w, `<div>%s</div>`, safeHTML); err != nil {
+		log.Printf("Error writing AI summary response: %v", err)
+	}
+}
+
 func parseFormInt(r *http.Request, key string) (int, error) {
 	val := r.FormValue(key)
 	if val == "" {

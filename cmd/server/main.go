@@ -12,6 +12,14 @@ import (
 	"health-balance/internal/services"
 )
 
+func staticCache(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Cache for 1 hour (or longer)
+		w.Header().Set("Cache-Control", "public, max-age=3600")
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	dbPath := os.Getenv("DB_PATH")
 	if dbPath == "" {
@@ -65,12 +73,16 @@ func main() {
 	mux.HandleFunc("/delete-cognition-metric", h.HandleDeleteCognitionMetric)
 	mux.HandleFunc("/subscribe", h.HandleSubscribe)
 	mux.HandleFunc("/unsubscribe", h.HandleUnsubscribe)
+	mux.HandleFunc("/ai-summary", h.HandleAiSummary)
 	mux.HandleFunc("/health", h.HandleAppHealth)
 
 	mux.HandleFunc("/sw.js", func(w http.ResponseWriter, r *http.Request) {
+		// Prevent the browser/CDN from caching the service worker script
+		w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
 		http.ServeFile(w, r, "web/static/sw.js")
 	})
-	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
+
+	mux.Handle("/static/", staticCache(http.StripPrefix("/static/", http.FileServer(http.Dir("web/static")))))
 
 	services.StartNotificationScheduler(db)
 

@@ -5,14 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Health Balance</title>
-    
+
     <link rel="manifest" href="/static/manifest.json" crossorigin="use-credentials">
 
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script src="/static/app.js"></script>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/ai_summary.css">
     <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
-    
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Health Balance">
     <link rel="apple-touch-icon" href="/static/icon-192.png">
@@ -240,9 +241,21 @@
             </div>
         </div>
 
+        <div class="card ai-summary-card">
+            <div class="summary-header">
+                <div>
+                    <h2>AI Insights</h2>
+                    <p class="help-text">AI analysis and recommendations based on your recent performance</p>
+                </div>
+                <button hx-get="/ai-summary" hx-target="#summary-content" hx-indicator="#summary-spinner"
+                    class="ai-btn">
+                    <span id="summary-spinner" class="spinner htmx-indicator"></span>
+                    <span>Generate Insights</span>
+                </button>
+            </div>
+            <div id="summary-content" class="ai-summary-content"></div>
+        </div>
     </div>
-
-
 
     <dialog id="confirm-dialog" class="confirm-dialog">
         <div class="dialog-content">
