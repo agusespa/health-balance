@@ -104,7 +104,7 @@
                                     <label for="reminder_day">Reminder Day</label>
                                     <select id="reminder_day" name="reminder_day">
                                         <option value="1" {{if .Subscription}}{{if eq .Subscription.ReminderDay
-                                            2}}selected{{end}}{{end}}>Monday</option>
+                                            1}}selected{{end}}{{end}}>Monday</option>
                                         <option value="2" {{if .Subscription}}{{if eq .Subscription.ReminderDay
                                             2}}selected{{end}}{{end}}>Tuesday</option>
                                         <option value="3" {{if .Subscription}}{{if eq .Subscription.ReminderDay
@@ -116,7 +116,7 @@
                                         <option value="6" {{if .Subscription}}{{if eq .Subscription.ReminderDay
                                             6}}selected{{end}}{{end}}>Saturday</option>
                                         <option value="0" {{if .Subscription}}{{if eq .Subscription.ReminderDay
-                                            1}}selected{{end}}{{else}}selected{{end}}>Sunday</option>
+                                            0}}selected{{end}}{{else}}selected{{end}}>Sunday</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
