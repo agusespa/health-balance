@@ -40,9 +40,9 @@ func createTables(db *sql.DB) error {
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			date TEXT NOT NULL UNIQUE,
 			vo2_max REAL,
-			weekly_workouts INTEGER,
+			workouts INTEGER,
 			daily_steps INTEGER,
-			weekly_mobility INTEGER,
+			mobility INTEGER,
 			cardio_recovery INTEGER
 		);`,
 		`CREATE TABLE IF NOT EXISTS cognition_metrics (
@@ -50,7 +50,8 @@ func createTables(db *sql.DB) error {
 			date TEXT NOT NULL UNIQUE,
 			dual_n_back_level INTEGER,
 			reaction_time INTEGER,
-			weekly_mindfulness INTEGER
+			mindfulness INTEGER,
+			deep_learning INTEGER
 		);`,
 		`CREATE TABLE IF NOT EXISTS user_profile (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,

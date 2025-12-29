@@ -86,16 +86,15 @@
                     <form hx-post="/add-health-metrics" hx-swap="none" hx-indicator="#health-spinner">
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="sleep_score">Sleep Quality Score (0-100)</label>
-                                <input type="number" id="sleep_score" name="sleep_score" min="0" max="100" {{if
+                                <label for="sleep_score">Sleep Quality Score</label>
+                                <input type="number" id="sleep_score" name="sleep_score" min="0" max="100" placeholder="Average score" {{if
                                     .TodayHealth}}value="{{.TodayHealth.SleepScore}}" {{end}} required>
-                                <small class="help-text">Weekly average. Values above 75 add to your health
-                                    reserve.</small>
+                                <small class="help-text">Score ranges from 0 to 100. Values above 75 add to your health reserve.</small>
                             </div>
 
                             <div class="form-group">
-                                <label for="waist_cm">Waist Circumference (cm)</label>
-                                <input type="number" id="waist_cm" name="waist_cm" step="0.1" {{if
+                                <label for="waist_cm">Waist Circumference</label>
+                                <input type="number" id="waist_cm" name="waist_cm" step="0.1" placeholder="Circunference in cm" {{if
                                     .TodayHealth}}value="{{printf "%.1f" .TodayHealth.WaistCm}}"{{end}} required>
                                 <small class="help-text">Compared against height for Waist-to-Height Ratio. A ratio
                                     below 0.48 is the target baseline.</small>
@@ -104,19 +103,18 @@
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="rhr">Resting Heart Rate (BPM)</label>
-                                <input type="number" id="rhr" name="rhr" {{if .TodayHealth}}value="{{.TodayHealth.RHR}}"
+                                <label for="rhr">Resting Heart Rate</label>
+                                <input type="number" id="rhr" name="rhr" placeholder="Average RPM" {{if .TodayHealth}}value="{{.TodayHealth.RHR}}"
                                     {{end}} required>
-                                <small class="help-text">Deviation from your 3-month rolling average. Lower is
-                                    better.</small>
+                                <small class="help-text">Deviation from your 3-month rolling average. Lower is better.</small>
                             </div>
 
                             <div class="form-group">
-                                <label for="nutrition_score">Nutrition Quality (1-10)</label>
+                                <label for="nutrition_score">Nutrition Quality</label>
                                 <input type="number" id="nutrition_score" name="nutrition_score" min="1" max="10"
-                                    step="0.1" {{if .TodayHealth}}value="{{printf "%.1f"
+                                    step="0.1" placeholder="Average score" {{if .TodayHealth}}value="{{printf "%.1f"
                                     .TodayHealth.NutritionScore}}"{{end}} required>
-                                <small class="help-text">Self-assessment. 7+ is good.</small>
+                                <small class="help-text">Self-assessment (0-100). 7+ is good.</small>
                             </div>
                         </div>
 
@@ -142,16 +140,16 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="vo2_max">VO2 Max</label>
-                                <input type="number" id="vo2_max" name="vo2_max" step="0.1" {{if
+                                <input type="number" id="vo2_max" name="vo2_max" step="0.1" placeholder="Average measure" {{if
                                     .TodayFitness}}value="{{printf "%.1f" .TodayFitness.VO2Max}}"{{end}} required>
                                 <small class="help-text">Aerobic capacity. Compared against your age-adjusted biological
                                     baseline.</small>
                             </div>
 
                             <div class="form-group">
-                                <label for="weekly_workouts">Workout Sessions</label>
-                                <input type="number" id="weekly_workouts" name="weekly_workouts" min="0" {{if
-                                    .TodayFitness}}value="{{.TodayFitness.WeeklyWorkouts}}" {{end}} required>
+                                <label for="workouts">Workout Sessions</label>
+                                <input type="number" id="workouts" name="workouts" min="0" placeholder="Total sessions" {{if
+                                    .TodayFitness}}value="{{.TodayFitness.Workouts}}" {{end}} required>
                                 <small class="help-text">Resistance/HIIT sessions. 3 per week is the maintenance
                                     baseline.</small>
                             </div>
@@ -160,16 +158,16 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="daily_steps">Daily Steps</label>
-                                <input type="number" id="daily_steps" name="daily_steps" min="0" {{if
+                                <input type="number" id="daily_steps" name="daily_steps" min="0" placeholder="Average count" {{if
                                     .TodayFitness}}value="{{.TodayFitness.DailySteps}}" {{end}} required>
                                 <small class="help-text">Daily movement average. 8,000 steps is the neutral break-even
                                     point.</small>
                             </div>
 
                             <div class="form-group">
-                                <label for="weekly_mobility">Mobility Sessions</label>
-                                <input type="number" id="weekly_mobility" name="weekly_mobility" min="0" {{if
-                                    .TodayFitness}}value="{{.TodayFitness.WeeklyMobility}}" {{end}} required>
+                                <label for="mobility">Mobility Sessions</label>
+                                <input type="number" id="mobility" name="mobility" min="0" placeholder="Total sessions" {{if
+                                    .TodayFitness}}value="{{.TodayFitness.Mobility}}" {{end}} required>
                                 <small class="help-text">Stretching/Range of motion. 3 per week is the maintenance
                                     baseline.</small>
                             </div>
@@ -177,11 +175,10 @@
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="cardio_recovery">Cardio Recovery (BPM Drop)</label>
-                                <input type="number" id="cardio_recovery" name="cardio_recovery" min="0" {{if
+                                <label for="cardio_recovery">Cardio Recovery</label>
+                                <input type="number" id="cardio_recovery" name="cardio_recovery" min="0" placeholder="Average BPM drop" {{if
                                     .TodayFitness}}value="{{.TodayFitness.CardioRecovery}}" {{end}} required>
-                                <small class="help-text">Heart rate drop 60s post-exercise. 20 BPM is the healthy
-                                    baseline.</small>
+                                <small class="help-text">Drop 60s after vigorous effort (70%+ max HR). Aim for 25+ BPM.</small>
                             </div>
                         </div>
 
@@ -206,28 +203,31 @@
                     <form hx-post="/add-cognition-metrics" hx-swap="none" hx-indicator="#cognition-spinner">
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="dual_n_back">Dual N-Back Level</label>
-                                <input type="number" id="dual_n_back" name="dual_n_back" min="1" {{if
-                                    .TodayCognition}}value="{{.TodayCognition.DualNBackLevel}}" {{end}} required>
-                                <small class="help-text">Working memory capacity. Baseline is Level 2.</small>
+                                <label for="mindfulness">Mindfulness Sessions</label>
+                                <input type="number" id="mindfulness" name="mindfulness" min="0" placeholder="Total sessions" {{if
+                                    .TodayCognition}}value="{{.TodayCognition.Mindfulness}}" {{end}} required>
+                                <small class="help-text">Stress regulation. 3 sessions per week is the maintenance baseline.</small>
                             </div>
-
                             <div class="form-group">
-                                <label for="reaction_time">Reaction Time (ms)</label>
-                                <input type="number" id="reaction_time" name="reaction_time" min="0" {{if
-                                    .TodayCognition}}value="{{.TodayCognition.ReactionTime}}" {{end}} required>
-                                <small class="help-text">Neural processing speed. Measured against your age-adjusted
-                                    average.</small>
+                                <label for="deep_learning">Deep Learning</label>
+                                <input type="number" id="deep_learning" name="deep_learning" min="0" placeholder="Total minutes" {{if .TodayCognition}}value="{{.TodayCognition.DeepLearning}}" {{end}} required>
+                                <small class="help-text">Instruments or language practice. 90+ minutes per week builds Cognitive Reserve to protect against decline.</small>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="weekly_mindfulness">Mindfulness Sessions</label>
-                                <input type="number" id="weekly_mindfulness" name="weekly_mindfulness" min="0" {{if
-                                    .TodayCognition}}value="{{.TodayCognition.WeeklyMindfulness}}" {{end}} required>
-                                <small class="help-text">Stress regulation. 3 sessions per week is the maintenance
-                                    baseline.</small>
+                                <label for="dual_n_back">Dual N-Back Level</label>
+                                <input type="number" id="dual_n_back" name="dual_n_back" min="1" placeholder="Best level" {{if
+                                    .TodayCognition}}value="{{.TodayCognition.DualNBackLevel}}" {{end}} required>
+                                <small class="help-text">Working memory capacity. Baseline is Level 2.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="reaction_time">Reaction Time</label>
+                                <input type="number" id="reaction_time" name="reaction_time" min="0" placeholder="Best time (ms)" {{if
+                                    .TodayCognition}}value="{{.TodayCognition.ReactionTime}}" {{end}} required>
+                                <small class="help-text">Neural processing speed. Measured against your age-adjusted average.</small>
                             </div>
                         </div>
 
@@ -245,12 +245,12 @@
             <div class="summary-header">
                 <div>
                     <h2>AI Insights</h2>
-                    <p class="help-text">AI analysis and recommendations based on your recent performance</p>
+                    <p class="help-text">LLM powered analysis and recommendations based on your recent performance</p>
                 </div>
                 <button hx-get="/ai-summary" hx-target="#summary-content" hx-indicator="#summary-spinner"
                     class="ai-btn">
                     <span id="summary-spinner" class="spinner htmx-indicator"></span>
-                    <span>Generate Insights</span>
+                    <span>Generate Report</span>
                 </button>
             </div>
             <div id="summary-content" class="ai-summary-content"></div>

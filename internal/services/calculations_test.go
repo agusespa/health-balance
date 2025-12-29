@@ -72,12 +72,12 @@ func TestGetAllWeeklyScores_Compounding(t *testing.T) {
 			date2: {RHR: 60, WaistCm: 85, SleepScore: 85, NutritionScore: 8},
 		},
 		FitnessMap: map[string]*models.FitnessMetrics{
-			date1: {VO2Max: 40, WeeklyWorkouts: 3, DailySteps: 8000, WeeklyMobility: 3, CardioRecovery: 20},
-			date2: {VO2Max: 42, WeeklyWorkouts: 4, DailySteps: 10000, WeeklyMobility: 3, CardioRecovery: 25},
+			date1: {VO2Max: 40, Workouts: 3, DailySteps: 8000, Mobility: 3, CardioRecovery: 20},
+			date2: {VO2Max: 42, Workouts: 4, DailySteps: 10000, Mobility: 3, CardioRecovery: 25},
 		},
 		CognitionMap: map[string]*models.CognitionMetrics{
-			date1: {DualNBackLevel: 2, ReactionTime: 250, WeeklyMindfulness: 3},
-			date2: {DualNBackLevel: 3, ReactionTime: 240, WeeklyMindfulness: 4},
+			date1: {DualNBackLevel: 2, ReactionTime: 250, Mindfulness: 3, DeepLearning: 50},
+			date2: {DualNBackLevel: 3, ReactionTime: 240, Mindfulness: 4, DeepLearning: 80},
 		},
 		RHRBaselineValue: 65,
 	}

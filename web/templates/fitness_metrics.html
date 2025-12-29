@@ -21,9 +21,9 @@
             <tr>
                 <td data-label="Week">{{.Date}}</td>
                 <td data-label="VO2 Max">{{printf "%.1f" .VO2Max}}</td>
-                <td data-label="Workouts">{{.WeeklyWorkouts}}</td>
+                <td data-label="Workouts">{{.Workouts}}</td>
                 <td data-label="Steps">{{.DailySteps}}</td>
-                <td data-label="Mobility">{{.WeeklyMobility}}</td>
+                <td data-label="Mobility">{{.Mobility}}</td>
                 <td data-label="Recovery">{{.CardioRecovery}}</td>
                 <td>
                     <button class="icon-button delete-btn" hx-delete="/delete-fitness-metric?date={{.Date}}"

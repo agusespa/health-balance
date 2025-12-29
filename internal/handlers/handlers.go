@@ -220,9 +220,9 @@ func (h *Handler) HandleAddFitnessMetrics(w http.ResponseWriter, r *http.Request
 
 	fitness := models.FitnessMetrics{
 		VO2Max:         getF("vo2_max"),
-		WeeklyWorkouts: getI("weekly_workouts"),
+		Workouts:       getI("workouts"),
 		DailySteps:     getI("daily_steps"),
-		WeeklyMobility: getI("weekly_mobility"),
+		Mobility:       getI("mobility"),
 		CardioRecovery: getI("cardio_recovery"),
 	}
 
@@ -262,9 +262,10 @@ func (h *Handler) HandleAddCognitionMetrics(w http.ResponseWriter, r *http.Reque
 	}
 
 	cognition := models.CognitionMetrics{
-		DualNBackLevel:    getI("dual_n_back", "Dual N-Back Level"),
-		ReactionTime:      getI("reaction_time", "Reaction Time"),
-		WeeklyMindfulness: getI("weekly_mindfulness", "Weekly Mindfulness"),
+		Mindfulness:    getI("mindfulness", "Mindfulness"),
+		DeepLearning:   getI("deep_learning", "Deep Learning"),
+		DualNBackLevel: getI("dual_n_back", "Dual N-Back Level"),
+		ReactionTime:   getI("reaction_time", "Reaction Time"),
 	}
 
 	if len(errs) > 0 {

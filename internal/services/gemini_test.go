@@ -30,15 +30,16 @@ func TestConstructPrompt(t *testing.T) {
 			},
 			Fitness: &models.FitnessMetrics{
 				VO2Max:         45.0,
-				WeeklyWorkouts: 4,
+				Workouts:       4,
 				DailySteps:     10000,
-				WeeklyMobility: 3,
+				Mobility:       3,
 				CardioRecovery: 25,
 			},
 			Cognition: &models.CognitionMetrics{
-				DualNBackLevel:    3,
-				ReactionTime:      240,
-				WeeklyMindfulness: 4,
+				DualNBackLevel: 3,
+				ReactionTime:   240,
+				Mindfulness:    4,
+				DeepLearning:   40,
 			},
 		},
 	}

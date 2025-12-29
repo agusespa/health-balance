@@ -12,12 +12,18 @@ import (
 
 func GetCurrentMasterScore(db database.Querier) (*models.MasterScore, error) {
 	scores, err := GetAllWeeklyScores(db)
-	if err != nil || len(scores) == 0 {
+
+	if err != nil {
+		return nil, fmt.Errorf("could not get master score: %w", err)
+	}
+
+	if len(scores) == 0 {
 		return &models.MasterScore{
 			Date:  time.Now().Format("2006-01-02"),
-			Score: 1000.0, // Starting baseline score
+			Score: 1000.0,
 		}, nil
 	}
+
 	return &scores[0], nil
 }
 
@@ -95,10 +101,10 @@ func CalculateHealthPillar(m models.HealthMetrics, rhrBaseline int, whtr float64
 
 func CalculateFitnessPillar(m models.FitnessMetrics, vo2MaxBaseline float64) float64 {
 	vo2Points := (m.VO2Max - vo2MaxBaseline) * 20
-	workoutPoints := float64(m.WeeklyWorkouts-3) * 20
+	workoutPoints := float64(m.Workouts-3) * 20
 	stepPoints := float64(m.DailySteps-8000) / 150
-	mobilityPoints := float64(m.WeeklyMobility-3) * 10
-	recoveryPoints := float64(m.CardioRecovery-20) * 3
+	mobilityPoints := float64(m.Mobility-3) * 10
+	recoveryPoints := float64(m.CardioRecovery-25) * 3
 
 	return vo2Points + workoutPoints + stepPoints + mobilityPoints + recoveryPoints
 }
@@ -106,9 +112,10 @@ func CalculateFitnessPillar(m models.FitnessMetrics, vo2MaxBaseline float64) flo
 func CalculateCognitionPillar(m models.CognitionMetrics, reactionBaseline int) float64 {
 	memoryPoints := float64(m.DualNBackLevel-2) * 20
 	reactionPoints := float64(reactionBaseline-m.ReactionTime) / 2
-	mindfulnessPoints := float64(m.WeeklyMindfulness-3) * 5
+	mindfulnessPoints := float64(m.Mindfulness-3) * 5
+	learningPoints := float64(m.DeepLearning-90) / 5
 
-	return memoryPoints + reactionPoints + mindfulnessPoints
+	return memoryPoints + reactionPoints + mindfulnessPoints + learningPoints
 }
 
 func CalculateMasterScore(

@@ -102,7 +102,7 @@ func (db *DB) GetRecentHealthMetrics(limit int) ([]models.HealthMetrics, error) 
 func (db *DB) GetRecentFitnessMetrics(limit int) ([]models.FitnessMetrics, error) {
 	currentWeekDate := utils.GetPreviousSundayDate()
 	rows, err := db.Query(`
-		SELECT date, vo2_max, weekly_workouts, daily_steps, weekly_mobility, cardio_recovery
+		SELECT date, vo2_max, workouts, daily_steps, mobility, cardio_recovery
 		FROM fitness_metrics
 		WHERE date != ?
 		ORDER BY date DESC
@@ -120,7 +120,7 @@ func (db *DB) GetRecentFitnessMetrics(limit int) ([]models.FitnessMetrics, error
 	var metrics []models.FitnessMetrics
 	for rows.Next() {
 		var m models.FitnessMetrics
-		err := rows.Scan(&m.Date, &m.VO2Max, &m.WeeklyWorkouts, &m.DailySteps, &m.WeeklyMobility, &m.CardioRecovery)
+		err := rows.Scan(&m.Date, &m.VO2Max, &m.Workouts, &m.DailySteps, &m.Mobility, &m.CardioRecovery)
 		if err != nil {
 			return nil, err
 		}
@@ -133,7 +133,7 @@ func (db *DB) GetRecentFitnessMetrics(limit int) ([]models.FitnessMetrics, error
 func (db *DB) GetRecentCognitionMetrics(limit int) ([]models.CognitionMetrics, error) {
 	currentWeekDate := utils.GetPreviousSundayDate()
 	rows, err := db.Query(`
-		SELECT date, dual_n_back_level, reaction_time, weekly_mindfulness
+		SELECT date, dual_n_back_level, reaction_time, mindfulness, deep_learning
 		FROM cognition_metrics
 		WHERE date != ?
 		ORDER BY date DESC
@@ -151,7 +151,7 @@ func (db *DB) GetRecentCognitionMetrics(limit int) ([]models.CognitionMetrics, e
 	var metrics []models.CognitionMetrics
 	for rows.Next() {
 		var m models.CognitionMetrics
-		err := rows.Scan(&m.Date, &m.DualNBackLevel, &m.ReactionTime, &m.WeeklyMindfulness)
+		err := rows.Scan(&m.Date, &m.DualNBackLevel, &m.ReactionTime, &m.Mindfulness, &m.DeepLearning)
 		if err != nil {
 			return nil, err
 		}
@@ -178,28 +178,29 @@ func (db *DB) SaveHealthMetrics(m models.HealthMetrics) error {
 func (db *DB) SaveFitnessMetrics(m models.FitnessMetrics) error {
 	date := utils.GetPreviousSundayDate()
 	_, err := db.Exec(`
-		INSERT INTO fitness_metrics (date, vo2_max, weekly_workouts, daily_steps, weekly_mobility, cardio_recovery)
+		INSERT INTO fitness_metrics (date, vo2_max, workouts, daily_steps, mobility, cardio_recovery)
 		VALUES (?, ?, ?, ?, ?, ?)
 		ON CONFLICT(date) DO UPDATE SET
 			vo2_max = excluded.vo2_max,
-			weekly_workouts = excluded.weekly_workouts,
+			workouts = excluded.workouts,
 			daily_steps = excluded.daily_steps,
-			weekly_mobility = excluded.weekly_mobility,
+			mobility = excluded.mobility,
 			cardio_recovery = excluded.cardio_recovery
-	`, date, m.VO2Max, m.WeeklyWorkouts, m.DailySteps, m.WeeklyMobility, m.CardioRecovery)
+	`, date, m.VO2Max, m.Workouts, m.DailySteps, m.Mobility, m.CardioRecovery)
 	return err
 }
 
 func (db *DB) SaveCognitionMetrics(m models.CognitionMetrics) error {
 	date := utils.GetPreviousSundayDate()
 	_, err := db.Exec(`
-		INSERT INTO cognition_metrics (date, dual_n_back_level, reaction_time, weekly_mindfulness)
-		VALUES (?, ?, ?, ?)
+		INSERT INTO cognition_metrics (date, dual_n_back_level, reaction_time, mindfulness, deep_learning)
+		VALUES (?, ?, ?, ?, ?)
 		ON CONFLICT(date) DO UPDATE SET
 			dual_n_back_level = excluded.dual_n_back_level,
 			reaction_time = excluded.reaction_time,
-			weekly_mindfulness = excluded.weekly_mindfulness
-	`, date, m.DualNBackLevel, m.ReactionTime, m.WeeklyMindfulness)
+			mindfulness = excluded.mindfulness,
+			deep_learning = excluded.deep_learning
+	`, date, m.DualNBackLevel, m.ReactionTime, m.Mindfulness, m.DeepLearning)
 	return err
 }
 
@@ -220,10 +221,10 @@ func (db *DB) GetHealthMetricsByDate(date string) (*models.HealthMetrics, error)
 func (db *DB) GetFitnessMetricsByDate(date string) (*models.FitnessMetrics, error) {
 	var m models.FitnessMetrics
 	err := db.QueryRow(`
-		SELECT date, vo2_max, weekly_workouts, daily_steps, weekly_mobility, cardio_recovery
+		SELECT date, vo2_max, workouts, daily_steps, mobility, cardio_recovery
 		FROM fitness_metrics
 		WHERE date = ?
-	`, date).Scan(&m.Date, &m.VO2Max, &m.WeeklyWorkouts, &m.DailySteps, &m.WeeklyMobility, &m.CardioRecovery)
+	`, date).Scan(&m.Date, &m.VO2Max, &m.Workouts, &m.DailySteps, &m.Mobility, &m.CardioRecovery)
 
 	if err != nil {
 		return nil, err
@@ -234,10 +235,10 @@ func (db *DB) GetFitnessMetricsByDate(date string) (*models.FitnessMetrics, erro
 func (db *DB) GetCognitionMetricsByDate(date string) (*models.CognitionMetrics, error) {
 	var m models.CognitionMetrics
 	err := db.QueryRow(`
-		SELECT date, dual_n_back_level, reaction_time, weekly_mindfulness
+		SELECT date, dual_n_back_level, reaction_time, mindfulness, deep_learning
 		FROM cognition_metrics
 		WHERE date = ?
-	`, date).Scan(&m.Date, &m.DualNBackLevel, &m.ReactionTime, &m.WeeklyMindfulness)
+	`, date).Scan(&m.Date, &m.DualNBackLevel, &m.ReactionTime, &m.Mindfulness, &m.DeepLearning)
 
 	if err != nil {
 		return nil, err

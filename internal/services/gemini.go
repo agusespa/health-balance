@@ -160,12 +160,13 @@ The "Master Score" starts at a baseline of 1000 and compounds weekly. It is calc
    - Workouts: +20 points for every session above 3 per week.
    - Steps: +1 point for every 150 steps above 8,000 per day.
    - Mobility: +10 points for every session above 3 per week.
-   - Cardio Recovery: +3 points for every BPM drop above 20 (60s post-exercise).
+   - Cardio Recovery: +3 points for every BPM drop above 25 (60s post-exercise).
 
 4. **Cognition Pillar** (Weights):
    - Memory (Dual N-Back): +20 points for every level above Level 2.
    - Reaction Time: +1 point for every 2ms improvement over the age-adjusted baseline.
    - Mindfulness: +5 points for every session above 3 per week.
+   - Deep Learning (Language/Instruments): +2 points for every 10 minutes above 90 minutes/week.
 
 Detailed Weekly Data (most recent first):
 `, age, profile.Sex, profile.HeightCm, (float64(age*age)/8000.0)/52.0*100.0)
@@ -184,12 +185,12 @@ Detailed Weekly Data (most recent first):
 		if d.Fitness != nil {
 			f := d.Fitness
 			prompt += fmt.Sprintf("- **Fitness Metrics**: VO2 Max: %.1f | Workouts: %d | Daily Steps: %d | Mobility: %d | Cardio Recovery: %d bpm drop\n",
-				f.VO2Max, f.WeeklyWorkouts, f.DailySteps, f.WeeklyMobility, f.CardioRecovery)
+				f.VO2Max, f.Workouts, f.DailySteps, f.Mobility, f.CardioRecovery)
 		}
 		if d.Cognition != nil {
 			c := d.Cognition
-			prompt += fmt.Sprintf("- **Cognition Metrics**: Dual N-Back Level: %d | Reaction Time: %d ms | Mindfulness: %d sessions\n",
-				c.DualNBackLevel, c.ReactionTime, c.WeeklyMindfulness)
+			prompt += fmt.Sprintf("- **Cognition Metrics**: Dual N-Back Level: %d | Reaction Time: %d ms | Mindfulness: %d sessions | Deep Learning: %d total minutes\n",
+				c.DualNBackLevel, c.ReactionTime, c.Mindfulness, c.DeepLearning)
 		}
 	}
 

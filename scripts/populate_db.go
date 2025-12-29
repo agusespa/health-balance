@@ -48,17 +48,17 @@ func main() {
 		fitnessMetrics := models.FitnessMetrics{
 			Date:           dateStr,
 			VO2Max:         40 + rand.Float64()*5,
-			WeeklyWorkouts: rand.Intn(3) + 2, // 2-4
+			Workouts:       rand.Intn(3) + 2, // 2-4
 			DailySteps:     8000 + rand.Intn(4000),
-			WeeklyMobility: rand.Intn(3) + 1, // 1-3
+			Mobility:       rand.Intn(3) + 1, // 1-3
 			CardioRecovery: 20 + rand.Intn(10),
 		}
 
 		cognitionMetrics := models.CognitionMetrics{
-			Date:              dateStr,
-			DualNBackLevel:    rand.Intn(3) + 2, // 2-4
-			ReactionTime:      220 + rand.Intn(40),
-			WeeklyMindfulness: rand.Intn(4) + 2, // 2-5
+			Date:           dateStr,
+			DualNBackLevel: rand.Intn(3) + 2, // 2-4
+			ReactionTime:   220 + rand.Intn(40),
+			Mindfulness:    rand.Intn(4) + 2, // 2-5
 		}
 
 		// Custom save functions to insert with a specific date
@@ -107,7 +107,7 @@ func saveFitnessMetricsWithDate(db *database.DB, m models.FitnessMetrics) error 
 			daily_steps = excluded.daily_steps,
 			weekly_mobility = excluded.weekly_mobility,
 			cardio_recovery = excluded.cardio_recovery
-	`, m.Date, m.VO2Max, m.WeeklyWorkouts, m.DailySteps, m.WeeklyMobility, m.CardioRecovery)
+	`, m.Date, m.VO2Max, m.Workouts, m.DailySteps, m.Mobility, m.CardioRecovery)
 	return err
 }
 
@@ -119,6 +119,6 @@ func saveCognitionMetricsWithDate(db *database.DB, m models.CognitionMetrics) er
 			dual_n_back_level = excluded.dual_n_back_level,
 			reaction_time = excluded.reaction_time,
 			weekly_mindfulness = excluded.weekly_mindfulness
-	`, m.Date, m.DualNBackLevel, m.ReactionTime, m.WeeklyMindfulness)
+	`, m.Date, m.DualNBackLevel, m.ReactionTime, m.Mindfulness)
 	return err
 }

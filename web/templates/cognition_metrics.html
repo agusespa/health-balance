@@ -8,9 +8,10 @@
         <thead>
             <tr>
                 <th>Week</th>
+                <th>Mindfulness</th>
+                <th>Deep Learning</th>
                 <th>N-Back</th>
                 <th>Reaction (ms)</th>
-                <th>Mindfulness</th>
                 <th></th>
             </tr>
         </thead>
@@ -18,9 +19,10 @@
             {{range .}}
             <tr>
                 <td data-label="Week">{{.Date}}</td>
+                <td data-label="Mindfulness">{{.Mindfulness}}</td>
+                <td data-label="Deep Learning">{{.DeepLearning}}</td>
                 <td data-label="N-Back">{{.DualNBackLevel}}</td>
                 <td data-label="Reaction (ms)">{{.ReactionTime}}</td>
-                <td data-label="Mindfulness">{{.WeeklyMindfulness}}</td>
                 <td>
                     <button class="icon-button delete-btn" hx-delete="/delete-cognition-metric?date={{.Date}}"
                         hx-confirm="Are you sure you want to delete this entry?" hx-target="closest tr"

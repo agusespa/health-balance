@@ -23,18 +23,19 @@ type HealthMetrics struct {
 type FitnessMetrics struct {
 	Date           string
 	VO2Max         float64
-	WeeklyWorkouts int
+	Workouts       int
 	DailySteps     int
-	WeeklyMobility int
+	Mobility       int
 	CardioRecovery int
 }
 
 // CognitionMetrics represents the Cognition Pillar
 type CognitionMetrics struct {
-	Date              string
-	DualNBackLevel    int
-	ReactionTime      int
-	WeeklyMindfulness int
+	Date           string
+	DualNBackLevel int
+	ReactionTime   int
+	Mindfulness    int
+	DeepLearning   int
 }
 
 // UserProfile stores user-specific data for calculations
