@@ -16,6 +16,7 @@ A PWA that keeps track of your Biological Reserve Score. It goes beyond simple a
 > [!TIP]
 > To know more about it, run the app and visit the /rationale page.
 
+## Dashboard Preview
 <p align="center">
   <img src="web/static/screenshot.png" alt="Mobile App Screenshot" width="300">
 </p>
