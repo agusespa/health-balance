@@ -1,3 +1,5 @@
+<p align="center"> <img src="web/static/icon-192.png" alt="Health Balance Tracker Icon" width="192"> </p>
+
 # Health Balance Tracker
 
 A PWA that keeps track of your Biological Reserve Score. It goes beyond simple activity tracking to assess your physical and mental resources through a weighted algorithm that measures functional longevity.
@@ -13,6 +15,10 @@ A PWA that keeps track of your Biological Reserve Score. It goes beyond simple a
 
 > [!TIP]
 > To know more about it, run the app and visit the /rationale page.
+
+<p align="center">
+  <img src="web/static/screenshot.png" alt="Mobile App Screenshot" style="max-width: 300px; width: 100%;">
+</p>
 
 ## Quick Start
 
