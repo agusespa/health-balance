@@ -41,11 +41,14 @@ type DashboardData struct {
 	TodayHealth     *models.HealthMetrics
 	TodayFitness    *models.FitnessMetrics
 	TodayCognition  *models.CognitionMetrics
+	HasProfile      bool
 }
 
 func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 	currentScore, _ := services.GetCurrentMasterScore(h.db)
 	profile, _ := h.db.GetUserProfile()
+	hasProfile := profile != nil && profile.BirthDate != "" && profile.Sex != "" && profile.HeightCm > 0
+
 	date := utils.GetPreviousSundayDate()
 
 	todayHealth, _ := h.db.GetHealthMetricsByDate(date)
@@ -58,6 +61,7 @@ func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 		TodayHealth:    todayHealth,
 		TodayFitness:   todayFitness,
 		TodayCognition: todayCognition,
+		HasProfile:     hasProfile,
 	}
 
 	h.render(w, "index.html", data)

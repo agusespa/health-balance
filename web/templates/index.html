@@ -20,7 +20,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
 
-<body>
+<body data-has-profile="{{.HasProfile}}"></body>
 
     <div class="container">
 
@@ -268,6 +268,16 @@
         </div>
     </dialog>
 
+    <dialog id="welcome-modal" class="welcome-modal">
+        <div class="welcome-content">
+            <h2>Welcome to Health Balance!</h2>
+            <p>To get started and see your personalized health score, we need some basic information about you. This helps us calculate accurate baselines for your metrics.</p>
+            <div class="welcome-actions">
+                <button onclick="goToSettings()" class="btn-primary">Complete Profile</button>
+            </div>
+        </div>
+    </dialog>
+
     <script>
         function togglePillar(pillarId) {
             const content = document.getElementById(pillarId + '-content');
@@ -313,6 +323,20 @@
                 icon.textContent = '▶';
             }
         }
+    </script>
+    <script>
+        function checkProfileAndShowWelcome() {
+            const hasProfileAttr = document.body.dataset.hasProfile;
+            const hasProfile = hasProfileAttr === 'true';
+            if (!hasProfile) {
+                const welcomeModal = document.getElementById("welcome-modal");
+                if (welcomeModal) {
+                    welcomeModal.showModal();
+                }
+            }
+        }
+        
+        checkProfileAndShowWelcome();
     </script>
 </body>
 

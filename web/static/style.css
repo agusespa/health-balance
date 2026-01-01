@@ -742,4 +742,73 @@ th {
     }
 }
 
+/* ---------- Welcome Modal ---------- */
+.welcome-modal {
+    border: none;
+    border-radius: var(--radius-lg);
+    padding: 0;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    background: var(--surface);
+    overflow: hidden;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+}
+
+.welcome-modal::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.welcome-content {
+    padding: 32px;
+    text-align: center;
+}
+
+.welcome-content h2 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.welcome-content p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+
+.welcome-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+}
+
+.welcome-actions button {
+    margin-top: 0;
+    padding: 14px 28px;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: white;
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+}
+
+/* Modal opening animation */
+.welcome-modal[open] {
+    animation: dialog-show 0.3s ease-out forwards;
+}
+
 

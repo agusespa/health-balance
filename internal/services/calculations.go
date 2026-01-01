@@ -14,6 +14,13 @@ func GetCurrentMasterScore(db database.Querier) (*models.MasterScore, error) {
 	scores, err := GetAllWeeklyScores(db)
 
 	if err != nil {
+		// If error is due to missing profile, return default score instead of error
+		if err.Error() == "profile required for master score calculation" {
+			return &models.MasterScore{
+				Date:  time.Now().Format("2006-01-02"),
+				Score: 1000.0,
+			}, nil
+		}
 		return nil, fmt.Errorf("could not get master score: %w", err)
 	}
 
