@@ -1,4 +1,4 @@
-<p align="center"> <img src="web/static/icon-192.png" alt="Health Balance Tracker Icon" width="192"> </p>
+<p align="center"> <img src="web/static/icon-192.png" alt="Health Balance Tracker Icon" width="128"> </p>
 
 # Health Balance Tracker
 
@@ -17,7 +17,7 @@ A PWA that keeps track of your Biological Reserve Score. It goes beyond simple a
 > To know more about it, run the app and visit the /rationale page.
 
 <p align="center">
-  <img src="web/static/screenshot.png" alt="Mobile App Screenshot" style="max-width: 300px; width: 100%;">
+  <img src="web/static/screenshot.png" alt="Mobile App Screenshot" width="300">
 </p>
 
 ## Quick Start
