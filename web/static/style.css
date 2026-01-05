@@ -300,7 +300,8 @@ select {
 }
 
 /* ---------- Buttons ---------- */
-button {
+button,
+.welcome-button {
     position: relative;
     margin-top: 12px;
     padding: 12px 48px;
@@ -311,10 +312,12 @@ button {
     background: var(--accent);
     color: white;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
+    text-decoration: none;
+    line-height: 1.2;
 }
 
 button:hover:not(:disabled) {
@@ -788,27 +791,13 @@ th {
 .welcome-actions {
     display: flex;
     justify-content: center;
-    gap: 16px;
 }
 
-.welcome-actions button {
-    margin-top: 0;
-    padding: 14px 28px;
-    font-size: 1rem;
-}
-
-.btn-primary {
-    background: var(--accent);
-    color: white;
-}
-
-.btn-primary:hover {
-    opacity: 0.9;
+.welcome-button:hover {
+    opacity: 0.92;
 }
 
 /* Modal opening animation */
 .welcome-modal[open] {
     animation: dialog-show 0.3s ease-out forwards;
 }
-
-

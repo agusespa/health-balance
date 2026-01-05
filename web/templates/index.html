@@ -22,322 +22,335 @@
 
 <body data-has-profile="{{.HasProfile}}"></body>
 
-    <div class="container">
+<div class="container">
 
-        {{define "score_display"}}
+    {{define "score_display"}}
 
-        <div class="card score-display" id="score-container" hx-get="/current-score" hx-trigger="refreshScore from:body"
-            hx-swap="outerHTML">
-            <div class="score-header">
-                <a href="/rationale" class="icon-link">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28px" height="28px" fill="white">
-                        <path d="M0 0h24v24H0z" fill="none" />
-                        <path
-                            d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z" />
-                    </svg>
-                </a>
-                <h2>Health Balance Score</h2>
-                <a href="/settings" class="icon-link">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="28px" height="28px">
-                        <path d="M0 0h24v24H0z" fill="none" />
-                        <path
-                            d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.09-.76-1.71-1.06L14.46 2.5c-.05-.24-.27-.42-.51-.42h-4c-.25 0-.46.18-.51.42L9.16 5.27c-.62.3-1.19.66-1.71 1.06l-2.49-1c-.22-.08-.49 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19-.15-.24.42-.12-.64l2 3.46c.12.22.39.3.61-.22l2.49-1c.52.4 1.09.76 1.71 1.06l.36 2.77c.05.24.27.42.51.42h4c.25 0 .46-.18.51.42l.36-2.77c.62-.3 1.19-.66 1.71-1.06l2.49 1c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z" />
-                    </svg>
-                </a>
+    <div class="card score-display" id="score-container" hx-get="/current-score" hx-trigger="refreshScore from:body"
+        hx-swap="outerHTML">
+        <div class="score-header">
+            <a href="/rationale" class="icon-link">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28px" height="28px" fill="white">
+                    <path d="M0 0h24v24H0z" fill="none" />
+                    <path
+                        d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z" />
+                </svg>
+            </a>
+            <h2>Health Balance Score</h2>
+            <a href="/settings" class="icon-link">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="28px" height="28px">
+                    <path d="M0 0h24v24H0z" fill="none" />
+                    <path
+                        d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.09-.76-1.71-1.06L14.46 2.5c-.05-.24-.27-.42-.51-.42h-4c-.25 0-.46.18-.51.42L9.16 5.27c-.62.3-1.19.66-1.71 1.06l-2.49-1c-.22-.08-.49 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19-.15-.24.42-.12-.64l2 3.46c.12.22.39.3.61-.22l2.49-1c.52.4 1.09.76 1.71 1.06l.36 2.77c.05.24.27.42.51.42h4c.25 0 .46-.18.51.42l.36-2.77c.62-.3 1.19-.66 1.71-1.06l2.49 1c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z" />
+                </svg>
+            </a>
+        </div>
+
+        <div class="score-value">{{printf "%.0f" .CurrentScore.Score}}</div>
+        <div class="progress-bar-container">
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill {{if lt .CurrentScore.Score 1000.0}}below-baseline{{else}}above-baseline{{end}}"
+                    style="width: {{if gt .CurrentScore.Score 2000.0}}100{{else}}{{printf " %.1f" (divf
+                    .CurrentScore.Score 20.0)}}{{end}}%">
+                </div>
+                <div class="progress-baseline"></div>
             </div>
+            <div class="progress-labels">
+                <span>0</span>
+                <span class="baseline-label">1000</span>
+                <span>2000</span>
+            </div>
+        </div>
+        <p class="score-date">Last updated: {{.CurrentScore.Date}}</p>
 
-            <div class="score-value">{{printf "%.0f" .CurrentScore.Score}}</div>
-            <div class="progress-bar-container">
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill {{if lt .CurrentScore.Score 1000.0}}below-baseline{{else}}above-baseline{{end}}"
-                        style="width: {{if gt .CurrentScore.Score 2000.0}}100{{else}}{{printf "%.1f" (divf
-                        .CurrentScore.Score 20.0)}}{{end}}%">
+        <div class="history-toggle" onclick="toggleHistory()">
+            <h2>Score History</h2>
+            <span class="toggle-icon" id="history-icon">▶</span>
+        </div>
+        <div class="history-content" id="history-content" style="display: none;">
+            <div id="scores" hx-get="/scores" hx-trigger="loadHistory from:body" hx-swap="innerHTML"></div>
+        </div>
+    </div>
+    {{end}}
+
+    {{template "score_display" .}}
+
+    <div class="card pillar-card">
+        <div class="pillar-header" onclick="togglePillar('health')">
+            <h2>Basic Health</h2>
+            <span class="toggle-icon" id="health-icon">▶</span>
+        </div>
+        <div class="pillar-content" id="health-content" style="display: none;">
+            <div class="add-data-section">
+                <h3>This Week's Data</h3>
+                <form hx-post="/add-health-metrics" hx-swap="none" hx-indicator="#health-spinner">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="sleep_score">Sleep Quality Score</label>
+                            <input type="number" id="sleep_score" name="sleep_score" min="0" max="100"
+                                placeholder="Average score" {{if .TodayHealth}}value="{{.TodayHealth.SleepScore}}"
+                                {{end}} required>
+                            <small class="help-text">Score ranges from 0 to 100. Values above 75 add to your health
+                                reserve.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="waist_cm">Waist Circumference</label>
+                            <input type="number" id="waist_cm" name="waist_cm" step="0.1"
+                                placeholder="Circunference in cm" {{if .TodayHealth}}value="{{printf " %.1f"
+                                .TodayHealth.WaistCm}}"{{end}} required>
+                            <small class="help-text">Compared against height for Waist-to-Height Ratio. A ratio
+                                below 0.48 is the target baseline.</small>
+                        </div>
                     </div>
-                    <div class="progress-baseline"></div>
-                </div>
-                <div class="progress-labels">
-                    <span>0</span>
-                    <span class="baseline-label">1000</span>
-                    <span>2000</span>
-                </div>
-            </div>
-            <p class="score-date">Last updated: {{.CurrentScore.Date}}</p>
 
-            <div class="history-toggle" onclick="toggleHistory()">
-                <h2>Score History</h2>
-                <span class="toggle-icon" id="history-icon">▶</span>
-            </div>
-            <div class="history-content" id="history-content" style="display: none;">
-                <div id="scores" hx-get="/scores" hx-trigger="loadHistory from:body" hx-swap="innerHTML"></div>
-            </div>
-        </div>
-        {{end}}
-
-        {{template "score_display" .}}
-
-        <div class="card pillar-card">
-            <div class="pillar-header" onclick="togglePillar('health')">
-                <h2>Basic Health</h2>
-                <span class="toggle-icon" id="health-icon">▶</span>
-            </div>
-            <div class="pillar-content" id="health-content" style="display: none;">
-                <div class="add-data-section">
-                    <h3>This Week's Data</h3>
-                    <form hx-post="/add-health-metrics" hx-swap="none" hx-indicator="#health-spinner">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="sleep_score">Sleep Quality Score</label>
-                                <input type="number" id="sleep_score" name="sleep_score" min="0" max="100" placeholder="Average score" {{if
-                                    .TodayHealth}}value="{{.TodayHealth.SleepScore}}" {{end}} required>
-                                <small class="help-text">Score ranges from 0 to 100. Values above 75 add to your health reserve.</small>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="waist_cm">Waist Circumference</label>
-                                <input type="number" id="waist_cm" name="waist_cm" step="0.1" placeholder="Circunference in cm" {{if
-                                    .TodayHealth}}value="{{printf "%.1f" .TodayHealth.WaistCm}}"{{end}} required>
-                                <small class="help-text">Compared against height for Waist-to-Height Ratio. A ratio
-                                    below 0.48 is the target baseline.</small>
-                            </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="rhr">Resting Heart Rate</label>
+                            <input type="number" id="rhr" name="rhr" placeholder="Average RPM" {{if
+                                .TodayHealth}}value="{{.TodayHealth.RHR}}" {{end}} required>
+                            <small class="help-text">Deviation from your 3-month rolling average. Lower is
+                                better.</small>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="rhr">Resting Heart Rate</label>
-                                <input type="number" id="rhr" name="rhr" placeholder="Average RPM" {{if .TodayHealth}}value="{{.TodayHealth.RHR}}"
-                                    {{end}} required>
-                                <small class="help-text">Deviation from your 3-month rolling average. Lower is better.</small>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="nutrition_score">Nutrition Quality</label>
-                                <input type="number" id="nutrition_score" name="nutrition_score" min="1" max="10"
-                                    step="0.1" placeholder="Average score" {{if .TodayHealth}}value="{{printf "%.1f"
-                                    .TodayHealth.NutritionScore}}"{{end}} required>
-                                <small class="help-text">Self-assessment (0-100). 7+ is good.</small>
-                            </div>
+                        <div class="form-group">
+                            <label for="nutrition_score">Nutrition Quality</label>
+                            <input type="number" id="nutrition_score" name="nutrition_score" min="1" max="10" step="0.1"
+                                placeholder="Average score" {{if .TodayHealth}}value="{{printf " %.1f"
+                                .TodayHealth.NutritionScore}}"{{end}} required>
+                            <small class="help-text">Self-assessment (0-100). 7+ is good.</small>
                         </div>
+                    </div>
 
-                        <button type="submit">
-                            <span class="button-text">Save Health Data</span>
-                            <div id="health-spinner" class="spinner htmx-indicator"></div>
-                        </button>
-                    </form>
-                </div>
-                <div id="health-metrics" hx-get="/health-metrics" hx-trigger="load"></div>
+                    <button type="submit">
+                        <span class="button-text">Save Health Data</span>
+                        <div id="health-spinner" class="spinner htmx-indicator"></div>
+                    </button>
+                </form>
             </div>
-        </div>
-
-        <div class="card pillar-card">
-            <div class="pillar-header" onclick="togglePillar('fitness')">
-                <h2>Fitness</h2>
-                <span class="toggle-icon" id="fitness-icon">▶</span>
-            </div>
-            <div class="pillar-content" id="fitness-content" style="display: none;">
-                <div class="add-data-section">
-                    <h3>This Week's Data</h3>
-                    <form hx-post="/add-fitness-metrics" hx-swap="none" hx-indicator="#fitness-spinner">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="vo2_max">VO2 Max</label>
-                                <input type="number" id="vo2_max" name="vo2_max" step="0.1" placeholder="Average measure" {{if
-                                    .TodayFitness}}value="{{printf "%.1f" .TodayFitness.VO2Max}}"{{end}} required>
-                                <small class="help-text">Aerobic capacity. Compared against your age-adjusted biological
-                                    baseline.</small>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="workouts">Workout Sessions</label>
-                                <input type="number" id="workouts" name="workouts" min="0" placeholder="Total sessions" {{if
-                                    .TodayFitness}}value="{{.TodayFitness.Workouts}}" {{end}} required>
-                                <small class="help-text">Resistance/HIIT sessions. 3 per week is the maintenance
-                                    baseline.</small>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="daily_steps">Daily Steps</label>
-                                <input type="number" id="daily_steps" name="daily_steps" min="0" placeholder="Average count" {{if
-                                    .TodayFitness}}value="{{.TodayFitness.DailySteps}}" {{end}} required>
-                                <small class="help-text">Daily movement average. 8,000 steps is the neutral break-even
-                                    point.</small>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="mobility">Mobility Sessions</label>
-                                <input type="number" id="mobility" name="mobility" min="0" placeholder="Total sessions" {{if
-                                    .TodayFitness}}value="{{.TodayFitness.Mobility}}" {{end}} required>
-                                <small class="help-text">Stretching/Range of motion. 3 per week is the maintenance
-                                    baseline.</small>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="cardio_recovery">Cardio Recovery</label>
-                                <input type="number" id="cardio_recovery" name="cardio_recovery" min="0" placeholder="Average BPM drop" {{if
-                                    .TodayFitness}}value="{{.TodayFitness.CardioRecovery}}" {{end}} required>
-                                <small class="help-text">Drop 60s after vigorous effort (70%+ max HR). Aim for 25+ BPM.</small>
-                            </div>
-                        </div>
-
-                        <button type="submit">
-                            <span class="button-text">Save Fitness Data</span>
-                            <div id="fitness-spinner" class="spinner htmx-indicator"></div>
-                        </button>
-                    </form>
-                </div>
-                <div id="fitness-metrics" hx-get="/fitness-metrics" hx-trigger="load"></div>
-            </div>
-        </div>
-
-        <div class="card pillar-card">
-            <div class="pillar-header" onclick="togglePillar('cognition')">
-                <h2>Cognition</h2>
-                <span class="toggle-icon" id="cognition-icon">▶</span>
-            </div>
-            <div class="pillar-content" id="cognition-content" style="display: none;">
-                <div class="add-data-section">
-                    <h3>This Week's Data</h3>
-                    <form hx-post="/add-cognition-metrics" hx-swap="none" hx-indicator="#cognition-spinner">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="mindfulness">Mindfulness Sessions</label>
-                                <input type="number" id="mindfulness" name="mindfulness" min="0" placeholder="Total sessions" {{if
-                                    .TodayCognition}}value="{{.TodayCognition.Mindfulness}}" {{end}} required>
-                                <small class="help-text">Stress regulation. 3 sessions per week is the maintenance baseline.</small>
-                            </div>
-                            <div class="form-group">
-                                <label for="deep_learning">Deep Learning</label>
-                                <input type="number" id="deep_learning" name="deep_learning" min="0" placeholder="Total minutes" {{if .TodayCognition}}value="{{.TodayCognition.DeepLearning}}" {{end}} required>
-                                <small class="help-text">Music instruments or language practice. 90+ minutes per week protects against decline.</small>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="dual_n_back">Dual N-Back Level</label>
-                                <input type="number" id="dual_n_back" name="dual_n_back" min="1" placeholder="Best level" {{if
-                                    .TodayCognition}}value="{{.TodayCognition.DualNBackLevel}}" {{end}} required>
-                                <small class="help-text">Working memory capacity. Baseline is Level 2.</small>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="reaction_time">Reaction Time</label>
-                                <input type="number" id="reaction_time" name="reaction_time" min="0" placeholder="Best time (ms)" {{if
-                                    .TodayCognition}}value="{{.TodayCognition.ReactionTime}}" {{end}} required>
-                                <small class="help-text">Neural processing speed. Measured against your age-adjusted average.</small>
-                            </div>
-                        </div>
-
-                        <button type="submit">
-                            <span class="button-text">Save Cognition Data</span>
-                            <div id="cognition-spinner" class="spinner htmx-indicator"></div>
-                        </button>
-                    </form>
-                </div>
-                <div id="cognition-metrics" hx-get="/cognition-metrics" hx-trigger="load"></div>
-            </div>
-        </div>
-
-        <div class="card ai-summary-card">
-            <div class="summary-header">
-                <div>
-                    <h2>AI Insights</h2>
-                    <p class="help-text">LLM powered analysis and recommendations based on your recent performance</p>
-                </div>
-                <button hx-get="/ai-summary" hx-target="#summary-content" hx-indicator="#summary-spinner"
-                    class="ai-btn">
-                    <span id="summary-spinner" class="spinner htmx-indicator"></span>
-                    <span>Generate Report</span>
-                </button>
-            </div>
-            <div id="summary-content" class="ai-summary-content"></div>
+            <div id="health-metrics" hx-get="/health-metrics" hx-trigger="load"></div>
         </div>
     </div>
 
-    <dialog id="confirm-dialog" class="confirm-dialog">
-        <div class="dialog-content">
-            <h3 id="confirm-title">Confirm Action</h3>
-            <p id="confirm-message">Are you sure you want to proceed?</p>
-            <div class="dialog-actions">
-                <button id="confirm-cancel" class="btn-secondary">Cancel</button>
-                <button id="confirm-ok" class="btn-danger">Delete</button>
-            </div>
+    <div class="card pillar-card">
+        <div class="pillar-header" onclick="togglePillar('fitness')">
+            <h2>Fitness</h2>
+            <span class="toggle-icon" id="fitness-icon">▶</span>
         </div>
-    </dialog>
+        <div class="pillar-content" id="fitness-content" style="display: none;">
+            <div class="add-data-section">
+                <h3>This Week's Data</h3>
+                <form hx-post="/add-fitness-metrics" hx-swap="none" hx-indicator="#fitness-spinner">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="vo2_max">VO2 Max</label>
+                            <input type="number" id="vo2_max" name="vo2_max" step="0.1" placeholder="Average measure"
+                                {{if .TodayFitness}}value="{{printf " %.1f" .TodayFitness.VO2Max}}"{{end}} required>
+                            <small class="help-text">Aerobic capacity. Compared against your age-adjusted biological
+                                baseline.</small>
+                        </div>
 
-    <dialog id="welcome-modal" class="welcome-modal">
-        <div class="welcome-content">
-            <h2>Welcome to Health Balance!</h2>
-            <p>To get started and see your personalized health score, we need some basic information about you. This helps us calculate accurate baselines for your metrics.</p>
-            <div class="welcome-actions">
-                <button onclick="goToSettings()" class="btn-primary">Complete Profile</button>
+                        <div class="form-group">
+                            <label for="workouts">Workout Sessions</label>
+                            <input type="number" id="workouts" name="workouts" min="0" placeholder="Total sessions" {{if
+                                .TodayFitness}}value="{{.TodayFitness.Workouts}}" {{end}} required>
+                            <small class="help-text">Resistance/HIIT sessions. 3 per week is the maintenance
+                                baseline.</small>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="daily_steps">Daily Steps</label>
+                            <input type="number" id="daily_steps" name="daily_steps" min="0" placeholder="Average count"
+                                {{if .TodayFitness}}value="{{.TodayFitness.DailySteps}}" {{end}} required>
+                            <small class="help-text">Daily movement average. 8,000 steps is the neutral break-even
+                                point.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mobility">Mobility Sessions</label>
+                            <input type="number" id="mobility" name="mobility" min="0" placeholder="Total sessions" {{if
+                                .TodayFitness}}value="{{.TodayFitness.Mobility}}" {{end}} required>
+                            <small class="help-text">Stretching/Range of motion. 3 per week is the maintenance
+                                baseline.</small>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cardio_recovery">Cardio Recovery</label>
+                            <input type="number" id="cardio_recovery" name="cardio_recovery" min="0"
+                                placeholder="Average BPM drop" {{if
+                                .TodayFitness}}value="{{.TodayFitness.CardioRecovery}}" {{end}} required>
+                            <small class="help-text">Drop 60s after vigorous effort (70%+ max HR). Aim for 25+
+                                BPM.</small>
+                        </div>
+                    </div>
+
+                    <button type="submit">
+                        <span class="button-text">Save Fitness Data</span>
+                        <div id="fitness-spinner" class="spinner htmx-indicator"></div>
+                    </button>
+                </form>
             </div>
+            <div id="fitness-metrics" hx-get="/fitness-metrics" hx-trigger="load"></div>
         </div>
-    </dialog>
+    </div>
 
-    <script>
-        function togglePillar(pillarId) {
-            const content = document.getElementById(pillarId + '-content');
-            const icon = document.getElementById(pillarId + '-icon');
-            if (content.style.display === 'none') {
-                content.style.display = 'block';
-                icon.textContent = '▼';
-                if (!content.dataset.loaded) {
-                    const targetId = `#${pillarId}-metrics`;
-                    if (document.querySelector(targetId)) htmx.trigger(targetId, 'load');
-                    content.dataset.loaded = 'true';
-                }
-            } else {
-                content.style.display = 'none';
-                icon.textContent = '▶';
-            }
-        }
+    <div class="card pillar-card">
+        <div class="pillar-header" onclick="togglePillar('cognition')">
+            <h2>Cognition</h2>
+            <span class="toggle-icon" id="cognition-icon">▶</span>
+        </div>
+        <div class="pillar-content" id="cognition-content" style="display: none;">
+            <div class="add-data-section">
+                <h3>This Week's Data</h3>
+                <form hx-post="/add-cognition-metrics" hx-swap="none" hx-indicator="#cognition-spinner">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="mindfulness">Mindfulness Sessions</label>
+                            <input type="number" id="mindfulness" name="mindfulness" min="0"
+                                placeholder="Total sessions" {{if
+                                .TodayCognition}}value="{{.TodayCognition.Mindfulness}}" {{end}} required>
+                            <small class="help-text">Stress regulation. 3 sessions per week is the maintenance
+                                baseline.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="deep_learning">Deep Learning</label>
+                            <input type="number" id="deep_learning" name="deep_learning" min="0"
+                                placeholder="Total minutes" {{if
+                                .TodayCognition}}value="{{.TodayCognition.DeepLearning}}" {{end}} required>
+                            <small class="help-text">Music instruments or language practice. 90+ minutes per week
+                                protects against decline.</small>
+                        </div>
+                    </div>
 
-        function toggleHistory() {
-            const content = document.getElementById('history-content');
-            const icon = document.getElementById('history-icon');
-            if (content.style.display === 'none') {
-                content.style.display = 'block';
-                icon.textContent = '▼';
-                if (!content.dataset.loaded) {
-                    htmx.trigger(document.body, 'loadHistory');
-                    content.dataset.loaded = 'true';
-                }
-            } else {
-                content.style.display = 'none';
-                icon.textContent = '▶';
-            }
-        }
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="dual_n_back">Dual N-Back Level</label>
+                            <input type="number" id="dual_n_back" name="dual_n_back" min="1" placeholder="Best level"
+                                {{if .TodayCognition}}value="{{.TodayCognition.DualNBackLevel}}" {{end}} required>
+                            <small class="help-text">Working memory capacity. Baseline is Level 2.</small>
+                        </div>
 
-        function toggleSubSection(id) {
-            const content = document.getElementById(id + '-content');
-            const icon = document.getElementById(id + '-icon');
-            if (content.style.display === 'none') {
-                content.style.display = 'block';
-                icon.textContent = '▼';
-            } else {
-                content.style.display = 'none';
-                icon.textContent = '▶';
+                        <div class="form-group">
+                            <label for="reaction_time">Reaction Time</label>
+                            <input type="number" id="reaction_time" name="reaction_time" min="0"
+                                placeholder="Best time (ms)" {{if
+                                .TodayCognition}}value="{{.TodayCognition.ReactionTime}}" {{end}} required>
+                            <small class="help-text">Neural processing speed. Measured against your age-adjusted
+                                average.</small>
+                        </div>
+                    </div>
+
+                    <button type="submit">
+                        <span class="button-text">Save Cognition Data</span>
+                        <div id="cognition-spinner" class="spinner htmx-indicator"></div>
+                    </button>
+                </form>
+            </div>
+            <div id="cognition-metrics" hx-get="/cognition-metrics" hx-trigger="load"></div>
+        </div>
+    </div>
+
+    <div class="card ai-summary-card">
+        <div class="summary-header">
+            <div>
+                <h2>AI Insights</h2>
+                <p class="help-text">LLM powered analysis and recommendations based on your recent performance</p>
+            </div>
+            <button hx-get="/ai-summary" hx-target="#summary-content" hx-indicator="#summary-spinner" class="ai-btn">
+                <span id="summary-spinner" class="spinner htmx-indicator"></span>
+                <span>Generate Report</span>
+            </button>
+        </div>
+        <div id="summary-content" class="ai-summary-content"></div>
+    </div>
+</div>
+
+<dialog id="confirm-dialog" class="confirm-dialog">
+    <div class="dialog-content">
+        <h3 id="confirm-title">Confirm Action</h3>
+        <p id="confirm-message">Are you sure you want to proceed?</p>
+        <div class="dialog-actions">
+            <button id="confirm-cancel" class="btn-secondary">Cancel</button>
+            <button id="confirm-ok" class="btn-danger">Delete</button>
+        </div>
+    </div>
+</dialog>
+
+<dialog id="welcome-modal" class="welcome-modal">
+    <div class="welcome-content">
+        <h2>Welcome to Health Balance!</h2>
+        <p>To get started and see your personalized health score, we need some basic information about you. This helps
+            us calculate accurate baselines for your metrics.</p>
+        <div class="welcome-actions">
+            <a href="/settings" class="welcome-button">Complete Profile</a>
+        </div>
+    </div>
+</dialog>
+
+<script>
+    function togglePillar(pillarId) {
+        const content = document.getElementById(pillarId + '-content');
+        const icon = document.getElementById(pillarId + '-icon');
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            icon.textContent = '▼';
+            if (!content.dataset.loaded) {
+                const targetId = `#${pillarId}-metrics`;
+                if (document.querySelector(targetId)) htmx.trigger(targetId, 'load');
+                content.dataset.loaded = 'true';
+            }
+        } else {
+            content.style.display = 'none';
+            icon.textContent = '▶';
+        }
+    }
+
+    function toggleHistory() {
+        const content = document.getElementById('history-content');
+        const icon = document.getElementById('history-icon');
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            icon.textContent = '▼';
+            if (!content.dataset.loaded) {
+                htmx.trigger(document.body, 'loadHistory');
+                content.dataset.loaded = 'true';
+            }
+        } else {
+            content.style.display = 'none';
+            icon.textContent = '▶';
+        }
+    }
+
+    function toggleSubSection(id) {
+        const content = document.getElementById(id + '-content');
+        const icon = document.getElementById(id + '-icon');
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            icon.textContent = '▼';
+        } else {
+            content.style.display = 'none';
+            icon.textContent = '▶';
+        }
+    }
+</script>
+<script>
+    function checkProfileAndShowWelcome() {
+        const hasProfileAttr = document.body.dataset.hasProfile;
+        const hasProfile = hasProfileAttr === 'true';
+        if (!hasProfile) {
+            const welcomeModal = document.getElementById("welcome-modal");
+            if (welcomeModal) {
+                welcomeModal.showModal();
             }
         }
-    </script>
-    <script>
-        function checkProfileAndShowWelcome() {
-            const hasProfileAttr = document.body.dataset.hasProfile;
-            const hasProfile = hasProfileAttr === 'true';
-            if (!hasProfile) {
-                const welcomeModal = document.getElementById("welcome-modal");
-                if (welcomeModal) {
-                    welcomeModal.showModal();
-                }
-            }
-        }
-        
-        checkProfileAndShowWelcome();
-    </script>
+    }
+
+    checkProfileAndShowWelcome();
+</script>
 </body>
 
 </html>
