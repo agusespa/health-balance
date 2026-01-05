@@ -26,7 +26,7 @@ func getVapidKeys() (string, string) {
 	return pub, priv
 }
 
-const VapidSubject = "mailto:admin@health-balance.local"
+const VapidSubject = "mailto:admin@example.com"
 
 func StartNotificationScheduler(db database.Querier) {
 	ticker := time.NewTicker(1 * time.Minute)
@@ -118,7 +118,9 @@ func sendPush(db database.Querier, sub models.PushSubscription, priv *ecdsa.Priv
 
 	pubKey, _ := getVapidKeys()
 	req.Header.Set("Authorization", fmt.Sprintf("vapid t=%s, k=%s", token, pubKey))
-	req.Header.Set("TTL", "30")
+	req.Header.Set("TTL", "86400")
+	req.Header.Set("Urgency", "normal")
+	req.Header.Set("Content-Length", "0")
 
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
@@ -142,6 +144,8 @@ func sendPush(db database.Querier, sub models.PushSubscription, priv *ecdsa.Priv
 
 	if resp.StatusCode >= 400 {
 		log.Printf("Push service returned error %d for %s", resp.StatusCode, sub.Endpoint)
+	} else {
+		log.Printf("Successfully sent push notification to %s (status: %d)", sub.Endpoint, resp.StatusCode)
 	}
 }
 
