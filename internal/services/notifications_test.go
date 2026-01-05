@@ -52,8 +52,11 @@ func TestVapidHeaders(t *testing.T) {
 		t.Fatalf("Failed to generate private key: %v", err)
 	}
 
-	pubKey := privKey.PublicKey
-	pubKeyBytes := elliptic.Marshal(elliptic.P256(), pubKey.X, pubKey.Y)
+	ecdhPriv, err := privKey.ECDH()
+	if err != nil {
+		t.Fatalf("Failed to convert private key to ECDH: %v", err)
+	}
+	pubKeyBytes := ecdhPriv.PublicKey().Bytes()
 	pubKeyStr := base64.RawURLEncoding.EncodeToString(pubKeyBytes)
 
 	// Set env var for public key (needed by sendPush)
