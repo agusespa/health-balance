@@ -26,6 +26,8 @@ func getVapidKeys() (string, string) {
 	return pub, priv
 }
 
+const VapidSubject = "mailto:admin@health-balance.local"
+
 func StartNotificationScheduler(db database.Querier) {
 	ticker := time.NewTicker(1 * time.Minute)
 	go func() {
@@ -115,9 +117,8 @@ func sendPush(db database.Querier, sub models.PushSubscription, priv *ecdsa.Priv
 	}
 
 	pubKey, _ := getVapidKeys()
-	req.Header.Set("Authorization", "WebPush "+token)
+	req.Header.Set("Authorization", fmt.Sprintf("vapid t=%s, k=%s", token, pubKey))
 	req.Header.Set("TTL", "30")
-	req.Header.Set("Crypto-Key", "p256ecdsa="+pubKey)
 
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
@@ -175,7 +176,7 @@ func createVAPIDToken(audience string, priv *ecdsa.PrivateKey) (string, error) {
 	payloadMap := map[string]any{
 		"aud": audience,
 		"exp": time.Now().Add(24 * time.Hour).Unix(),
-		"sub": "mailto:admin@health-balance.local",
+		"sub": VapidSubject,
 	}
 	payloadJSON, _ := json.Marshal(payloadMap)
 	payload := base64.RawURLEncoding.EncodeToString(payloadJSON)
