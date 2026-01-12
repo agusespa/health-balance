@@ -50,7 +50,7 @@
         <div class="progress-bar-container">
             <div class="progress-bar-bg">
                 <div class="progress-bar-fill {{if lt .CurrentScore.Score 1000.0}}below-baseline{{else}}above-baseline{{end}}"
-                    style="width: {{if gt .CurrentScore.Score 2000.0}}100{{else}}{{printf " %.1f" (divf
+                    style="width: {{if gt .CurrentScore.Score 2000.0}}100{{else}}{{printf "%.1f" (divf
                     .CurrentScore.Score 20.0)}}{{end}}%">
                 </div>
                 <div class="progress-baseline"></div>
@@ -97,7 +97,7 @@
                         <div class="form-group">
                             <label for="waist_cm">Waist Circumference</label>
                             <input type="number" id="waist_cm" name="waist_cm" step="0.1"
-                                placeholder="Circunference in cm" {{if .TodayHealth}}value="{{printf " %.1f"
+                                placeholder="Circunference in cm" {{if .TodayHealth}}value="{{printf "%.1f"
                                 .TodayHealth.WaistCm}}"{{end}} required>
                             <small class="help-text">Compared against height for Waist-to-Height Ratio. A ratio
                                 below 0.48 is the target baseline.</small>
@@ -116,7 +116,7 @@
                         <div class="form-group">
                             <label for="nutrition_score">Nutrition Quality</label>
                             <input type="number" id="nutrition_score" name="nutrition_score" min="1" max="10" step="0.1"
-                                placeholder="Average score" {{if .TodayHealth}}value="{{printf " %.1f"
+                                placeholder="Average score" {{if .TodayHealth}}value="{{printf "%.1f"
                                 .TodayHealth.NutritionScore}}"{{end}} required>
                             <small class="help-text">Self-assessment (0-100). 7+ is good.</small>
                         </div>
@@ -145,7 +145,7 @@
                         <div class="form-group">
                             <label for="vo2_max">VO2 Max</label>
                             <input type="number" id="vo2_max" name="vo2_max" step="0.1" placeholder="Average measure"
-                                {{if .TodayFitness}}value="{{printf " %.1f" .TodayFitness.VO2Max}}"{{end}} required>
+                                {{if .TodayFitness}}value="{{printf "%.1f" .TodayFitness.VO2Max}}"{{end}} required>
                             <small class="help-text">Aerobic capacity. Compared against your age-adjusted biological
                                 baseline.</small>
                         </div>
