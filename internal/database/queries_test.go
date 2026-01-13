@@ -23,7 +23,7 @@ func TestGetAllDatesWithData(t *testing.T) {
 		}
 	}()
 
-	testDate := utils.GetPreviousSundayDate()
+	testDate := utils.GetCurrentWeekSundayDate()
 	healthMetrics := models.HealthMetrics{
 		SleepScore:     80,
 		WaistCm:        85.0,
@@ -175,8 +175,8 @@ func TestSaveAndRetrieveHealthMetrics(t *testing.T) {
 		}
 	}()
 
-	// Get the date for this week's Sunday
-	testDate := utils.GetPreviousSundayDate()
+	// Get the date for the current week's Sunday (upcoming or today if Sunday)
+	testDate := utils.GetCurrentWeekSundayDate()
 
 	healthMetrics := models.HealthMetrics{
 		SleepScore:     85,
@@ -222,8 +222,8 @@ func TestSaveAndRetrieveFitnessMetrics(t *testing.T) {
 		}
 	}()
 
-	// Get the date for this week's Sunday
-	testDate := utils.GetPreviousSundayDate()
+	// Get the date for the current week's Sunday (upcoming or today if Sunday)
+	testDate := utils.GetCurrentWeekSundayDate()
 
 	fitnessMetrics := models.FitnessMetrics{
 		VO2Max:         48.0,
@@ -273,8 +273,8 @@ func TestSaveAndRetrieveCognitionMetrics(t *testing.T) {
 		}
 	}()
 
-	// Get the date for this week's Sunday
-	testDate := utils.GetPreviousSundayDate()
+	// Get the date for the current week's Sunday (upcoming or today if Sunday)
+	testDate := utils.GetCurrentWeekSundayDate()
 
 	cognitionMetrics := models.CognitionMetrics{
 		DualNBackLevel: 4,
@@ -320,8 +320,8 @@ func TestDeleteMetrics(t *testing.T) {
 		}
 	}()
 
-	// Get the date for this week's Sunday
-	testDate := utils.GetPreviousSundayDate()
+	// Get the date for the current week's Sunday (upcoming or today if Sunday)
+	testDate := utils.GetCurrentWeekSundayDate()
 
 	// Insert health metrics
 	healthMetrics := models.HealthMetrics{

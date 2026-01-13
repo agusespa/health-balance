@@ -7,12 +7,22 @@ import (
 	"time"
 )
 
-func GetPreviousSundayDate() string {
+// GetCurrentWeekSundayDate returns the Sunday date for the current week
+// If today is Sunday, it returns today's date
+// If today is Monday-Saturday, it returns the upcoming Sunday's date
+func GetCurrentWeekSundayDate() string {
 	now := time.Now()
 	weekday := now.Weekday()
-	daysSinceSunday := int(weekday)
-	previousSunday := now.AddDate(0, 0, -daysSinceSunday)
-	return previousSunday.Format("2006-01-02")
+
+	if weekday == time.Sunday {
+		// If today is Sunday, this is the current week
+		return now.Format("2006-01-02")
+	}
+
+	// For Monday-Saturday, the current week is the upcoming Sunday
+	daysUntilSunday := 7 - int(weekday)
+	nextSunday := now.AddDate(0, 0, daysUntilSunday)
+	return nextSunday.Format("2006-01-02")
 }
 
 func GetAge(p *models.UserProfile, now time.Time) (int, error) {

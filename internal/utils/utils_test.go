@@ -6,16 +6,28 @@ import (
 	"time"
 )
 
-func TestGetPreviousSundayDate(t *testing.T) {
-	dateStr := GetPreviousSundayDate()
+func TestGetCurrentWeekSundayDate(t *testing.T) {
+	dateStr := GetCurrentWeekSundayDate()
 
 	parsed, err := time.Parse("2006-01-02", dateStr)
 	if err != nil {
-		t.Errorf("GetPreviousSundayDate() returned invalid format: %v", err)
+		t.Errorf("GetCurrentWeekSundayDate() returned invalid format: %v", err)
 	}
 
 	if parsed.Weekday() != time.Sunday {
-		t.Errorf("GetPreviousSundayDate() returned %v, which is a %v, not a Sunday", dateStr, parsed.Weekday())
+		t.Errorf("GetCurrentWeekSundayDate() returned %v, which is a %v, not a Sunday", dateStr, parsed.Weekday())
+	}
+
+	now := time.Now()
+	// The returned Sunday should be >= today (either today if Sunday, or upcoming)
+	if parsed.Before(now.Truncate(24 * time.Hour)) {
+		t.Errorf("GetCurrentWeekSundayDate() returned a past Sunday %v, should return current or upcoming", dateStr)
+	}
+
+	// Should be within 7 days of today
+	daysUntilSunday := parsed.Sub(now.Truncate(24*time.Hour)).Hours() / 24
+	if daysUntilSunday > 7 {
+		t.Errorf("GetCurrentWeekSundayDate() returned Sunday %v which is more than 7 days away", dateStr)
 	}
 }
 

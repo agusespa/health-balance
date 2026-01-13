@@ -49,7 +49,7 @@ func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 	profile, _ := h.db.GetUserProfile()
 	hasProfile := profile != nil && profile.BirthDate != "" && profile.Sex != "" && profile.HeightCm > 0
 
-	date := utils.GetPreviousSundayDate()
+	date := utils.GetCurrentWeekSundayDate()
 
 	todayHealth, _ := h.db.GetHealthMetricsByDate(date)
 	todayFitness, _ := h.db.GetFitnessMetricsByDate(date)

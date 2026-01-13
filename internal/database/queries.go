@@ -69,7 +69,7 @@ func (db *DB) GetAllDatesWithData() ([]string, error) {
 }
 
 func (db *DB) GetRecentHealthMetrics(limit int) ([]models.HealthMetrics, error) {
-	currentWeekDate := utils.GetPreviousSundayDate()
+	currentWeekDate := utils.GetCurrentWeekSundayDate()
 	rows, err := db.Query(`
 		SELECT date, sleep_score, waist_cm, rhr, nutrition_score
 		FROM health_metrics
@@ -100,7 +100,7 @@ func (db *DB) GetRecentHealthMetrics(limit int) ([]models.HealthMetrics, error) 
 }
 
 func (db *DB) GetRecentFitnessMetrics(limit int) ([]models.FitnessMetrics, error) {
-	currentWeekDate := utils.GetPreviousSundayDate()
+	currentWeekDate := utils.GetCurrentWeekSundayDate()
 	rows, err := db.Query(`
 		SELECT date, vo2_max, workouts, daily_steps, mobility, cardio_recovery
 		FROM fitness_metrics
@@ -131,7 +131,7 @@ func (db *DB) GetRecentFitnessMetrics(limit int) ([]models.FitnessMetrics, error
 }
 
 func (db *DB) GetRecentCognitionMetrics(limit int) ([]models.CognitionMetrics, error) {
-	currentWeekDate := utils.GetPreviousSundayDate()
+	currentWeekDate := utils.GetCurrentWeekSundayDate()
 	rows, err := db.Query(`
 		SELECT date, dual_n_back_level, reaction_time, mindfulness, deep_learning
 		FROM cognition_metrics
@@ -162,7 +162,7 @@ func (db *DB) GetRecentCognitionMetrics(limit int) ([]models.CognitionMetrics, e
 }
 
 func (db *DB) SaveHealthMetrics(m models.HealthMetrics) error {
-	date := utils.GetPreviousSundayDate()
+	date := utils.GetCurrentWeekSundayDate()
 	_, err := db.Exec(`
 		INSERT INTO health_metrics (date, sleep_score, waist_cm, rhr, nutrition_score)
 		VALUES (?, ?, ?, ?, ?)
@@ -176,7 +176,7 @@ func (db *DB) SaveHealthMetrics(m models.HealthMetrics) error {
 }
 
 func (db *DB) SaveFitnessMetrics(m models.FitnessMetrics) error {
-	date := utils.GetPreviousSundayDate()
+	date := utils.GetCurrentWeekSundayDate()
 	_, err := db.Exec(`
 		INSERT INTO fitness_metrics (date, vo2_max, workouts, daily_steps, mobility, cardio_recovery)
 		VALUES (?, ?, ?, ?, ?, ?)
@@ -191,7 +191,7 @@ func (db *DB) SaveFitnessMetrics(m models.FitnessMetrics) error {
 }
 
 func (db *DB) SaveCognitionMetrics(m models.CognitionMetrics) error {
-	date := utils.GetPreviousSundayDate()
+	date := utils.GetCurrentWeekSundayDate()
 	_, err := db.Exec(`
 		INSERT INTO cognition_metrics (date, dual_n_back_level, reaction_time, mindfulness, deep_learning)
 		VALUES (?, ?, ?, ?, ?)
