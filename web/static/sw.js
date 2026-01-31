@@ -24,7 +24,7 @@ self.addEventListener('push', (event) => {
 
   const title = data.title || 'Health Balance Reminder';
   const options = {
-    body: data.body || "Scale your progress: it's time to record your weekly metrics!",
+    body: data.body || "It's time to record your weekly metrics!",
     icon: '/static/icon.svg',
     badge: '/static/icon.svg',
     data: {
