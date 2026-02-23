@@ -41,11 +41,11 @@ func TestGetCurrentWeekDateRange(t *testing.T) {
 	// Test that it contains expected format elements
 	// Should contain month abbreviations and numbers
 	// Examples: "Feb 23 - Mar 1" or "Dec 30 - Jan 5, 2027"
-	
+
 	// Verify the range makes sense by checking the underlying dates
 	now := time.Now()
 	weekday := now.Weekday()
-	
+
 	var monday, sunday time.Time
 	if weekday == time.Sunday {
 		monday = now.AddDate(0, 0, -6)
@@ -56,28 +56,28 @@ func TestGetCurrentWeekDateRange(t *testing.T) {
 		daysUntilSunday := 7 - int(weekday)
 		sunday = now.AddDate(0, 0, daysUntilSunday)
 	}
-	
+
 	// Verify Monday is actually a Monday
 	if monday.Weekday() != time.Monday {
 		t.Errorf("Calculated Monday is %v, not Monday", monday.Weekday())
 	}
-	
+
 	// Verify Sunday is actually a Sunday
 	if sunday.Weekday() != time.Sunday {
 		t.Errorf("Calculated Sunday is %v, not Sunday", sunday.Weekday())
 	}
-	
+
 	// Verify the range is exactly 6 days
 	daysDiff := sunday.Sub(monday).Hours() / 24
 	if daysDiff != 6 {
 		t.Errorf("Date range should be 6 days, got %.0f days", daysDiff)
 	}
-	
+
 	// Verify Monday is not in the future
 	if monday.After(now) {
 		t.Errorf("Monday %v should not be after today %v", monday, now)
 	}
-	
+
 	// Verify Sunday is not in the past (unless today is Sunday)
 	if weekday != time.Sunday && sunday.Before(now.Truncate(24*time.Hour)) {
 		t.Errorf("Sunday %v should not be before today %v", sunday, now)
@@ -116,7 +116,7 @@ func TestGetCurrentWeekDateRangeFormat(t *testing.T) {
 			description: "Should include year when crossing year boundary",
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Note: This test validates the logic but can't directly test with a specific date

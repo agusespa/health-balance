@@ -47,11 +47,11 @@ func GetCurrentWeekDateRange() string {
 
 	// Format: "Feb 23 - Mar 1" or "Dec 30 - Jan 5, 2027" if crossing year
 	if monday.Year() == sunday.Year() {
-		return fmt.Sprintf("%s %d - %s %d", 
+		return fmt.Sprintf("%s %d - %s %d",
 			monday.Month().String()[:3], monday.Day(),
 			sunday.Month().String()[:3], sunday.Day())
 	}
-	return fmt.Sprintf("%s %d - %s %d, %d", 
+	return fmt.Sprintf("%s %d - %s %d, %d",
 		monday.Month().String()[:3], monday.Day(),
 		sunday.Month().String()[:3], sunday.Day(), sunday.Year())
 }

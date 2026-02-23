@@ -109,11 +109,11 @@ func (h *Handler) HandleRationale(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleCurrentScore(w http.ResponseWriter, r *http.Request) {
 	currentScore, _ := services.GetCurrentMasterScore(h.db)
 	weekDateRange := utils.GetCurrentWeekDateRange()
-	data := struct{ 
-		CurrentScore *models.MasterScore
+	data := struct {
+		CurrentScore  *models.MasterScore
 		WeekDateRange string
 	}{
-		CurrentScore: currentScore,
+		CurrentScore:  currentScore,
 		WeekDateRange: weekDateRange,
 	}
 	h.render(w, "score_display", data)
