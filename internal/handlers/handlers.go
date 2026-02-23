@@ -34,6 +34,7 @@ func New(db database.Querier, templates *template.Template) *Handler {
 
 type DashboardData struct {
 	CurrentScore    *models.MasterScore
+	WeekDateRange   string
 	RecentHealth    []models.HealthMetrics
 	RecentFitness   []models.FitnessMetrics
 	RecentCognition []models.CognitionMetrics
@@ -50,6 +51,7 @@ func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 	hasProfile := profile != nil && profile.BirthDate != "" && profile.Sex != "" && profile.HeightCm > 0
 
 	date := utils.GetCurrentWeekSundayDate()
+	weekDateRange := utils.GetCurrentWeekDateRange()
 
 	todayHealth, _ := h.db.GetHealthMetricsByDate(date)
 	todayFitness, _ := h.db.GetFitnessMetricsByDate(date)
@@ -57,6 +59,7 @@ func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 
 	data := DashboardData{
 		CurrentScore:   currentScore,
+		WeekDateRange:  weekDateRange,
 		Profile:        profile,
 		TodayHealth:    todayHealth,
 		TodayFitness:   todayFitness,
@@ -105,7 +108,14 @@ func (h *Handler) HandleRationale(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) HandleCurrentScore(w http.ResponseWriter, r *http.Request) {
 	currentScore, _ := services.GetCurrentMasterScore(h.db)
-	data := struct{ CurrentScore *models.MasterScore }{CurrentScore: currentScore}
+	weekDateRange := utils.GetCurrentWeekDateRange()
+	data := struct{ 
+		CurrentScore *models.MasterScore
+		WeekDateRange string
+	}{
+		CurrentScore: currentScore,
+		WeekDateRange: weekDateRange,
+	}
 	h.render(w, "score_display", data)
 }
 

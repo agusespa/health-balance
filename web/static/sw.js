@@ -22,7 +22,7 @@ self.addEventListener('push', (event) => {
     console.log('Push received without JSON payload, using defaults.');
   }
 
-  const title = data.title || 'Health Balance Reminder';
+  const title = data.title || 'Reminder';
   const options = {
     body: data.body || "It's time to record your weekly metrics!",
     icon: '/static/icon.svg',
