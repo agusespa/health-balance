@@ -191,7 +191,7 @@ func (h *Handler) HandleAddHealthMetrics(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	w.Header().Set("HX-Trigger", `{"refreshScore":null, "showToast":"Health data saved successfully"}`)
+	w.Header().Set("HX-Trigger", `{"refreshScore":true, "showToast":"Health data saved successfully"}`)
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -241,7 +241,7 @@ func (h *Handler) HandleAddFitnessMetrics(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.Header().Set("HX-Trigger", `{"refreshScore":null, "showToast":"Fitness data saved successfully"}`)
+	w.Header().Set("HX-Trigger", `{"refreshScore":true, "showToast":"Fitness data saved successfully"}`)
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -283,7 +283,7 @@ func (h *Handler) HandleAddCognitionMetrics(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Header().Set("HX-Trigger", `{"refreshScore":null, "showToast":"Cognition data saved successfully"}`)
+	w.Header().Set("HX-Trigger", `{"refreshScore":true, "showToast":"Cognition data saved successfully"}`)
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -305,7 +305,7 @@ func (h *Handler) HandleDeleteHealthMetric(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	w.Header().Set("HX-Trigger", `{"refreshScore":null, "showToast":"Entry deleted successfully"}`)
+	w.Header().Set("HX-Trigger", `{"refreshScore":true, "showToast":"Entry deleted successfully"}`)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -327,7 +327,7 @@ func (h *Handler) HandleDeleteFitnessMetric(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Header().Set("HX-Trigger", `{"refreshScore":null, "showToast":"Entry deleted successfully"}`)
+	w.Header().Set("HX-Trigger", `{"refreshScore":true, "showToast":"Entry deleted successfully"}`)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -349,7 +349,7 @@ func (h *Handler) HandleDeleteCognitionMetric(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	w.Header().Set("HX-Trigger", `{"refreshScore":null, "showToast":"Entry deleted successfully"}`)
+	w.Header().Set("HX-Trigger", `{"refreshScore":true, "showToast":"Entry deleted successfully"}`)
 	w.WriteHeader(http.StatusOK)
 }
 

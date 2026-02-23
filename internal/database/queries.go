@@ -172,7 +172,13 @@ func (db *DB) SaveHealthMetrics(m models.HealthMetrics) error {
 			rhr = excluded.rhr,
 			nutrition_score = excluded.nutrition_score
 	`, date, m.SleepScore, m.WaistCm, m.RHR, m.NutritionScore)
-	return err
+	if err != nil {
+		return err
+	}
+	
+	// Force WAL checkpoint to ensure data is visible to subsequent reads
+	_, _ = db.Exec("PRAGMA wal_checkpoint(PASSIVE)")
+	return nil
 }
 
 func (db *DB) SaveFitnessMetrics(m models.FitnessMetrics) error {
@@ -187,7 +193,13 @@ func (db *DB) SaveFitnessMetrics(m models.FitnessMetrics) error {
 			mobility = excluded.mobility,
 			cardio_recovery = excluded.cardio_recovery
 	`, date, m.VO2Max, m.Workouts, m.DailySteps, m.Mobility, m.CardioRecovery)
-	return err
+	if err != nil {
+		return err
+	}
+	
+	// Force WAL checkpoint to ensure data is visible to subsequent reads
+	_, _ = db.Exec("PRAGMA wal_checkpoint(PASSIVE)")
+	return nil
 }
 
 func (db *DB) SaveCognitionMetrics(m models.CognitionMetrics) error {
@@ -201,7 +213,13 @@ func (db *DB) SaveCognitionMetrics(m models.CognitionMetrics) error {
 			mindfulness = excluded.mindfulness,
 			deep_learning = excluded.deep_learning
 	`, date, m.DualNBackLevel, m.ReactionTime, m.Mindfulness, m.DeepLearning)
-	return err
+	if err != nil {
+		return err
+	}
+	
+	// Force WAL checkpoint to ensure data is visible to subsequent reads
+	_, _ = db.Exec("PRAGMA wal_checkpoint(PASSIVE)")
+	return nil
 }
 
 func (db *DB) GetHealthMetricsByDate(date string) (*models.HealthMetrics, error) {

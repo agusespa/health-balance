@@ -31,7 +31,7 @@ func GetCurrentMasterScore(db database.Querier) (*models.MasterScore, error) {
 		}, nil
 	}
 
-	return &scores[0], nil
+	return &scores[len(scores)-1], nil
 }
 
 func GetAllWeeklyScores(db database.Querier) ([]models.MasterScore, error) {
