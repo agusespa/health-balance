@@ -175,7 +175,7 @@ func (db *DB) SaveHealthMetrics(m models.HealthMetrics) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// Force WAL checkpoint to ensure data is visible to subsequent reads
 	_, _ = db.Exec("PRAGMA wal_checkpoint(PASSIVE)")
 	return nil
@@ -196,7 +196,7 @@ func (db *DB) SaveFitnessMetrics(m models.FitnessMetrics) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// Force WAL checkpoint to ensure data is visible to subsequent reads
 	_, _ = db.Exec("PRAGMA wal_checkpoint(PASSIVE)")
 	return nil
@@ -216,7 +216,7 @@ func (db *DB) SaveCognitionMetrics(m models.CognitionMetrics) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// Force WAL checkpoint to ensure data is visible to subsequent reads
 	_, _ = db.Exec("PRAGMA wal_checkpoint(PASSIVE)")
 	return nil
