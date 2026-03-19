@@ -86,6 +86,20 @@ func TestCalculatePillars(t *testing.T) {
 			t.Errorf("Expected stronger VO2 reserve to outweigh excess workouts, got reserve %.2f vs behavior %.2f", reserveScore, behaviorScore)
 		}
 	})
+
+	t.Run("Behavior Smoothing Uses Recent Consistency", func(t *testing.T) {
+		history := []models.FitnessMetrics{
+			{Workouts: 0, DailySteps: 8000, Mobility: 3},
+			{Workouts: 0, DailySteps: 8000, Mobility: 3},
+			{Workouts: 0, DailySteps: 8000, Mobility: 3},
+			{Workouts: 8, DailySteps: 8000, Mobility: 3},
+		}
+
+		smoothed := smoothFitnessBehaviors(history, history[len(history)-1])
+		if smoothed.Workouts != 2 {
+			t.Fatalf("Expected workout smoothing to average recent weeks, got %d", smoothed.Workouts)
+		}
+	})
 }
 
 func TestGetAllWeeklyScores_Compounding(t *testing.T) {
@@ -124,9 +138,16 @@ func TestGetAllWeeklyScores_Compounding(t *testing.T) {
 		t.Errorf("Ordering mismatch: Index 0 should be %s, got %s", date1, scores[0].Date)
 	}
 
-	// Better long-term signals in week 2 should still push the score upward.
-	if scores[1].Score <= scores[0].Score {
-		t.Errorf("Expected Week 2 (%f) to be higher than Week 1 (%f)", scores[1].Score, scores[0].Score)
+	// Better later inputs should still improve the pillar signals, even if the
+	// slow-moving total score does not jump immediately.
+	if scores[1].HealthScore <= scores[0].HealthScore {
+		t.Errorf("Expected Week 2 health pillar (%f) to exceed Week 1 (%f)", scores[1].HealthScore, scores[0].HealthScore)
+	}
+	if scores[1].FitnessScore <= scores[0].FitnessScore {
+		t.Errorf("Expected Week 2 fitness pillar (%f) to exceed Week 1 (%f)", scores[1].FitnessScore, scores[0].FitnessScore)
+	}
+	if scores[1].CognitionScore <= scores[0].CognitionScore {
+		t.Errorf("Expected Week 2 cognition pillar (%f) to exceed Week 1 (%f)", scores[1].CognitionScore, scores[0].CognitionScore)
 	}
 }
 
@@ -210,6 +231,60 @@ func TestGetAllWeeklyScores_UsesHistoricalRHRBaseline(t *testing.T) {
 
 	if scores[1].HealthScore >= expectedShared {
 		t.Fatalf("Expected historical RHR baseline to reduce the later week score versus a shared baseline, got %.2f vs %.2f", scores[1].HealthScore, expectedShared)
+	}
+}
+
+func TestGetAllWeeklyScores_WeightsConsistencyOverOneWeekSpike(t *testing.T) {
+	dates := []string{"2025-01-26", "2025-01-19", "2025-01-12", "2025-01-05"}
+
+	buildMock := func(workouts []int) *MockDB {
+		healthMap := make(map[string]*models.HealthMetrics, len(dates))
+		fitnessMap := make(map[string]*models.FitnessMetrics, len(dates))
+		cognitionMap := make(map[string]*models.CognitionMetrics, len(dates))
+		rhrBaselineByDate := make(map[string]int, len(dates))
+
+		for i, date := range []string{"2025-01-05", "2025-01-12", "2025-01-19", "2025-01-26"} {
+			healthMap[date] = &models.HealthMetrics{RHR: 60, WaistCm: 85, SleepScore: 80, NutritionScore: 8}
+			fitnessMap[date] = &models.FitnessMetrics{
+				VO2Max:         42,
+				Workouts:       workouts[i],
+				DailySteps:     8000,
+				Mobility:       3,
+				CardioRecovery: 25,
+			}
+			cognitionMap[date] = &models.CognitionMetrics{DualNBackLevel: 2, ReactionTime: 240, Mindfulness: 3, DeepLearning: 90}
+			rhrBaselineByDate[date] = 60
+		}
+
+		return &MockDB{
+			AllDates:          dates,
+			UserProfile:       &models.UserProfile{BirthDate: "1990-01-01", HeightCm: 180, Sex: "male"},
+			HealthMap:         healthMap,
+			FitnessMap:        fitnessMap,
+			CognitionMap:      cognitionMap,
+			RHRBaselineByDate: rhrBaselineByDate,
+		}
+	}
+
+	spikeScores, err := GetAllWeeklyScores(buildMock([]int{0, 0, 0, 8}))
+	if err != nil {
+		t.Fatalf("Failed to calculate spike scenario: %v", err)
+	}
+
+	consistentScores, err := GetAllWeeklyScores(buildMock([]int{4, 4, 4, 4}))
+	if err != nil {
+		t.Fatalf("Failed to calculate consistent scenario: %v", err)
+	}
+
+	spikeLatest := spikeScores[len(spikeScores)-1]
+	consistentLatest := consistentScores[len(consistentScores)-1]
+
+	if consistentLatest.FitnessScore <= spikeLatest.FitnessScore {
+		t.Fatalf("Expected consistent training to outperform one-week spike, got %.2f vs %.2f", consistentLatest.FitnessScore, spikeLatest.FitnessScore)
+	}
+
+	if consistentLatest.Score <= spikeLatest.Score {
+		t.Fatalf("Expected consistent training to produce a higher total score, got %.2f vs %.2f", consistentLatest.Score, spikeLatest.Score)
 	}
 }
 

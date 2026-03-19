@@ -165,6 +165,7 @@ The "Master Score" starts at a baseline of 1000 and updates weekly as a slow-mov
    - Mindfulness
    - Deep Learning
    - Dual N-Back
+   - These inputs are evaluated through recent consistency, not just a single week.
 
 4. **Anti-Gaming Logic**:
    - Contributions are capped, so extreme volume does not keep adding unlimited points.

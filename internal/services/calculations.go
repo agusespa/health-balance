@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	defaultMasterScore  = 1000.0
-	scoreAdjustmentRate = 0.12
+	defaultMasterScore      = 1000.0
+	scoreAdjustmentRate     = 0.12
+	behaviorConsistencySpan = 4
 )
 
 func GetCurrentMasterScore(db database.Querier) (*models.MasterScore, error) {
@@ -53,6 +54,9 @@ func GetAllWeeklyScores(db database.Querier) ([]models.MasterScore, error) {
 
 	var scores []models.MasterScore
 	currentScore := defaultMasterScore
+	var healthHistory []models.HealthMetrics
+	var fitnessHistory []models.FitnessMetrics
+	var cognitionHistory []models.CognitionMetrics
 
 	for i := len(allDates) - 1; i >= 0; i-- {
 		date := allDates[i]
@@ -76,6 +80,14 @@ func GetAllWeeklyScores(db database.Querier) ([]models.MasterScore, error) {
 			continue
 		}
 
+		healthHistory = append(healthHistory, *h)
+		fitnessHistory = append(fitnessHistory, *f)
+		cognitionHistory = append(cognitionHistory, *c)
+
+		effectiveHealth := smoothHealthBehaviors(healthHistory, *h)
+		effectiveFitness := smoothFitnessBehaviors(fitnessHistory, *f)
+		effectiveCognition := smoothCognitionBehaviors(cognitionHistory, *c)
+
 		rhrBaseline, _ := db.GetRHRBaselineForDate(date)
 		if rhrBaseline == 0 {
 			rhrBaseline = h.RHR
@@ -86,7 +98,7 @@ func GetAllWeeklyScores(db database.Querier) ([]models.MasterScore, error) {
 		newScore, hS, fS, cS, tax := CalculateMasterScore(
 			currentScore,
 			*profile,
-			*h, *f, *c,
+			effectiveHealth, effectiveFitness, effectiveCognition,
 			rhrBaseline,
 			models.GetVO2MaxBaseline(age, profile.Sex),
 			models.GetReactionTimeBaseline(age),
@@ -171,4 +183,58 @@ func cappedContribution(delta, positiveSlope, negativeSlope, positiveCap, negati
 	}
 
 	return math.Max(delta*negativeSlope, -negativeCap)
+}
+
+func smoothHealthBehaviors(history []models.HealthMetrics, current models.HealthMetrics) models.HealthMetrics {
+	smoothed := current
+	smoothed.SleepScore = int(math.Round(averageLastN(history, behaviorConsistencySpan, func(m models.HealthMetrics) float64 {
+		return float64(m.SleepScore)
+	})))
+	smoothed.NutritionScore = averageLastN(history, behaviorConsistencySpan, func(m models.HealthMetrics) float64 {
+		return m.NutritionScore
+	})
+	return smoothed
+}
+
+func smoothFitnessBehaviors(history []models.FitnessMetrics, current models.FitnessMetrics) models.FitnessMetrics {
+	smoothed := current
+	smoothed.Workouts = int(math.Round(averageLastN(history, behaviorConsistencySpan, func(m models.FitnessMetrics) float64 {
+		return float64(m.Workouts)
+	})))
+	smoothed.DailySteps = int(math.Round(averageLastN(history, behaviorConsistencySpan, func(m models.FitnessMetrics) float64 {
+		return float64(m.DailySteps)
+	})))
+	smoothed.Mobility = int(math.Round(averageLastN(history, behaviorConsistencySpan, func(m models.FitnessMetrics) float64 {
+		return float64(m.Mobility)
+	})))
+	return smoothed
+}
+
+func smoothCognitionBehaviors(history []models.CognitionMetrics, current models.CognitionMetrics) models.CognitionMetrics {
+	smoothed := current
+	smoothed.Mindfulness = int(math.Round(averageLastN(history, behaviorConsistencySpan, func(m models.CognitionMetrics) float64 {
+		return float64(m.Mindfulness)
+	})))
+	smoothed.DeepLearning = int(math.Round(averageLastN(history, behaviorConsistencySpan, func(m models.CognitionMetrics) float64 {
+		return float64(m.DeepLearning)
+	})))
+	return smoothed
+}
+
+func averageLastN[T any](items []T, window int, value func(T) float64) float64 {
+	if len(items) == 0 {
+		return 0
+	}
+
+	start := len(items) - window
+	if start < 0 {
+		start = 0
+	}
+
+	var total float64
+	for _, item := range items[start:] {
+		total += value(item)
+	}
+
+	return total / float64(len(items[start:]))
 }
