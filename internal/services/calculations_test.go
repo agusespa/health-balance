@@ -56,7 +56,7 @@ func (m *MockDB) Close() error                                              { re
 
 func TestCalculatePillars(t *testing.T) {
 	t.Run("Health Pillar Math", func(t *testing.T) {
-		m := models.HealthMetrics{SleepScore: 80, WaistCm: 80, RHR: 60, NutritionScore: 8}
+		m := models.HealthMetrics{SleepScore: 80, WaistCm: 80, RHR: 60, SystolicBP: 118, DiastolicBP: 76, NutritionScore: 8}
 		score := CalculateHealthPillar(m, 60, 80.0/180.0)
 		if score <= 0 {
 			t.Errorf("Expected positive health score, got %f", score)
@@ -84,6 +84,27 @@ func TestCalculatePillars(t *testing.T) {
 
 		if reserveScore <= behaviorScore {
 			t.Errorf("Expected stronger VO2 reserve to outweigh excess workouts, got reserve %.2f vs behavior %.2f", reserveScore, behaviorScore)
+		}
+	})
+
+	t.Run("Blood Pressure Rewards Healthier Range", func(t *testing.T) {
+		healthy := calculateBloodPressurePoints(models.HealthMetrics{SystolicBP: 118, DiastolicBP: 76})
+		elevated := calculateBloodPressurePoints(models.HealthMetrics{SystolicBP: 136, DiastolicBP: 88})
+
+		if healthy <= elevated {
+			t.Fatalf("Expected healthier blood pressure to score better, got %.2f vs %.2f", healthy, elevated)
+		}
+	})
+
+	t.Run("Strength Scores Leg Press Performance", func(t *testing.T) {
+		moderate := calculateLowerBodyStrengthPoints(models.FitnessMetrics{LowerBodyWeight: 180, LowerBodyReps: 10})
+		strong := calculateLowerBodyStrengthPoints(models.FitnessMetrics{LowerBodyWeight: 260, LowerBodyReps: 12})
+
+		if moderate <= 0 {
+			t.Fatalf("Expected leg press strength score to be positive, got %.2f", moderate)
+		}
+		if strong <= moderate {
+			t.Fatalf("Expected stronger leg press performance to score better, got %.2f vs %.2f", strong, moderate)
 		}
 	})
 
@@ -118,8 +139,8 @@ func TestGetAllWeeklyScores_Compounding(t *testing.T) {
 			date2: {VO2Max: 42, Workouts: 4, DailySteps: 10000, Mobility: 3, CardioRecovery: 25},
 		},
 		CognitionMap: map[string]*models.CognitionMetrics{
-			date1: {DualNBackLevel: 2, ReactionTime: 250, Mindfulness: 3, DeepLearning: 50},
-			date2: {DualNBackLevel: 3, ReactionTime: 240, Mindfulness: 4, DeepLearning: 80},
+			date1: {Mindfulness: 3, DeepLearning: 50, StressScore: 3, SocialDays: 3},
+			date2: {Mindfulness: 4, DeepLearning: 80, StressScore: 2, SocialDays: 5},
 		},
 		RHRBaselineValue: 65,
 	}
@@ -155,7 +176,7 @@ func TestCalculateMasterScore_ConvergesInsteadOfRunningAway(t *testing.T) {
 	profile := models.UserProfile{BirthDate: "1990-01-01", HeightCm: 180, Sex: "male"}
 	health := models.HealthMetrics{SleepScore: 84, WaistCm: 82, RHR: 58, NutritionScore: 8.5}
 	fitness := models.FitnessMetrics{VO2Max: 47, Workouts: 5, DailySteps: 10500, Mobility: 4, CardioRecovery: 28}
-	cognition := models.CognitionMetrics{DualNBackLevel: 3, ReactionTime: 225, Mindfulness: 4, DeepLearning: 120}
+	cognition := models.CognitionMetrics{Mindfulness: 4, DeepLearning: 120, StressScore: 2, SocialDays: 5}
 
 	score := defaultMasterScore
 	calculationDate := time.Date(2026, time.January, 4, 0, 0, 0, 0, time.UTC)
@@ -169,7 +190,6 @@ func TestCalculateMasterScore_ConvergesInsteadOfRunningAway(t *testing.T) {
 			cognition,
 			65,
 			42,
-			240,
 			health.WaistCm/profile.HeightCm,
 			calculationDate,
 		)
@@ -202,8 +222,8 @@ func TestGetAllWeeklyScores_UsesHistoricalRHRBaseline(t *testing.T) {
 			date2: {VO2Max: 42, Workouts: 3, DailySteps: 8000, Mobility: 3, CardioRecovery: 25},
 		},
 		CognitionMap: map[string]*models.CognitionMetrics{
-			date1: {DualNBackLevel: 2, ReactionTime: 240, Mindfulness: 3, DeepLearning: 90},
-			date2: {DualNBackLevel: 2, ReactionTime: 240, Mindfulness: 3, DeepLearning: 90},
+			date1: {Mindfulness: 3, DeepLearning: 90, StressScore: 3, SocialDays: 4},
+			date2: {Mindfulness: 3, DeepLearning: 90, StressScore: 3, SocialDays: 4},
 		},
 		RHRBaselineByDate: map[string]int{
 			date1: 70,
@@ -252,7 +272,7 @@ func TestGetAllWeeklyScores_WeightsConsistencyOverOneWeekSpike(t *testing.T) {
 				Mobility:       3,
 				CardioRecovery: 25,
 			}
-			cognitionMap[date] = &models.CognitionMetrics{DualNBackLevel: 2, ReactionTime: 240, Mindfulness: 3, DeepLearning: 90}
+			cognitionMap[date] = &models.CognitionMetrics{Mindfulness: 3, DeepLearning: 90, StressScore: 3, SocialDays: 4}
 			rhrBaselineByDate[date] = 60
 		}
 

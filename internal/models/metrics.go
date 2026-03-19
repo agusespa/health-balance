@@ -16,26 +16,30 @@ type HealthMetrics struct {
 	SleepScore     int
 	WaistCm        float64
 	RHR            int
+	SystolicBP     int
+	DiastolicBP    int
 	NutritionScore float64
 }
 
 // FitnessMetrics represents the Fitness Pillar
 type FitnessMetrics struct {
-	Date           string
-	VO2Max         float64
-	Workouts       int
-	DailySteps     int
-	Mobility       int
-	CardioRecovery int
+	Date            string
+	VO2Max          float64
+	Workouts        int
+	DailySteps      int
+	Mobility        int
+	CardioRecovery  int
+	LowerBodyWeight float64
+	LowerBodyReps   int
 }
 
 // CognitionMetrics represents the Cognition Pillar
 type CognitionMetrics struct {
-	Date           string
-	DualNBackLevel int
-	ReactionTime   int
-	Mindfulness    int
-	DeepLearning   int
+	Date         string
+	Mindfulness  int
+	DeepLearning int
+	StressScore  int
+	SocialDays   int
 }
 
 // UserProfile stores user-specific data for calculations

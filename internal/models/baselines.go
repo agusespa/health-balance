@@ -27,23 +27,3 @@ func GetVO2MaxBaseline(age int, sex string) float64 {
 
 	return baseline
 }
-
-// GetReactionTimeBaseline returns the age-based reaction time baseline in ms
-func GetReactionTimeBaseline(age int) int {
-	switch {
-	case age < 20:
-		return 200
-	case age < 30:
-		return 220
-	case age < 40:
-		return 240
-	case age < 50:
-		return 260
-	case age < 60:
-		return 280
-	case age < 70:
-		return 300
-	default:
-		return 320
-	}
-}

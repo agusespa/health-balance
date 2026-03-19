@@ -34,6 +34,8 @@ func createTables(db *sql.DB) error {
 			sleep_score INTEGER,
 			waist_cm REAL,
 			rhr INTEGER,
+			systolic_bp INTEGER,
+			diastolic_bp INTEGER,
 			nutrition_score REAL
 		);`,
 		`CREATE TABLE IF NOT EXISTS fitness_metrics (
@@ -43,15 +45,17 @@ func createTables(db *sql.DB) error {
 			workouts INTEGER,
 			daily_steps INTEGER,
 			mobility INTEGER,
-			cardio_recovery INTEGER
+			cardio_recovery INTEGER,
+			lower_body_weight REAL,
+			lower_body_reps INTEGER
 		);`,
 		`CREATE TABLE IF NOT EXISTS cognition_metrics (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			date TEXT NOT NULL UNIQUE,
-			dual_n_back_level INTEGER,
-			reaction_time INTEGER,
 			mindfulness INTEGER,
-			deep_learning INTEGER
+			deep_learning INTEGER,
+			stress_score INTEGER,
+			social_days INTEGER
 		);`,
 		`CREATE TABLE IF NOT EXISTS user_profile (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,

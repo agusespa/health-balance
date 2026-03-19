@@ -105,10 +105,13 @@ func TestHandleAddHealthMetrics(t *testing.T) {
 		if m.SleepScore != 80 {
 			t.Errorf("Expected SleepScore 80, got %d", m.SleepScore)
 		}
+		if m.SystolicBP != 118 || m.DiastolicBP != 76 {
+			t.Errorf("Expected BP 118/76, got %d/%d", m.SystolicBP, m.DiastolicBP)
+		}
 		return nil
 	}
 
-	formData := "sleep_score=80&waist_cm=85.0&rhr=60&nutrition_score=7.5"
+	formData := "sleep_score=80&waist_cm=85.0&rhr=60&systolic_bp=118&diastolic_bp=76&nutrition_score=7.5"
 	req, err := http.NewRequest("POST", "/add-health-metrics", strings.NewReader(formData))
 	if err != nil {
 		t.Fatal(err)
@@ -153,10 +156,13 @@ func TestHandleAddFitnessMetrics(t *testing.T) {
 		if m.VO2Max != 45.0 {
 			t.Errorf("Expected VO2Max 45.0, got %f", m.VO2Max)
 		}
+		if m.LowerBodyWeight != 180.0 || m.LowerBodyReps != 12 {
+			t.Errorf("Expected leg press 180.0 x 12, got %.1f x %d", m.LowerBodyWeight, m.LowerBodyReps)
+		}
 		return nil
 	}
 
-	formData := "vo2_max=45.0&workouts=4&daily_steps=10000&mobility=3&cardio_recovery=25"
+	formData := "vo2_max=45.0&workouts=4&daily_steps=10000&mobility=3&cardio_recovery=25&leg_press_set=180x12"
 	req, err := http.NewRequest("POST", "/add-fitness-metrics", strings.NewReader(formData))
 	if err != nil {
 		t.Fatal(err)
@@ -177,18 +183,35 @@ func TestHandleAddFitnessMetrics(t *testing.T) {
 	}
 }
 
+func TestParseWeightAndReps(t *testing.T) {
+	weight, reps, err := parseWeightAndReps("180x12")
+	if err != nil {
+		t.Fatalf("Expected valid parse, got error: %v", err)
+	}
+	if weight != 180 || reps != 12 {
+		t.Fatalf("Expected 180 x 12, got %.1f x %d", weight, reps)
+	}
+
+	if _, _, err := parseWeightAndReps("bad-input"); err == nil {
+		t.Fatal("Expected invalid format to return an error")
+	}
+}
+
 func TestHandleAddCognitionMetrics(t *testing.T) {
 	handler, mockDB := setupTestHandler()
 
 	// Mock the save function
 	mockDB.SaveCognitionMetricsFunc = func(m models.CognitionMetrics) error {
-		if m.DualNBackLevel != 3 {
-			t.Errorf("Expected DualNBackLevel 3, got %d", m.DualNBackLevel)
+		if m.Mindfulness != 4 {
+			t.Errorf("Expected Mindfulness 4, got %d", m.Mindfulness)
+		}
+		if m.StressScore != 2 || m.SocialDays != 5 {
+			t.Errorf("Expected stress/social 2/5, got %d/%d", m.StressScore, m.SocialDays)
 		}
 		return nil
 	}
 
-	formData := "dual_n_back=3&reaction_time=240&mindfulness=4&deep_learning=60"
+	formData := "mindfulness=4&deep_learning=60&stress_score=2&social_days=5"
 	req, err := http.NewRequest("POST", "/add-cognition-metrics", strings.NewReader(formData))
 	if err != nil {
 		t.Fatal(err)

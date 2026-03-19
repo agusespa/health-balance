@@ -44,10 +44,10 @@ func TestConstructPrompt(t *testing.T) {
 				CardioRecovery: 25,
 			},
 			Cognition: &models.CognitionMetrics{
-				DualNBackLevel: 3,
-				ReactionTime:   240,
-				Mindfulness:    4,
-				DeepLearning:   40,
+				Mindfulness:  4,
+				DeepLearning: 40,
+				StressScore:  2,
+				SocialDays:   5,
 			},
 		},
 		{
@@ -73,10 +73,10 @@ func TestConstructPrompt(t *testing.T) {
 				CardioRecovery: 20,
 			},
 			Cognition: &models.CognitionMetrics{
-				DualNBackLevel: 2,
-				ReactionTime:   250,
-				Mindfulness:    3,
-				DeepLearning:   30,
+				Mindfulness:  3,
+				DeepLearning: 30,
+				StressScore:  3,
+				SocialDays:   4,
 			},
 		},
 	}
@@ -99,8 +99,10 @@ func TestConstructPrompt(t *testing.T) {
 		"Total: 1050.5",
 		"Sleep Score: 80",
 		"VO2 Max: 45.0",
-		"Dual N-Back Level: 3",
-		"Reaction Time: 240",
+		"Mindfulness: 4",
+		"Deep Learning: 40",
+		"Stress: 2/5",
+		"Social Days: 5/7",
 	}
 
 	for _, element := range expectedElements {

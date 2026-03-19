@@ -153,7 +153,8 @@ The "Master Score" starts at a baseline of 1000 and updates weekly as a slow-mov
    - VO2 Max
    - WHtR (Waist-to-Height Ratio)
    - RHR (Resting Heart Rate versus baseline)
-   - Reaction Time and selected cognitive signals
+   - Blood Pressure
+   - Lower-body Strength
 
 3. **Reserve-Building Behaviors** still matter because they build or protect reserve over time:
    - Sleep
@@ -164,7 +165,8 @@ The "Master Score" starts at a baseline of 1000 and updates weekly as a slow-mov
    - Cardio Recovery
    - Mindfulness
    - Deep Learning
-   - Dual N-Back
+   - Stress Score
+   - Social Days
    - These inputs are evaluated through recent consistency, not just a single week.
 
 4. **Anti-Gaming Logic**:
@@ -188,18 +190,18 @@ Detailed Weekly Data (most recent first):
 
 		if d.Health != nil {
 			h := d.Health
-			prompt += fmt.Sprintf("- **Health Metrics**: Sleep Score: %d | Waist: %.1f cm | RHR: %d bpm | Nutrition: %.1f/10\n",
-				h.SleepScore, h.WaistCm, h.RHR, h.NutritionScore)
+			prompt += fmt.Sprintf("- **Health Metrics**: Sleep Score: %d | Waist: %.1f cm | RHR: %d bpm | BP: %d/%d mmHg | Nutrition: %.1f/10\n",
+				h.SleepScore, h.WaistCm, h.RHR, h.SystolicBP, h.DiastolicBP, h.NutritionScore)
 		}
 		if d.Fitness != nil {
 			f := d.Fitness
-			prompt += fmt.Sprintf("- **Fitness Metrics**: VO2 Max: %.1f | Workouts: %d | Daily Steps: %d | Mobility: %d | Cardio Recovery: %d bpm drop\n",
-				f.VO2Max, f.Workouts, f.DailySteps, f.Mobility, f.CardioRecovery)
+			prompt += fmt.Sprintf("- **Fitness Metrics**: VO2 Max: %.1f | Workouts: %d | Daily Steps: %d | Mobility: %d | Cardio Recovery: %d bpm drop | Leg Press: %.1f x %d total reps\n",
+				f.VO2Max, f.Workouts, f.DailySteps, f.Mobility, f.CardioRecovery, f.LowerBodyWeight, f.LowerBodyReps)
 		}
 		if d.Cognition != nil {
 			c := d.Cognition
-			prompt += fmt.Sprintf("- **Cognition Metrics**: Dual N-Back Level: %d | Reaction Time: %d ms | Mindfulness: %d sessions | Deep Learning: %d total minutes\n",
-				c.DualNBackLevel, c.ReactionTime, c.Mindfulness, c.DeepLearning)
+			prompt += fmt.Sprintf("- **Cognition Metrics**: Mindfulness: %d sessions | Deep Learning: %d total minutes | Stress: %d/5 | Social Days: %d/7\n",
+				c.Mindfulness, c.DeepLearning, c.StressScore, c.SocialDays)
 		}
 	}
 

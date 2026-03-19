@@ -31,34 +31,3 @@ func TestGetVO2MaxBaseline(t *testing.T) {
 		})
 	}
 }
-
-func TestGetReactionTimeBaseline(t *testing.T) {
-	testCases := []struct {
-		name     string
-		age      int
-		expected int
-	}{
-		{"Under 20", 19, 200},
-		{"Exactly 20", 20, 220},
-		{"Under 30", 29, 220},
-		{"Exactly 30", 30, 240},
-		{"Under 40", 39, 240},
-		{"Exactly 40", 40, 260},
-		{"Under 50", 49, 260},
-		{"Exactly 50", 50, 280},
-		{"Under 60", 59, 280},
-		{"Exactly 60", 60, 300},
-		{"Under 70", 69, 300},
-		{"Exactly 70", 70, 320},
-		{"Over 70", 75, 320},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			result := GetReactionTimeBaseline(tc.age)
-			if result != tc.expected {
-				t.Errorf("GetReactionTimeBaseline(%d) = %d; expected %d", tc.age, result, tc.expected)
-			}
-		})
-	}
-}

@@ -28,6 +28,8 @@ func TestGetAllDatesWithData(t *testing.T) {
 		SleepScore:     80,
 		WaistCm:        85.0,
 		RHR:            60,
+		SystolicBP:     118,
+		DiastolicBP:    76,
 		NutritionScore: 7.5,
 	}
 	if err := db.SaveHealthMetrics(healthMetrics); err != nil {
@@ -68,6 +70,8 @@ func TestGetRecentHealthMetrics(t *testing.T) {
 		SleepScore:     80,
 		WaistCm:        85.0,
 		RHR:            60,
+		SystolicBP:     118,
+		DiastolicBP:    76,
 		NutritionScore: 7.5,
 	}
 	if err := db.SaveHealthMetrics(healthMetrics); err != nil {
@@ -102,11 +106,13 @@ func TestGetRecentFitnessMetrics(t *testing.T) {
 
 	// Insert test data
 	fitnessMetrics := models.FitnessMetrics{
-		VO2Max:         45.0,
-		Workouts:       4,
-		DailySteps:     10000,
-		Mobility:       3,
-		CardioRecovery: 25,
+		VO2Max:          45.0,
+		Workouts:        4,
+		DailySteps:      10000,
+		Mobility:        3,
+		CardioRecovery:  25,
+		LowerBodyWeight: 180.0,
+		LowerBodyReps:   12,
 	}
 	if err := db.SaveFitnessMetrics(fitnessMetrics); err != nil {
 		t.Fatalf("Failed to save fitness metrics: %v", err)
@@ -140,10 +146,10 @@ func TestGetRecentCognitionMetrics(t *testing.T) {
 
 	// Insert test data
 	cognitionMetrics := models.CognitionMetrics{
-		DualNBackLevel: 3,
-		ReactionTime:   240,
-		Mindfulness:    4,
-		DeepLearning:   60,
+		Mindfulness:  4,
+		DeepLearning: 60,
+		StressScore:  2,
+		SocialDays:   5,
 	}
 	if err := db.SaveCognitionMetrics(cognitionMetrics); err != nil {
 		t.Fatalf("Failed to save cognition metrics: %v", err)
@@ -182,6 +188,8 @@ func TestSaveAndRetrieveHealthMetrics(t *testing.T) {
 		SleepScore:     85,
 		WaistCm:        82.5,
 		RHR:            58,
+		SystolicBP:     116,
+		DiastolicBP:    74,
 		NutritionScore: 8.0,
 	}
 
@@ -202,6 +210,9 @@ func TestSaveAndRetrieveHealthMetrics(t *testing.T) {
 	}
 	if retrieved.RHR != 58 {
 		t.Errorf("Expected RHR 58, got %d", retrieved.RHR)
+	}
+	if retrieved.SystolicBP != 116 || retrieved.DiastolicBP != 74 {
+		t.Errorf("Expected BP 116/74, got %d/%d", retrieved.SystolicBP, retrieved.DiastolicBP)
 	}
 	if retrieved.NutritionScore != 8.0 {
 		t.Errorf("Expected NutritionScore 8.0, got %f", retrieved.NutritionScore)
@@ -226,11 +237,13 @@ func TestSaveAndRetrieveFitnessMetrics(t *testing.T) {
 	testDate := utils.GetCurrentWeekSundayDate()
 
 	fitnessMetrics := models.FitnessMetrics{
-		VO2Max:         48.0,
-		Workouts:       5,
-		DailySteps:     12000,
-		Mobility:       4,
-		CardioRecovery: 30,
+		VO2Max:          48.0,
+		Workouts:        5,
+		DailySteps:      12000,
+		Mobility:        4,
+		CardioRecovery:  30,
+		LowerBodyWeight: 180.0,
+		LowerBodyReps:   10,
 	}
 
 	if err := db.SaveFitnessMetrics(fitnessMetrics); err != nil {
@@ -257,6 +270,9 @@ func TestSaveAndRetrieveFitnessMetrics(t *testing.T) {
 	if retrieved.CardioRecovery != 30 {
 		t.Errorf("Expected CardioRecovery 30, got %d", retrieved.CardioRecovery)
 	}
+	if retrieved.LowerBodyWeight != 180.0 || retrieved.LowerBodyReps != 10 {
+		t.Errorf("Expected leg press 180.0 x 10, got %.1f x %d", retrieved.LowerBodyWeight, retrieved.LowerBodyReps)
+	}
 }
 
 func TestSaveAndRetrieveCognitionMetrics(t *testing.T) {
@@ -277,10 +293,10 @@ func TestSaveAndRetrieveCognitionMetrics(t *testing.T) {
 	testDate := utils.GetCurrentWeekSundayDate()
 
 	cognitionMetrics := models.CognitionMetrics{
-		DualNBackLevel: 4,
-		ReactionTime:   220,
-		Mindfulness:    5,
-		DeepLearning:   90,
+		Mindfulness:  5,
+		DeepLearning: 90,
+		StressScore:  2,
+		SocialDays:   6,
 	}
 
 	if err := db.SaveCognitionMetrics(cognitionMetrics); err != nil {
@@ -292,17 +308,14 @@ func TestSaveAndRetrieveCognitionMetrics(t *testing.T) {
 		t.Fatalf("Failed to retrieve cognition metrics: %v", err)
 	}
 
-	if retrieved.DualNBackLevel != 4 {
-		t.Errorf("Expected DualNBackLevel 4, got %d", retrieved.DualNBackLevel)
-	}
-	if retrieved.ReactionTime != 220 {
-		t.Errorf("Expected ReactionTime 220, got %d", retrieved.ReactionTime)
-	}
 	if retrieved.Mindfulness != 5 {
 		t.Errorf("Expected Mindfulness 5, got %d", retrieved.Mindfulness)
 	}
 	if retrieved.DeepLearning != 90 {
 		t.Errorf("Expected DeepLearning 90, got %d", retrieved.DeepLearning)
+	}
+	if retrieved.StressScore != 2 || retrieved.SocialDays != 6 {
+		t.Errorf("Expected stress/social 2/6, got %d/%d", retrieved.StressScore, retrieved.SocialDays)
 	}
 }
 

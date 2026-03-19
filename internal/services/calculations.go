@@ -101,7 +101,6 @@ func GetAllWeeklyScores(db database.Querier) ([]models.MasterScore, error) {
 			effectiveHealth, effectiveFitness, effectiveCognition,
 			rhrBaseline,
 			models.GetVO2MaxBaseline(age, profile.Sex),
-			models.GetReactionTimeBaseline(age),
 			whtr,
 			calculationDate,
 		)
@@ -125,9 +124,10 @@ func CalculateHealthPillar(m models.HealthMetrics, rhrBaseline int, whtr float64
 	sleepPoints := cappedContribution(float64(m.SleepScore-75), 0.6, 0.9, 8.0, 12.0)
 	whtrPoints := cappedContribution(0.48-whtr, 180.0, 260.0, 10.0, 15.0)
 	rhrPoints := cappedContribution(float64(rhrBaseline-m.RHR), 1.0, 1.5, 7.0, 10.0)
+	bloodPressurePoints := calculateBloodPressurePoints(m)
 	nutritionPoints := cappedContribution(m.NutritionScore-7.0, 1.5, 2.0, 4.5, 6.0)
 
-	return sleepPoints + whtrPoints + rhrPoints + nutritionPoints
+	return sleepPoints + whtrPoints + rhrPoints + bloodPressurePoints + nutritionPoints
 }
 
 func CalculateFitnessPillar(m models.FitnessMetrics, vo2MaxBaseline float64) float64 {
@@ -136,17 +136,18 @@ func CalculateFitnessPillar(m models.FitnessMetrics, vo2MaxBaseline float64) flo
 	stepPoints := cappedContribution(float64(m.DailySteps-8000)/2000.0, 1.0, 1.5, 3.0, 5.0)
 	mobilityPoints := cappedContribution(float64(m.Mobility-3), 1.0, 1.5, 3.0, 4.5)
 	recoveryPoints := cappedContribution(float64(m.CardioRecovery-25)/5.0, 1.0, 1.5, 4.0, 6.0)
+	strengthPoints := calculateLowerBodyStrengthPoints(m)
 
-	return vo2Points + workoutPoints + stepPoints + mobilityPoints + recoveryPoints
+	return vo2Points + workoutPoints + stepPoints + mobilityPoints + recoveryPoints + strengthPoints
 }
 
-func CalculateCognitionPillar(m models.CognitionMetrics, reactionBaseline int) float64 {
-	memoryPoints := cappedContribution(float64(m.DualNBackLevel-2), 1.0, 1.5, 3.0, 4.0)
-	reactionPoints := cappedContribution(float64(reactionBaseline-m.ReactionTime)/20.0, 1.0, 1.5, 4.0, 6.0)
+func CalculateCognitionPillar(m models.CognitionMetrics) float64 {
 	mindfulnessPoints := cappedContribution(float64(m.Mindfulness-3), 0.6, 1.0, 2.0, 3.0)
 	learningPoints := cappedContribution(float64(m.DeepLearning-90)/45.0, 0.6, 1.0, 2.0, 3.0)
+	stressPoints := cappedContribution(float64(3-m.StressScore), 1.2, 1.8, 4.0, 6.0)
+	socialPoints := cappedContribution(float64(m.SocialDays-4), 0.8, 1.2, 3.0, 4.0)
 
-	return memoryPoints + reactionPoints + mindfulnessPoints + learningPoints
+	return mindfulnessPoints + learningPoints + stressPoints + socialPoints
 }
 
 func CalculateMasterScore(
@@ -157,7 +158,6 @@ func CalculateMasterScore(
 	cognition models.CognitionMetrics,
 	rhrBaseline int,
 	vo2MaxBaseline float64,
-	reactionBaseline int,
 	whtr float64,
 	calculationDate time.Time,
 ) (float64, float64, float64, float64, float64) {
@@ -167,7 +167,7 @@ func CalculateMasterScore(
 	tax := currentScore * weeklyDecayRate
 	hScore := CalculateHealthPillar(health, rhrBaseline, whtr)
 	fScore := CalculateFitnessPillar(fitness, vo2MaxBaseline)
-	cScore := CalculateCognitionPillar(cognition, reactionBaseline)
+	cScore := CalculateCognitionPillar(cognition)
 
 	postTaxScore := currentScore - tax
 	targetScore := defaultMasterScore + hScore + fScore + cScore
@@ -218,6 +218,12 @@ func smoothCognitionBehaviors(history []models.CognitionMetrics, current models.
 	smoothed.DeepLearning = int(math.Round(averageLastN(history, behaviorConsistencySpan, func(m models.CognitionMetrics) float64 {
 		return float64(m.DeepLearning)
 	})))
+	smoothed.StressScore = int(math.Round(averageLastN(history, behaviorConsistencySpan, func(m models.CognitionMetrics) float64 {
+		return float64(m.StressScore)
+	})))
+	smoothed.SocialDays = int(math.Round(averageLastN(history, behaviorConsistencySpan, func(m models.CognitionMetrics) float64 {
+		return float64(m.SocialDays)
+	})))
 	return smoothed
 }
 
@@ -237,4 +243,23 @@ func averageLastN[T any](items []T, window int, value func(T) float64) float64 {
 	}
 
 	return total / float64(len(items[start:]))
+}
+
+func calculateBloodPressurePoints(m models.HealthMetrics) float64 {
+	if m.SystolicBP <= 0 || m.DiastolicBP <= 0 {
+		return 0
+	}
+
+	systolicPoints := cappedContribution(float64(120-m.SystolicBP)/5.0, 1.0, 1.5, 5.0, 8.0)
+	diastolicPoints := cappedContribution(float64(80-m.DiastolicBP)/3.0, 1.0, 1.5, 4.0, 6.0)
+	return systolicPoints + diastolicPoints
+}
+
+func calculateLowerBodyStrengthPoints(m models.FitnessMetrics) float64 {
+	if m.LowerBodyWeight <= 0 || m.LowerBodyReps <= 0 {
+		return 0
+	}
+
+	legPressLoad := m.LowerBodyWeight * float64(m.LowerBodyReps)
+	return cappedContribution((legPressLoad-1200.0)/200.0, 1.2, 1.5, 6.0, 8.0)
 }

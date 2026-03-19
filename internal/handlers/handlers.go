@@ -187,6 +187,8 @@ func (h *Handler) HandleAddHealthMetrics(w http.ResponseWriter, r *http.Request)
 		SleepScore:     getI("sleep_score"),
 		WaistCm:        getF("waist_cm"),
 		RHR:            getI("rhr"),
+		SystolicBP:     getI("systolic_bp"),
+		DiastolicBP:    getI("diastolic_bp"),
 		NutritionScore: getF("nutrition_score"),
 	}
 
@@ -231,13 +233,19 @@ func (h *Handler) HandleAddFitnessMetrics(w http.ResponseWriter, r *http.Request
 		}
 		return val
 	}
+	lowerBodyWeight, lowerBodyReps, err := parseWeightAndReps(r.FormValue("leg_press_set"))
+	if err != nil {
+		errs = append(errs, err.Error())
+	}
 
 	fitness := models.FitnessMetrics{
-		VO2Max:         getF("vo2_max"),
-		Workouts:       getI("workouts"),
-		DailySteps:     getI("daily_steps"),
-		Mobility:       getI("mobility"),
-		CardioRecovery: getI("cardio_recovery"),
+		VO2Max:          getF("vo2_max"),
+		Workouts:        getI("workouts"),
+		DailySteps:      getI("daily_steps"),
+		Mobility:        getI("mobility"),
+		CardioRecovery:  getI("cardio_recovery"),
+		LowerBodyWeight: lowerBodyWeight,
+		LowerBodyReps:   lowerBodyReps,
 	}
 
 	if len(errs) > 0 {
@@ -276,10 +284,10 @@ func (h *Handler) HandleAddCognitionMetrics(w http.ResponseWriter, r *http.Reque
 	}
 
 	cognition := models.CognitionMetrics{
-		Mindfulness:    getI("mindfulness", "Mindfulness"),
-		DeepLearning:   getI("deep_learning", "Deep Learning"),
-		DualNBackLevel: getI("dual_n_back", "Dual N-Back Level"),
-		ReactionTime:   getI("reaction_time", "Reaction Time"),
+		Mindfulness:  getI("mindfulness", "Mindfulness"),
+		DeepLearning: getI("deep_learning", "Deep Learning"),
+		StressScore:  getI("stress_score", "Stress Score"),
+		SocialDays:   getI("social_days", "Social Days"),
 	}
 
 	if len(errs) > 0 {
@@ -514,6 +522,34 @@ func parseFormFloat(r *http.Request, key string) (float64, error) {
 		return 0, fmt.Errorf("%s is required", key)
 	}
 	return strconv.ParseFloat(val, 64)
+}
+
+func parseWeightAndReps(value string) (float64, int, error) {
+	trimmed := strings.TrimSpace(strings.ToLower(value))
+	if trimmed == "" {
+		return 0, 0, fmt.Errorf("leg_press_set is required")
+	}
+
+	parts := strings.Split(trimmed, "x")
+	if len(parts) != 2 {
+		return 0, 0, fmt.Errorf("leg_press_set must use the format weightxreps, for example 180x12")
+	}
+
+	weight, err := strconv.ParseFloat(strings.TrimSpace(parts[0]), 64)
+	if err != nil {
+		return 0, 0, fmt.Errorf("leg_press_set must include a valid weight")
+	}
+
+	reps, err := strconv.Atoi(strings.TrimSpace(parts[1]))
+	if err != nil {
+		return 0, 0, fmt.Errorf("leg_press_set must include valid reps")
+	}
+
+	if weight <= 0 || reps <= 0 {
+		return 0, 0, fmt.Errorf("leg_press_set weight and reps must both be positive")
+	}
+
+	return weight, reps, nil
 }
 
 func (h *Handler) render(w http.ResponseWriter, name string, data any) {

@@ -71,7 +71,7 @@ func (db *DB) GetAllDatesWithData() ([]string, error) {
 func (db *DB) GetRecentHealthMetrics(limit int) ([]models.HealthMetrics, error) {
 	currentWeekDate := utils.GetCurrentWeekSundayDate()
 	rows, err := db.Query(`
-		SELECT date, sleep_score, waist_cm, rhr, nutrition_score
+		SELECT date, sleep_score, waist_cm, rhr, systolic_bp, diastolic_bp, nutrition_score
 		FROM health_metrics
 		WHERE date != ?
 		ORDER BY date DESC
@@ -89,7 +89,7 @@ func (db *DB) GetRecentHealthMetrics(limit int) ([]models.HealthMetrics, error) 
 	var metrics []models.HealthMetrics
 	for rows.Next() {
 		var m models.HealthMetrics
-		err := rows.Scan(&m.Date, &m.SleepScore, &m.WaistCm, &m.RHR, &m.NutritionScore)
+		err := rows.Scan(&m.Date, &m.SleepScore, &m.WaistCm, &m.RHR, &m.SystolicBP, &m.DiastolicBP, &m.NutritionScore)
 		if err != nil {
 			return nil, err
 		}
@@ -102,7 +102,7 @@ func (db *DB) GetRecentHealthMetrics(limit int) ([]models.HealthMetrics, error) 
 func (db *DB) GetRecentFitnessMetrics(limit int) ([]models.FitnessMetrics, error) {
 	currentWeekDate := utils.GetCurrentWeekSundayDate()
 	rows, err := db.Query(`
-		SELECT date, vo2_max, workouts, daily_steps, mobility, cardio_recovery
+		SELECT date, vo2_max, workouts, daily_steps, mobility, cardio_recovery, lower_body_weight, lower_body_reps
 		FROM fitness_metrics
 		WHERE date != ?
 		ORDER BY date DESC
@@ -120,7 +120,7 @@ func (db *DB) GetRecentFitnessMetrics(limit int) ([]models.FitnessMetrics, error
 	var metrics []models.FitnessMetrics
 	for rows.Next() {
 		var m models.FitnessMetrics
-		err := rows.Scan(&m.Date, &m.VO2Max, &m.Workouts, &m.DailySteps, &m.Mobility, &m.CardioRecovery)
+		err := rows.Scan(&m.Date, &m.VO2Max, &m.Workouts, &m.DailySteps, &m.Mobility, &m.CardioRecovery, &m.LowerBodyWeight, &m.LowerBodyReps)
 		if err != nil {
 			return nil, err
 		}
@@ -133,7 +133,7 @@ func (db *DB) GetRecentFitnessMetrics(limit int) ([]models.FitnessMetrics, error
 func (db *DB) GetRecentCognitionMetrics(limit int) ([]models.CognitionMetrics, error) {
 	currentWeekDate := utils.GetCurrentWeekSundayDate()
 	rows, err := db.Query(`
-		SELECT date, dual_n_back_level, reaction_time, mindfulness, deep_learning
+		SELECT date, mindfulness, deep_learning, stress_score, social_days
 		FROM cognition_metrics
 		WHERE date != ?
 		ORDER BY date DESC
@@ -151,7 +151,7 @@ func (db *DB) GetRecentCognitionMetrics(limit int) ([]models.CognitionMetrics, e
 	var metrics []models.CognitionMetrics
 	for rows.Next() {
 		var m models.CognitionMetrics
-		err := rows.Scan(&m.Date, &m.DualNBackLevel, &m.ReactionTime, &m.Mindfulness, &m.DeepLearning)
+		err := rows.Scan(&m.Date, &m.Mindfulness, &m.DeepLearning, &m.StressScore, &m.SocialDays)
 		if err != nil {
 			return nil, err
 		}
@@ -164,14 +164,16 @@ func (db *DB) GetRecentCognitionMetrics(limit int) ([]models.CognitionMetrics, e
 func (db *DB) SaveHealthMetrics(m models.HealthMetrics) error {
 	date := utils.GetCurrentWeekSundayDate()
 	_, err := db.Exec(`
-		INSERT INTO health_metrics (date, sleep_score, waist_cm, rhr, nutrition_score)
-		VALUES (?, ?, ?, ?, ?)
+		INSERT INTO health_metrics (date, sleep_score, waist_cm, rhr, systolic_bp, diastolic_bp, nutrition_score)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(date) DO UPDATE SET
 			sleep_score = excluded.sleep_score,
 			waist_cm = excluded.waist_cm,
 			rhr = excluded.rhr,
+			systolic_bp = excluded.systolic_bp,
+			diastolic_bp = excluded.diastolic_bp,
 			nutrition_score = excluded.nutrition_score
-	`, date, m.SleepScore, m.WaistCm, m.RHR, m.NutritionScore)
+	`, date, m.SleepScore, m.WaistCm, m.RHR, m.SystolicBP, m.DiastolicBP, m.NutritionScore)
 	if err != nil {
 		return err
 	}
@@ -184,15 +186,17 @@ func (db *DB) SaveHealthMetrics(m models.HealthMetrics) error {
 func (db *DB) SaveFitnessMetrics(m models.FitnessMetrics) error {
 	date := utils.GetCurrentWeekSundayDate()
 	_, err := db.Exec(`
-		INSERT INTO fitness_metrics (date, vo2_max, workouts, daily_steps, mobility, cardio_recovery)
-		VALUES (?, ?, ?, ?, ?, ?)
+		INSERT INTO fitness_metrics (date, vo2_max, workouts, daily_steps, mobility, cardio_recovery, lower_body_weight, lower_body_reps)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(date) DO UPDATE SET
 			vo2_max = excluded.vo2_max,
 			workouts = excluded.workouts,
 			daily_steps = excluded.daily_steps,
 			mobility = excluded.mobility,
-			cardio_recovery = excluded.cardio_recovery
-	`, date, m.VO2Max, m.Workouts, m.DailySteps, m.Mobility, m.CardioRecovery)
+			cardio_recovery = excluded.cardio_recovery,
+			lower_body_weight = excluded.lower_body_weight,
+			lower_body_reps = excluded.lower_body_reps
+	`, date, m.VO2Max, m.Workouts, m.DailySteps, m.Mobility, m.CardioRecovery, m.LowerBodyWeight, m.LowerBodyReps)
 	if err != nil {
 		return err
 	}
@@ -205,14 +209,14 @@ func (db *DB) SaveFitnessMetrics(m models.FitnessMetrics) error {
 func (db *DB) SaveCognitionMetrics(m models.CognitionMetrics) error {
 	date := utils.GetCurrentWeekSundayDate()
 	_, err := db.Exec(`
-		INSERT INTO cognition_metrics (date, dual_n_back_level, reaction_time, mindfulness, deep_learning)
+		INSERT INTO cognition_metrics (date, mindfulness, deep_learning, stress_score, social_days)
 		VALUES (?, ?, ?, ?, ?)
 		ON CONFLICT(date) DO UPDATE SET
-			dual_n_back_level = excluded.dual_n_back_level,
-			reaction_time = excluded.reaction_time,
 			mindfulness = excluded.mindfulness,
-			deep_learning = excluded.deep_learning
-	`, date, m.DualNBackLevel, m.ReactionTime, m.Mindfulness, m.DeepLearning)
+			deep_learning = excluded.deep_learning,
+			stress_score = excluded.stress_score,
+			social_days = excluded.social_days
+	`, date, m.Mindfulness, m.DeepLearning, m.StressScore, m.SocialDays)
 	if err != nil {
 		return err
 	}
@@ -225,10 +229,10 @@ func (db *DB) SaveCognitionMetrics(m models.CognitionMetrics) error {
 func (db *DB) GetHealthMetricsByDate(date string) (*models.HealthMetrics, error) {
 	var m models.HealthMetrics
 	err := db.QueryRow(`
-		SELECT date, sleep_score, waist_cm, rhr, nutrition_score
+		SELECT date, sleep_score, waist_cm, rhr, systolic_bp, diastolic_bp, nutrition_score
 		FROM health_metrics
 		WHERE date = ?
-	`, date).Scan(&m.Date, &m.SleepScore, &m.WaistCm, &m.RHR, &m.NutritionScore)
+	`, date).Scan(&m.Date, &m.SleepScore, &m.WaistCm, &m.RHR, &m.SystolicBP, &m.DiastolicBP, &m.NutritionScore)
 
 	if err != nil {
 		return nil, err
@@ -239,10 +243,10 @@ func (db *DB) GetHealthMetricsByDate(date string) (*models.HealthMetrics, error)
 func (db *DB) GetFitnessMetricsByDate(date string) (*models.FitnessMetrics, error) {
 	var m models.FitnessMetrics
 	err := db.QueryRow(`
-		SELECT date, vo2_max, workouts, daily_steps, mobility, cardio_recovery
+		SELECT date, vo2_max, workouts, daily_steps, mobility, cardio_recovery, lower_body_weight, lower_body_reps
 		FROM fitness_metrics
 		WHERE date = ?
-	`, date).Scan(&m.Date, &m.VO2Max, &m.Workouts, &m.DailySteps, &m.Mobility, &m.CardioRecovery)
+	`, date).Scan(&m.Date, &m.VO2Max, &m.Workouts, &m.DailySteps, &m.Mobility, &m.CardioRecovery, &m.LowerBodyWeight, &m.LowerBodyReps)
 
 	if err != nil {
 		return nil, err
@@ -253,10 +257,10 @@ func (db *DB) GetFitnessMetricsByDate(date string) (*models.FitnessMetrics, erro
 func (db *DB) GetCognitionMetricsByDate(date string) (*models.CognitionMetrics, error) {
 	var m models.CognitionMetrics
 	err := db.QueryRow(`
-		SELECT date, dual_n_back_level, reaction_time, mindfulness, deep_learning
+		SELECT date, mindfulness, deep_learning, stress_score, social_days
 		FROM cognition_metrics
 		WHERE date = ?
-	`, date).Scan(&m.Date, &m.DualNBackLevel, &m.ReactionTime, &m.Mindfulness, &m.DeepLearning)
+	`, date).Scan(&m.Date, &m.Mindfulness, &m.DeepLearning, &m.StressScore, &m.SocialDays)
 
 	if err != nil {
 		return nil, err

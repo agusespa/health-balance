@@ -11,6 +11,7 @@
                 <th>Sleep</th>
                 <th>Waist (cm)</th>
                 <th>RHR</th>
+                <th>BP</th>
                 <th>Nutrition</th>
                 <th></th>
             </tr>
@@ -22,6 +23,7 @@
                 <td data-label="Sleep">{{.SleepScore}}</td>
                 <td data-label="Waist (cm)">{{printf "%.1f" .WaistCm}}</td>
                 <td data-label="RHR">{{.RHR}}</td>
+                <td data-label="BP">{{.SystolicBP}}/{{.DiastolicBP}}</td>
                 <td data-label="Nutrition">{{printf "%.1f" .NutritionScore}}</td>
                 <td>
                     <button class="icon-button delete-btn" hx-delete="/delete-health-metric?date={{.Date}}"
