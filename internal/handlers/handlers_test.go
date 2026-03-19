@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -29,6 +30,28 @@ func setupTestHandler() (*Handler, *testutil.MockDB) {
 	mockDB := &testutil.MockDB{}
 	handler := New(mockDB, templates)
 	return handler, mockDB
+}
+
+func TestLimitMasterScoresKeepsMostRecentEntries(t *testing.T) {
+	var scores []models.MasterScore
+	for i := 1; i <= 12; i++ {
+		scores = append(scores, models.MasterScore{
+			Date:  "2024-01-" + strconv.Itoa(i),
+			Score: float64(i),
+		})
+	}
+
+	limited := limitMasterScores(scores, historyPreviewLimit)
+
+	if len(limited) != historyPreviewLimit {
+		t.Fatalf("expected %d scores, got %d", historyPreviewLimit, len(limited))
+	}
+	if limited[0].Date != "2024-01-3" {
+		t.Fatalf("expected first retained score to be 2024-01-3, got %s", limited[0].Date)
+	}
+	if limited[len(limited)-1].Date != "2024-01-12" {
+		t.Fatalf("expected latest retained score to be 2024-01-12, got %s", limited[len(limited)-1].Date)
+	}
 }
 
 func TestHandleHome(t *testing.T) {
@@ -132,6 +155,29 @@ func TestHandleAddHealthMetrics(t *testing.T) {
 	}
 }
 
+func TestHandleHealthMetricsUsesHistoryPreviewLimit(t *testing.T) {
+	handler, mockDB := setupTestHandler()
+
+	mockDB.GetRecentHealthMetricsFunc = func(limit int) ([]models.HealthMetrics, error) {
+		if limit != historyPreviewLimit {
+			t.Fatalf("expected limit %d, got %d", historyPreviewLimit, limit)
+		}
+		return []models.HealthMetrics{}, nil
+	}
+
+	req, err := http.NewRequest("GET", "/health-metrics", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler.HandleHealthMetrics(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, status)
+	}
+}
+
 func TestHandleAddHealthMetricsInvalidMethod(t *testing.T) {
 	handler, _ := setupTestHandler()
 
@@ -183,6 +229,29 @@ func TestHandleAddFitnessMetrics(t *testing.T) {
 	}
 }
 
+func TestHandleFitnessMetricsUsesHistoryPreviewLimit(t *testing.T) {
+	handler, mockDB := setupTestHandler()
+
+	mockDB.GetRecentFitnessMetricsFunc = func(limit int) ([]models.FitnessMetrics, error) {
+		if limit != historyPreviewLimit {
+			t.Fatalf("expected limit %d, got %d", historyPreviewLimit, limit)
+		}
+		return []models.FitnessMetrics{}, nil
+	}
+
+	req, err := http.NewRequest("GET", "/fitness-metrics", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler.HandleFitnessMetrics(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, status)
+	}
+}
+
 func TestParseWeightAndReps(t *testing.T) {
 	weight, reps, err := parseWeightAndReps("180x12")
 	if err != nil {
@@ -229,6 +298,29 @@ func TestHandleAddCognitionMetrics(t *testing.T) {
 	trigger := rr.Header().Get("HX-Trigger")
 	if trigger == "" {
 		t.Error("Expected HX-Trigger header to be set")
+	}
+}
+
+func TestHandleCognitionMetricsUsesHistoryPreviewLimit(t *testing.T) {
+	handler, mockDB := setupTestHandler()
+
+	mockDB.GetRecentCognitionMetricsFunc = func(limit int) ([]models.CognitionMetrics, error) {
+		if limit != historyPreviewLimit {
+			t.Fatalf("expected limit %d, got %d", historyPreviewLimit, limit)
+		}
+		return []models.CognitionMetrics{}, nil
+	}
+
+	req, err := http.NewRequest("GET", "/cognition-metrics", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler.HandleCognitionMetrics(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, status)
 	}
 }
 

@@ -25,6 +25,8 @@ type Handler struct {
 	templates *template.Template
 }
 
+const historyPreviewLimit = 10
+
 func New(db database.Querier, templates *template.Template) *Handler {
 	return &Handler{
 		db:        db,
@@ -108,11 +110,11 @@ func (h *Handler) HandleScores(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	h.render(w, "scores.html", scores)
+	h.render(w, "scores.html", limitMasterScores(scores, historyPreviewLimit))
 }
 
 func (h *Handler) HandleHealthMetrics(w http.ResponseWriter, r *http.Request) {
-	metrics, err := h.db.GetRecentHealthMetrics(5)
+	metrics, err := h.db.GetRecentHealthMetrics(historyPreviewLimit)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -125,7 +127,7 @@ func (h *Handler) HandleHealthWeekState(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *Handler) HandleFitnessMetrics(w http.ResponseWriter, r *http.Request) {
-	metrics, err := h.db.GetRecentFitnessMetrics(5)
+	metrics, err := h.db.GetRecentFitnessMetrics(historyPreviewLimit)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -138,12 +140,19 @@ func (h *Handler) HandleFitnessWeekState(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *Handler) HandleCognitionMetrics(w http.ResponseWriter, r *http.Request) {
-	metrics, err := h.db.GetRecentCognitionMetrics(5)
+	metrics, err := h.db.GetRecentCognitionMetrics(historyPreviewLimit)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	h.render(w, "cognition_metrics.html", metrics)
+}
+
+func limitMasterScores(scores []models.MasterScore, limit int) []models.MasterScore {
+	if len(scores) <= limit {
+		return scores
+	}
+	return scores[len(scores)-limit:]
 }
 
 func (h *Handler) HandleCognitionWeekState(w http.ResponseWriter, r *http.Request) {
