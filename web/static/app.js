@@ -74,6 +74,50 @@ document.addEventListener("showToast", function (evt) {
     }
 });
 
+function copyValuesToInputs(fieldValues) {
+    Object.entries(fieldValues).forEach(([inputId, value]) => {
+        const input = document.getElementById(inputId);
+        if (!input || value === undefined || value === null || value === "") {
+            return;
+        }
+        input.value = value;
+    });
+}
+
+function copyHealthFromLastWeek(button) {
+    copyValuesToInputs({
+        sleep_score: button.dataset.sleepScore,
+        waist_cm: button.dataset.waistCm,
+        rhr: button.dataset.rhr,
+        systolic_bp: button.dataset.systolicBp,
+        diastolic_bp: button.dataset.diastolicBp,
+        nutrition_score: button.dataset.nutritionScore,
+    });
+    showToast("Last week's health values copied into this week's form.");
+}
+
+function copyFitnessFromLastWeek(button) {
+    copyValuesToInputs({
+        vo2_max: button.dataset.vo2Max,
+        workouts: button.dataset.workouts,
+        daily_steps: button.dataset.dailySteps,
+        mobility: button.dataset.mobility,
+        cardio_recovery: button.dataset.cardioRecovery,
+        leg_press_set: button.dataset.legPressSet,
+    });
+    showToast("Last week's fitness values copied into this week's form.");
+}
+
+function copyCognitionFromLastWeek(button) {
+    copyValuesToInputs({
+        mindfulness: button.dataset.mindfulness,
+        deep_learning: button.dataset.deepLearning,
+        stress_score: button.dataset.stressScore,
+        social_days: button.dataset.socialDays,
+    });
+    showToast("Last week's cognition values copied into this week's form.");
+}
+
 function registerServiceWorker() {
     if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {

@@ -15,6 +15,19 @@ const (
 	defaultMasterScore      = 1000.0
 	scoreAdjustmentRate     = 0.12
 	behaviorConsistencySpan = 4
+	behaviorDecayRate       = 0.5
+	stableDriftRate         = 0.25
+	subjectiveDriftRate     = 0.5
+	stableCarryWeeks        = 2
+	subjectiveCarryWeeks    = 1
+	neutralSleepScore       = 75.0
+	neutralNutritionScore   = 7.0
+	neutralStressScore      = 3.0
+	neutralSystolicBP       = 120.0
+	neutralDiastolicBP      = 80.0
+	neutralCardioRecovery   = 25.0
+	neutralLegPressWeight   = 120.0
+	neutralLegPressReps     = 10.0
 )
 
 func GetCurrentMasterScore(db database.Querier) (*models.MasterScore, error) {
@@ -46,6 +59,9 @@ func GetAllWeeklyScores(db database.Querier) ([]models.MasterScore, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch dates: %w", err)
 	}
+	if len(allDates) == 0 {
+		return nil, nil
+	}
 
 	profile, err := db.GetUserProfile()
 	if err != nil || profile == nil {
@@ -58,13 +74,33 @@ func GetAllWeeklyScores(db database.Querier) ([]models.MasterScore, error) {
 	var fitnessHistory []models.FitnessMetrics
 	var cognitionHistory []models.CognitionMetrics
 
-	for i := len(allDates) - 1; i >= 0; i-- {
-		date := allDates[i]
+	startDate, err := time.Parse("2006-01-02", allDates[len(allDates)-1])
+	if err != nil {
+		return nil, fmt.Errorf("calculation aborted: invalid metric date %s: %w", allDates[len(allDates)-1], err)
+	}
 
-		calculationDate, err := time.Parse("2006-01-02", date)
-		if err != nil {
-			return nil, fmt.Errorf("calculation aborted: invalid metric date %s: %w", date, err)
-		}
+	endDate, err := time.Parse("2006-01-02", utils.GetCurrentWeekSundayDate())
+	if err != nil {
+		return nil, fmt.Errorf("calculation aborted: invalid current week date: %w", err)
+	}
+	if endDate.Before(startDate) {
+		endDate = startDate
+	}
+
+	var (
+		lastHealth      models.HealthMetrics
+		lastFitness     models.FitnessMetrics
+		lastCognition   models.CognitionMetrics
+		healthReady     bool
+		fitnessReady    bool
+		cognitionReady  bool
+		healthMissed    int
+		fitnessMissed   int
+		cognitionMissed int
+	)
+
+	for _, calculationDate := range expandWeeklyDates(startDate, endDate) {
+		date := calculationDate.Format("2006-01-02")
 
 		age, err := utils.GetAge(profile, calculationDate)
 		if err != nil {
@@ -75,25 +111,64 @@ func GetAllWeeklyScores(db database.Querier) ([]models.MasterScore, error) {
 		f, _ := db.GetFitnessMetricsByDate(date)
 		c, _ := db.GetCognitionMetricsByDate(date)
 
-		// Only calculate if all three pillars exist for this date
-		if h == nil || f == nil || c == nil {
-			continue
-		}
-
-		healthHistory = append(healthHistory, *h)
-		fitnessHistory = append(fitnessHistory, *f)
-		cognitionHistory = append(cognitionHistory, *c)
-
-		effectiveHealth := smoothHealthBehaviors(healthHistory, *h)
-		effectiveFitness := smoothFitnessBehaviors(fitnessHistory, *f)
-		effectiveCognition := smoothCognitionBehaviors(cognitionHistory, *c)
-
 		rhrBaseline, _ := db.GetRHRBaselineForDate(date)
-		if rhrBaseline == 0 {
+		if h != nil && rhrBaseline == 0 {
 			rhrBaseline = h.RHR
 		}
 
-		whtr := h.WaistCm / profile.HeightCm
+		if h != nil {
+			lastHealth = *h
+			healthReady = true
+			healthMissed = 0
+		} else if healthReady {
+			healthMissed++
+			lastHealth = imputeHealthMetrics(lastHealth, healthMissed, *profile, rhrBaseline)
+		}
+
+		if f != nil {
+			lastFitness = *f
+			fitnessReady = true
+			fitnessMissed = 0
+		} else if fitnessReady {
+			fitnessMissed++
+			lastFitness = imputeFitnessMetrics(lastFitness, fitnessMissed, age, *profile)
+		}
+
+		if c != nil {
+			lastCognition = *c
+			cognitionReady = true
+			cognitionMissed = 0
+		} else if cognitionReady {
+			cognitionMissed++
+			lastCognition = imputeCognitionMetrics(lastCognition, cognitionMissed)
+		}
+
+		if healthReady {
+			lastHealth.Date = date
+			healthHistory = append(healthHistory, lastHealth)
+		}
+		if fitnessReady {
+			lastFitness.Date = date
+			fitnessHistory = append(fitnessHistory, lastFitness)
+		}
+		if cognitionReady {
+			lastCognition.Date = date
+			cognitionHistory = append(cognitionHistory, lastCognition)
+		}
+
+		if !healthReady || !fitnessReady || !cognitionReady {
+			continue
+		}
+
+		effectiveHealth := smoothHealthBehaviors(healthHistory, lastHealth)
+		effectiveFitness := smoothFitnessBehaviors(fitnessHistory, lastFitness)
+		effectiveCognition := smoothCognitionBehaviors(cognitionHistory, lastCognition)
+
+		if rhrBaseline == 0 {
+			rhrBaseline = lastHealth.RHR
+		}
+
+		whtr := lastHealth.WaistCm / profile.HeightCm
 
 		newScore, hS, fS, cS, tax := CalculateMasterScore(
 			currentScore,
@@ -262,4 +337,102 @@ func calculateLowerBodyStrengthPoints(m models.FitnessMetrics) float64 {
 
 	legPressLoad := m.LowerBodyWeight * float64(m.LowerBodyReps)
 	return cappedContribution((legPressLoad-1200.0)/200.0, 1.2, 1.5, 6.0, 8.0)
+}
+
+func expandWeeklyDates(start, end time.Time) []time.Time {
+	var dates []time.Time
+	for current := start; !current.After(end); current = current.AddDate(0, 0, 7) {
+		dates = append(dates, current)
+	}
+	return dates
+}
+
+func imputeHealthMetrics(previous models.HealthMetrics, missedWeeks int, profile models.UserProfile, rhrBaseline int) models.HealthMetrics {
+	imputed := previous
+	imputed.SleepScore = imputeSubjectiveInt(previous.SleepScore, neutralSleepScore, missedWeeks)
+	imputed.NutritionScore = imputeSubjectiveFloat(previous.NutritionScore, neutralNutritionScore, missedWeeks)
+	imputed.WaistCm = imputeStableFloat(previous.WaistCm, profile.HeightCm*0.48, missedWeeks)
+
+	targetRHR := float64(rhrBaseline)
+	if targetRHR == 0 {
+		targetRHR = float64(previous.RHR)
+	}
+	imputed.RHR = imputeStableInt(previous.RHR, targetRHR, missedWeeks)
+	imputed.SystolicBP = imputeStableInt(previous.SystolicBP, neutralSystolicBP, missedWeeks)
+	imputed.DiastolicBP = imputeStableInt(previous.DiastolicBP, neutralDiastolicBP, missedWeeks)
+	return imputed
+}
+
+func imputeFitnessMetrics(previous models.FitnessMetrics, missedWeeks int, age int, profile models.UserProfile) models.FitnessMetrics {
+	imputed := previous
+	imputed.Workouts = decayBehaviorInt(previous.Workouts)
+	imputed.DailySteps = decayBehaviorInt(previous.DailySteps)
+	imputed.Mobility = decayBehaviorInt(previous.Mobility)
+	imputed.VO2Max = imputeStableFloat(previous.VO2Max, models.GetVO2MaxBaseline(age, profile.Sex), missedWeeks)
+	imputed.CardioRecovery = imputeStableInt(previous.CardioRecovery, neutralCardioRecovery, missedWeeks)
+	imputed.LowerBodyWeight = imputeStableFloat(previous.LowerBodyWeight, neutralLegPressWeight, missedWeeks)
+	imputed.LowerBodyReps = imputeStableInt(previous.LowerBodyReps, neutralLegPressReps, missedWeeks)
+	return imputed
+}
+
+func imputeCognitionMetrics(previous models.CognitionMetrics, missedWeeks int) models.CognitionMetrics {
+	imputed := previous
+	imputed.Mindfulness = decayBehaviorInt(previous.Mindfulness)
+	imputed.DeepLearning = decayBehaviorInt(previous.DeepLearning)
+	imputed.SocialDays = decayBehaviorInt(previous.SocialDays)
+	imputed.StressScore = imputeSubjectiveInt(previous.StressScore, neutralStressScore, missedWeeks)
+	return imputed
+}
+
+func decayBehaviorInt(value int) int {
+	return decayInt(value, behaviorDecayRate)
+}
+
+func imputeStableFloat(value, baseline float64, missedWeeks int) float64 {
+	if missedWeeks <= stableCarryWeeks {
+		return value
+	}
+	return driftFloat(value, baseline, stableDriftRate)
+}
+
+func imputeStableInt(value int, baseline float64, missedWeeks int) int {
+	if missedWeeks <= stableCarryWeeks {
+		return value
+	}
+	return driftInt(value, baseline, stableDriftRate)
+}
+
+func imputeSubjectiveFloat(value, neutral float64, missedWeeks int) float64 {
+	if missedWeeks <= subjectiveCarryWeeks {
+		return value
+	}
+	return driftFloat(value, neutral, subjectiveDriftRate)
+}
+
+func imputeSubjectiveInt(value int, neutral float64, missedWeeks int) int {
+	if missedWeeks <= subjectiveCarryWeeks {
+		return value
+	}
+	return driftInt(value, neutral, subjectiveDriftRate)
+}
+
+func driftFloat(value, target, rate float64) float64 {
+	return value + (target-value)*rate
+}
+
+func driftInt(value int, target, rate float64) int {
+	return int(math.Round(driftFloat(float64(value), target, rate)))
+}
+
+func decayInt(value int, rate float64) int {
+	if value <= 0 {
+		return 0
+	}
+
+	next := float64(value) * (1 - rate)
+	if next < 1 {
+		return 0
+	}
+
+	return int(math.Round(next))
 }

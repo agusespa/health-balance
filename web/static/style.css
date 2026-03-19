@@ -214,6 +214,54 @@ h3 {
     padding-bottom: 24px;
 }
 
+.week-context {
+    margin-bottom: 18px;
+}
+
+.week-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.week-status-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-muted);
+    padding: 14px 16px;
+}
+
+.week-status-saved {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+}
+
+.week-status-fresh {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+}
+
+.week-status-eyebrow {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.week-status-text {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
 /* ---------- Forms ---------- */
 form {
     display: flex;
@@ -327,6 +375,24 @@ button:hover:not(:disabled) {
 button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+.secondary-button {
+    background: var(--surface);
+    color: var(--accent);
+    border: 1px solid #c7d2fe;
+    margin-top: 14px;
+    padding: 10px 16px;
+}
+
+.secondary-button:hover:not(:disabled) {
+    background: #eef2ff;
+    opacity: 1;
+}
+
+.copy-button {
+    width: auto;
+    align-self: flex-start;
 }
 
 /* ---------- Tables ---------- */

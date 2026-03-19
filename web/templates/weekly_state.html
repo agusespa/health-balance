@@ -1,0 +1,90 @@
+{{define "health_week_state"}}
+<div class="week-context">
+    <p class="week-badge">Week of {{.WeekDateRange}}</p>
+    {{if .TodayHealth}}
+    <div class="week-status-card week-status-saved">
+        <p class="week-status-eyebrow">Saved for this week</p>
+        <p class="week-status-text">Your health entry is stored for the current week. Re-saving the form below will update it.</p>
+    </div>
+    {{else if .LastHealth}}
+    <div class="week-status-card week-status-fresh">
+        <p class="week-status-eyebrow">No entry yet this week</p>
+        <p class="week-status-text">Your most recent health entry is now in History. Start fresh or copy it into the form below as a baseline.</p>
+        <button type="button" class="secondary-button copy-button" onclick="copyHealthFromLastWeek(this)"
+            data-sleep-score="{{.LastHealth.SleepScore}}"
+            data-waist-cm="{{printf "%.1f" .LastHealth.WaistCm}}"
+            data-rhr="{{.LastHealth.RHR}}"
+            data-systolic-bp="{{.LastHealth.SystolicBP}}"
+            data-diastolic-bp="{{.LastHealth.DiastolicBP}}"
+            data-nutrition-score="{{printf "%.1f" .LastHealth.NutritionScore}}">
+            Copy last week
+        </button>
+    </div>
+    {{else}}
+    <div class="week-status-card">
+        <p class="week-status-eyebrow">No entry yet</p>
+        <p class="week-status-text">Save one health entry for this week, then update it any time before the week ends.</p>
+    </div>
+    {{end}}
+</div>
+{{end}}
+
+{{define "fitness_week_state"}}
+<div class="week-context">
+    <p class="week-badge">Week of {{.WeekDateRange}}</p>
+    {{if .TodayFitness}}
+    <div class="week-status-card week-status-saved">
+        <p class="week-status-eyebrow">Saved for this week</p>
+        <p class="week-status-text">Your fitness entry is stored for the current week. Re-saving the form below will update it.</p>
+    </div>
+    {{else if .LastFitness}}
+    <div class="week-status-card week-status-fresh">
+        <p class="week-status-eyebrow">No entry yet this week</p>
+        <p class="week-status-text">Your most recent fitness entry is now in History. Start fresh or copy it into the form below as a baseline.</p>
+        <button type="button" class="secondary-button copy-button" onclick="copyFitnessFromLastWeek(this)"
+            data-vo2-max="{{printf "%.1f" .LastFitness.VO2Max}}"
+            data-workouts="{{.LastFitness.Workouts}}"
+            data-daily-steps="{{.LastFitness.DailySteps}}"
+            data-mobility="{{.LastFitness.Mobility}}"
+            data-cardio-recovery="{{.LastFitness.CardioRecovery}}"
+            data-leg-press-set="{{printf "%.1fx%d" .LastFitness.LowerBodyWeight .LastFitness.LowerBodyReps}}">
+            Copy last week
+        </button>
+    </div>
+    {{else}}
+    <div class="week-status-card">
+        <p class="week-status-eyebrow">No entry yet</p>
+        <p class="week-status-text">Save one fitness entry for this week, then update it any time before the week ends.</p>
+    </div>
+    {{end}}
+</div>
+{{end}}
+
+{{define "cognition_week_state"}}
+<div class="week-context">
+    <p class="week-badge">Week of {{.WeekDateRange}}</p>
+    {{if .TodayCognition}}
+    <div class="week-status-card week-status-saved">
+        <p class="week-status-eyebrow">Saved for this week</p>
+        <p class="week-status-text">Your cognition entry is stored for the current week. Re-saving the form below will update it.</p>
+    </div>
+    {{else if .LastCognition}}
+    <div class="week-status-card week-status-fresh">
+        <p class="week-status-eyebrow">No entry yet this week</p>
+        <p class="week-status-text">Your most recent cognition entry is now in History. Start fresh or copy it into the form below as a baseline.</p>
+        <button type="button" class="secondary-button copy-button" onclick="copyCognitionFromLastWeek(this)"
+            data-mindfulness="{{.LastCognition.Mindfulness}}"
+            data-deep-learning="{{.LastCognition.DeepLearning}}"
+            data-stress-score="{{.LastCognition.StressScore}}"
+            data-social-days="{{.LastCognition.SocialDays}}">
+            Copy last week
+        </button>
+    </div>
+    {{else}}
+    <div class="week-status-card">
+        <p class="week-status-eyebrow">No entry yet</p>
+        <p class="week-status-text">Save one cognition entry for this week, then update it any time before the week ends.</p>
+    </div>
+    {{end}}
+</div>
+{{end}}

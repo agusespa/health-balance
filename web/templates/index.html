@@ -82,8 +82,11 @@
         </div>
         <div class="pillar-content" id="health-content" style="display: none;">
             <div class="add-data-section">
-                <h3>This Week's Data</h3>
-                <form hx-post="/add-health-metrics" hx-swap="none" hx-indicator="#health-spinner">
+                <div id="health-week-state" hx-get="/health-week-state"
+                    hx-trigger="refreshHealthWeekState from:body" hx-swap="innerHTML">
+                    {{template "health_week_state" .}}
+                </div>
+                <form id="health-form" hx-post="/add-health-metrics" hx-swap="none" hx-indicator="#health-spinner">
                     <div class="form-row">
                         <div class="form-group">
                             <label for="sleep_score">Sleep Quality Score</label>
@@ -146,7 +149,7 @@
                     </button>
                 </form>
             </div>
-            <div id="health-metrics" hx-get="/health-metrics" hx-trigger="load"></div>
+            <div id="health-metrics" hx-get="/health-metrics" hx-trigger="load, refreshHealthHistory from:body"></div>
         </div>
     </div>
 
@@ -157,8 +160,11 @@
         </div>
         <div class="pillar-content" id="fitness-content" style="display: none;">
             <div class="add-data-section">
-                <h3>This Week's Data</h3>
-                <form hx-post="/add-fitness-metrics" hx-swap="none" hx-indicator="#fitness-spinner">
+                <div id="fitness-week-state" hx-get="/fitness-week-state"
+                    hx-trigger="refreshFitnessWeekState from:body" hx-swap="innerHTML">
+                    {{template "fitness_week_state" .}}
+                </div>
+                <form id="fitness-form" hx-post="/add-fitness-metrics" hx-swap="none" hx-indicator="#fitness-spinner">
                     <div class="form-row">
                         <div class="form-group">
                             <label for="vo2_max">VO2 Max</label>
@@ -204,9 +210,7 @@
                             <small class="help-text">Drop 60s after vigorous effort (70%+ max HR). Aim for 25+
                                 BPM.</small>
                         </div>
-                    </div>
 
-                    <div class="form-row">
                         <div class="form-group">
                             <label for="leg_press_set">Leg Press Set (kg x reps)</label>
                             <input type="text" id="leg_press_set" name="leg_press_set"
@@ -222,7 +226,7 @@
                     </button>
                 </form>
             </div>
-            <div id="fitness-metrics" hx-get="/fitness-metrics" hx-trigger="load"></div>
+            <div id="fitness-metrics" hx-get="/fitness-metrics" hx-trigger="load, refreshFitnessHistory from:body"></div>
         </div>
     </div>
 
@@ -233,8 +237,11 @@
         </div>
         <div class="pillar-content" id="cognition-content" style="display: none;">
             <div class="add-data-section">
-                <h3>This Week's Data</h3>
-                <form hx-post="/add-cognition-metrics" hx-swap="none" hx-indicator="#cognition-spinner">
+                <div id="cognition-week-state" hx-get="/cognition-week-state"
+                    hx-trigger="refreshCognitionWeekState from:body" hx-swap="innerHTML">
+                    {{template "cognition_week_state" .}}
+                </div>
+                <form id="cognition-form" hx-post="/add-cognition-metrics" hx-swap="none" hx-indicator="#cognition-spinner">
                     <div class="form-row">
                         <div class="form-group">
                             <label for="mindfulness">Mindfulness Sessions</label>
@@ -278,7 +285,7 @@
                     </button>
                 </form>
             </div>
-            <div id="cognition-metrics" hx-get="/cognition-metrics" hx-trigger="load"></div>
+            <div id="cognition-metrics" hx-get="/cognition-metrics" hx-trigger="load, refreshCognitionHistory from:body"></div>
         </div>
     </div>
 

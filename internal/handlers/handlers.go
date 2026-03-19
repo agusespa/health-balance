@@ -42,31 +42,14 @@ type DashboardData struct {
 	TodayHealth     *models.HealthMetrics
 	TodayFitness    *models.FitnessMetrics
 	TodayCognition  *models.CognitionMetrics
+	LastHealth      *models.HealthMetrics
+	LastFitness     *models.FitnessMetrics
+	LastCognition   *models.CognitionMetrics
 	HasProfile      bool
 }
 
 func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
-	currentScore, _ := services.GetCurrentMasterScore(h.db)
-	profile, _ := h.db.GetUserProfile()
-	hasProfile := profile != nil && profile.BirthDate != "" && profile.Sex != "" && profile.HeightCm > 0
-
-	date := utils.GetCurrentWeekSundayDate()
-	weekDateRange := utils.GetCurrentWeekDateRange()
-
-	todayHealth, _ := h.db.GetHealthMetricsByDate(date)
-	todayFitness, _ := h.db.GetFitnessMetricsByDate(date)
-	todayCognition, _ := h.db.GetCognitionMetricsByDate(date)
-
-	data := DashboardData{
-		CurrentScore:   currentScore,
-		WeekDateRange:  weekDateRange,
-		Profile:        profile,
-		TodayHealth:    todayHealth,
-		TodayFitness:   todayFitness,
-		TodayCognition: todayCognition,
-		HasProfile:     hasProfile,
-	}
-
+	data := h.buildDashboardData()
 	h.render(w, "index.html", data)
 }
 
@@ -137,6 +120,10 @@ func (h *Handler) HandleHealthMetrics(w http.ResponseWriter, r *http.Request) {
 	h.render(w, "health_metrics.html", metrics)
 }
 
+func (h *Handler) HandleHealthWeekState(w http.ResponseWriter, r *http.Request) {
+	h.render(w, "health_week_state", h.buildWeekStateData())
+}
+
 func (h *Handler) HandleFitnessMetrics(w http.ResponseWriter, r *http.Request) {
 	metrics, err := h.db.GetRecentFitnessMetrics(5)
 	if err != nil {
@@ -146,6 +133,10 @@ func (h *Handler) HandleFitnessMetrics(w http.ResponseWriter, r *http.Request) {
 	h.render(w, "fitness_metrics.html", metrics)
 }
 
+func (h *Handler) HandleFitnessWeekState(w http.ResponseWriter, r *http.Request) {
+	h.render(w, "fitness_week_state", h.buildWeekStateData())
+}
+
 func (h *Handler) HandleCognitionMetrics(w http.ResponseWriter, r *http.Request) {
 	metrics, err := h.db.GetRecentCognitionMetrics(5)
 	if err != nil {
@@ -153,6 +144,10 @@ func (h *Handler) HandleCognitionMetrics(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	h.render(w, "cognition_metrics.html", metrics)
+}
+
+func (h *Handler) HandleCognitionWeekState(w http.ResponseWriter, r *http.Request) {
+	h.render(w, "cognition_week_state", h.buildWeekStateData())
 }
 
 func (h *Handler) HandleAddHealthMetrics(w http.ResponseWriter, r *http.Request) {
@@ -203,7 +198,7 @@ func (h *Handler) HandleAddHealthMetrics(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	w.Header().Set("HX-Trigger", `{"refreshScore":true, "showToast":"Health data saved successfully"}`)
+	w.Header().Set("HX-Trigger", `{"refreshScore":true, "refreshHealthWeekState":true, "showToast":"Health data saved successfully"}`)
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -259,7 +254,7 @@ func (h *Handler) HandleAddFitnessMetrics(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.Header().Set("HX-Trigger", `{"refreshScore":true, "showToast":"Fitness data saved successfully"}`)
+	w.Header().Set("HX-Trigger", `{"refreshScore":true, "refreshFitnessWeekState":true, "showToast":"Fitness data saved successfully"}`)
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -301,7 +296,7 @@ func (h *Handler) HandleAddCognitionMetrics(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Header().Set("HX-Trigger", `{"refreshScore":true, "showToast":"Cognition data saved successfully"}`)
+	w.Header().Set("HX-Trigger", `{"refreshScore":true, "refreshCognitionWeekState":true, "showToast":"Cognition data saved successfully"}`)
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -323,7 +318,7 @@ func (h *Handler) HandleDeleteHealthMetric(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	w.Header().Set("HX-Trigger", `{"refreshScore":true, "showToast":"Entry deleted successfully"}`)
+	w.Header().Set("HX-Trigger", `{"refreshScore":true, "refreshHealthWeekState":true, "refreshHealthHistory":true, "showToast":"Entry deleted successfully"}`)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -345,7 +340,7 @@ func (h *Handler) HandleDeleteFitnessMetric(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Header().Set("HX-Trigger", `{"refreshScore":true, "showToast":"Entry deleted successfully"}`)
+	w.Header().Set("HX-Trigger", `{"refreshScore":true, "refreshFitnessWeekState":true, "refreshFitnessHistory":true, "showToast":"Entry deleted successfully"}`)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -367,7 +362,7 @@ func (h *Handler) HandleDeleteCognitionMetric(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	w.Header().Set("HX-Trigger", `{"refreshScore":true, "showToast":"Entry deleted successfully"}`)
+	w.Header().Set("HX-Trigger", `{"refreshScore":true, "refreshCognitionWeekState":true, "refreshCognitionHistory":true, "showToast":"Entry deleted successfully"}`)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -550,6 +545,59 @@ func parseWeightAndReps(value string) (float64, int, error) {
 	}
 
 	return weight, reps, nil
+}
+
+func (h *Handler) buildDashboardData() DashboardData {
+	data := h.buildWeekStateData()
+	data.CurrentScore, _ = services.GetCurrentMasterScore(h.db)
+	data.Profile, _ = h.db.GetUserProfile()
+	data.HasProfile = data.Profile != nil &&
+		data.Profile.BirthDate != "" &&
+		data.Profile.Sex != "" &&
+		data.Profile.HeightCm > 0
+	return data
+}
+
+func (h *Handler) buildWeekStateData() DashboardData {
+	date := utils.GetCurrentWeekSundayDate()
+
+	todayHealth, _ := h.db.GetHealthMetricsByDate(date)
+	todayFitness, _ := h.db.GetFitnessMetricsByDate(date)
+	todayCognition, _ := h.db.GetCognitionMetricsByDate(date)
+
+	return DashboardData{
+		WeekDateRange:  utils.GetCurrentWeekDateRange(),
+		TodayHealth:    todayHealth,
+		TodayFitness:   todayFitness,
+		TodayCognition: todayCognition,
+		LastHealth:     latestHealthMetric(h.db),
+		LastFitness:    latestFitnessMetric(h.db),
+		LastCognition:  latestCognitionMetric(h.db),
+	}
+}
+
+func latestHealthMetric(db database.Querier) *models.HealthMetrics {
+	metrics, err := db.GetRecentHealthMetrics(1)
+	if err != nil || len(metrics) == 0 {
+		return nil
+	}
+	return &metrics[0]
+}
+
+func latestFitnessMetric(db database.Querier) *models.FitnessMetrics {
+	metrics, err := db.GetRecentFitnessMetrics(1)
+	if err != nil || len(metrics) == 0 {
+		return nil
+	}
+	return &metrics[0]
+}
+
+func latestCognitionMetric(db database.Querier) *models.CognitionMetrics {
+	metrics, err := db.GetRecentCognitionMetrics(1)
+	if err != nil || len(metrics) == 0 {
+		return nil
+	}
+	return &metrics[0]
 }
 
 func (h *Handler) render(w http.ResponseWriter, name string, data any) {

@@ -1,7 +1,13 @@
-.PHONY: run docker test lint
+.PHONY: run docker test lint seed seed-reset
 
 run:
 	go run ./cmd/server/main.go
+
+seed:
+	go run ./cmd/seed/main.go
+
+seed-reset:
+	go run ./cmd/seed/main.go -reset
 
 docker:
 	docker-compose -f docker-compose.dev.yml up --build

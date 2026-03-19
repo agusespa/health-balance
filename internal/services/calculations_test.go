@@ -2,6 +2,7 @@ package services
 
 import (
 	"health-balance/internal/models"
+	"health-balance/internal/utils"
 	"testing"
 	"time"
 )
@@ -124,8 +125,13 @@ func TestCalculatePillars(t *testing.T) {
 }
 
 func TestGetAllWeeklyScores_Compounding(t *testing.T) {
-	date1 := "2025-12-01"
-	date2 := "2025-12-08"
+	currentWeek, err := time.Parse("2006-01-02", utils.GetCurrentWeekSundayDate())
+	if err != nil {
+		t.Fatalf("Failed to parse current week: %v", err)
+	}
+
+	date1 := currentWeek.AddDate(0, 0, -7).Format("2006-01-02")
+	date2 := currentWeek.Format("2006-01-02")
 
 	mock := &MockDB{
 		AllDates:    []string{date2, date1},
@@ -207,8 +213,13 @@ func TestCalculateMasterScore_ConvergesInsteadOfRunningAway(t *testing.T) {
 }
 
 func TestGetAllWeeklyScores_UsesHistoricalRHRBaseline(t *testing.T) {
-	date1 := "2025-01-05"
-	date2 := "2025-04-06"
+	currentWeek, err := time.Parse("2006-01-02", utils.GetCurrentWeekSundayDate())
+	if err != nil {
+		t.Fatalf("Failed to parse current week: %v", err)
+	}
+
+	date1 := currentWeek.AddDate(0, 0, -7).Format("2006-01-02")
+	date2 := currentWeek.Format("2006-01-02")
 
 	mock := &MockDB{
 		AllDates:    []string{date2, date1},
@@ -255,7 +266,18 @@ func TestGetAllWeeklyScores_UsesHistoricalRHRBaseline(t *testing.T) {
 }
 
 func TestGetAllWeeklyScores_WeightsConsistencyOverOneWeekSpike(t *testing.T) {
-	dates := []string{"2025-01-26", "2025-01-19", "2025-01-12", "2025-01-05"}
+	currentWeek, err := time.Parse("2006-01-02", utils.GetCurrentWeekSundayDate())
+	if err != nil {
+		t.Fatalf("Failed to parse current week: %v", err)
+	}
+
+	ordered := []string{
+		currentWeek.AddDate(0, 0, -21).Format("2006-01-02"),
+		currentWeek.AddDate(0, 0, -14).Format("2006-01-02"),
+		currentWeek.AddDate(0, 0, -7).Format("2006-01-02"),
+		currentWeek.Format("2006-01-02"),
+	}
+	dates := []string{ordered[3], ordered[2], ordered[1], ordered[0]}
 
 	buildMock := func(workouts []int) *MockDB {
 		healthMap := make(map[string]*models.HealthMetrics, len(dates))
@@ -263,7 +285,7 @@ func TestGetAllWeeklyScores_WeightsConsistencyOverOneWeekSpike(t *testing.T) {
 		cognitionMap := make(map[string]*models.CognitionMetrics, len(dates))
 		rhrBaselineByDate := make(map[string]int, len(dates))
 
-		for i, date := range []string{"2025-01-05", "2025-01-12", "2025-01-19", "2025-01-26"} {
+		for i, date := range ordered {
 			healthMap[date] = &models.HealthMetrics{RHR: 60, WaistCm: 85, SleepScore: 80, NutritionScore: 8}
 			fitnessMap[date] = &models.FitnessMetrics{
 				VO2Max:         42,
@@ -309,14 +331,21 @@ func TestGetAllWeeklyScores_WeightsConsistencyOverOneWeekSpike(t *testing.T) {
 }
 
 func TestDataGate_Behavior(t *testing.T) {
+	currentWeek, err := time.Parse("2006-01-02", utils.GetCurrentWeekSundayDate())
+	if err != nil {
+		t.Fatalf("Failed to parse current week: %v", err)
+	}
+
+	date := currentWeek.Format("2006-01-02")
+
 	mock := &MockDB{
-		AllDates:    []string{"2025-12-26"},
+		AllDates:    []string{date},
 		UserProfile: &models.UserProfile{BirthDate: "1995-12-26", HeightCm: 180},
 		HealthMap: map[string]*models.HealthMetrics{
-			"2025-12-26": {SleepScore: 80},
+			date: {SleepScore: 80},
 		},
 		FitnessMap: map[string]*models.FitnessMetrics{
-			"2025-12-26": {VO2Max: 40},
+			date: {VO2Max: 40},
 		},
 		CognitionMap: make(map[string]*models.CognitionMetrics), // MISSING
 	}
@@ -324,5 +353,109 @@ func TestDataGate_Behavior(t *testing.T) {
 	scores, _ := GetAllWeeklyScores(mock)
 	if len(scores) != 0 {
 		t.Errorf("Data Gate failed: Should skip weeks with missing pillars, got %d scores", len(scores))
+	}
+}
+
+func TestGetAllWeeklyScores_FillsMissingWeeksAndAppliesAging(t *testing.T) {
+	currentWeek, err := time.Parse("2006-01-02", utils.GetCurrentWeekSundayDate())
+	if err != nil {
+		t.Fatalf("Failed to parse current week: %v", err)
+	}
+
+	date1 := currentWeek.AddDate(0, 0, -14).Format("2006-01-02")
+	missingDate := currentWeek.AddDate(0, 0, -7).Format("2006-01-02")
+	date3 := currentWeek.Format("2006-01-02")
+
+	mock := &MockDB{
+		AllDates:    []string{date3, date1},
+		UserProfile: &models.UserProfile{BirthDate: "1990-01-01", HeightCm: 180, Sex: "male"},
+		HealthMap: map[string]*models.HealthMetrics{
+			date1: {RHR: 60, WaistCm: 85, SleepScore: 80, NutritionScore: 8, SystolicBP: 120, DiastolicBP: 80},
+			date3: {RHR: 60, WaistCm: 85, SleepScore: 80, NutritionScore: 8, SystolicBP: 120, DiastolicBP: 80},
+		},
+		FitnessMap: map[string]*models.FitnessMetrics{
+			date1: {VO2Max: 42, Workouts: 4, DailySteps: 8000, Mobility: 3, CardioRecovery: 25, LowerBodyWeight: 180, LowerBodyReps: 10},
+			date3: {VO2Max: 42, Workouts: 4, DailySteps: 8000, Mobility: 3, CardioRecovery: 25, LowerBodyWeight: 180, LowerBodyReps: 10},
+		},
+		CognitionMap: map[string]*models.CognitionMetrics{
+			date1: {Mindfulness: 3, DeepLearning: 90, StressScore: 2, SocialDays: 4},
+			date3: {Mindfulness: 3, DeepLearning: 90, StressScore: 2, SocialDays: 4},
+		},
+		RHRBaselineByDate: map[string]int{
+			date1:       60,
+			missingDate: 60,
+			date3:       60,
+		},
+	}
+
+	scores, err := GetAllWeeklyScores(mock)
+	if err != nil {
+		t.Fatalf("Failed to calculate: %v", err)
+	}
+
+	if len(scores) != 3 {
+		t.Fatalf("Expected 3 weekly scores including the missing week, got %d", len(scores))
+	}
+
+	if scores[1].Date != missingDate {
+		t.Fatalf("Expected missing week score for %s, got %s", missingDate, scores[1].Date)
+	}
+
+	if scores[1].AgingTax <= 0 {
+		t.Fatalf("Expected aging tax to apply during missing week, got %.4f", scores[1].AgingTax)
+	}
+}
+
+func TestImputationRules_SubjectiveCarryThenDrift(t *testing.T) {
+	start := models.HealthMetrics{SleepScore: 80, NutritionScore: 8}
+	profile := models.UserProfile{HeightCm: 180}
+
+	weekOne := imputeHealthMetrics(start, 1, profile, 60)
+	if weekOne.SleepScore != 80 || weekOne.NutritionScore != 8 {
+		t.Fatalf("Expected first missed week to carry subjective values, got sleep=%d nutrition=%.1f", weekOne.SleepScore, weekOne.NutritionScore)
+	}
+
+	weekTwo := imputeHealthMetrics(weekOne, 2, profile, 60)
+	if weekTwo.SleepScore != 78 {
+		t.Fatalf("Expected second missed week sleep to drift toward neutral, got %d", weekTwo.SleepScore)
+	}
+	if weekTwo.NutritionScore != 7.5 {
+		t.Fatalf("Expected second missed week nutrition to drift toward neutral, got %.1f", weekTwo.NutritionScore)
+	}
+}
+
+func TestImputationRules_StableCarryThenDrift(t *testing.T) {
+	start := models.FitnessMetrics{VO2Max: 50, CardioRecovery: 30, LowerBodyWeight: 200, LowerBodyReps: 12}
+	profile := models.UserProfile{Sex: "male"}
+
+	weekOne := imputeFitnessMetrics(start, 1, 35, profile)
+	weekTwo := imputeFitnessMetrics(weekOne, 2, 35, profile)
+	if weekTwo.VO2Max != 50 || weekTwo.CardioRecovery != 30 {
+		t.Fatalf("Expected first two missed weeks to carry stable values, got vo2=%.1f recovery=%d", weekTwo.VO2Max, weekTwo.CardioRecovery)
+	}
+
+	weekThree := imputeFitnessMetrics(weekTwo, 3, 35, profile)
+	if weekThree.VO2Max >= weekTwo.VO2Max {
+		t.Fatalf("Expected stable metrics to drift toward baseline after two missed weeks, got %.1f vs %.1f", weekThree.VO2Max, weekTwo.VO2Max)
+	}
+	if weekThree.CardioRecovery != 29 {
+		t.Fatalf("Expected cardio recovery to drift toward neutral, got %d", weekThree.CardioRecovery)
+	}
+}
+
+func TestImputationRules_BehaviorsDecayTowardZero(t *testing.T) {
+	start := models.CognitionMetrics{Mindfulness: 4, DeepLearning: 90, SocialDays: 5, StressScore: 2}
+
+	weekOne := imputeCognitionMetrics(start, 1)
+	if weekOne.Mindfulness != 2 || weekOne.DeepLearning != 45 || weekOne.SocialDays != 3 {
+		t.Fatalf("Expected behaviors to decay on first missed week, got %+v", weekOne)
+	}
+
+	weekTwo := imputeCognitionMetrics(weekOne, 2)
+	if weekTwo.Mindfulness != 1 || weekTwo.DeepLearning != 23 || weekTwo.SocialDays != 2 {
+		t.Fatalf("Expected behaviors to keep decaying, got %+v", weekTwo)
+	}
+	if weekTwo.StressScore != 3 {
+		t.Fatalf("Expected stress to drift toward neutral after the first missed week, got %d", weekTwo.StressScore)
 	}
 }
