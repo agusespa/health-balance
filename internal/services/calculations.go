@@ -5,9 +5,15 @@ import (
 	"fmt"
 	"health-balance/internal/database"
 	"health-balance/internal/models"
-	"health-balance/internal/utils"
 	"math"
 	"time"
+
+	"health-balance/internal/utils"
+)
+
+const (
+	defaultMasterScore  = 1000.0
+	scoreAdjustmentRate = 0.12
 )
 
 func GetCurrentMasterScore(db database.Querier) (*models.MasterScore, error) {
@@ -18,7 +24,7 @@ func GetCurrentMasterScore(db database.Querier) (*models.MasterScore, error) {
 		if err.Error() == "profile required for master score calculation" {
 			return &models.MasterScore{
 				Date:  time.Now().Format("2006-01-02"),
-				Score: 1000.0,
+				Score: defaultMasterScore,
 			}, nil
 		}
 		return nil, fmt.Errorf("could not get master score: %w", err)
@@ -27,7 +33,7 @@ func GetCurrentMasterScore(db database.Querier) (*models.MasterScore, error) {
 	if len(scores) == 0 {
 		return &models.MasterScore{
 			Date:  time.Now().Format("2006-01-02"),
-			Score: 1000.0,
+			Score: defaultMasterScore,
 		}, nil
 	}
 
@@ -46,12 +52,17 @@ func GetAllWeeklyScores(db database.Querier) ([]models.MasterScore, error) {
 	}
 
 	var scores []models.MasterScore
-	currentScore := 1000.0
+	currentScore := defaultMasterScore
 
 	for i := len(allDates) - 1; i >= 0; i-- {
 		date := allDates[i]
 
-		age, err := utils.GetAge(profile, time.Now())
+		calculationDate, err := time.Parse("2006-01-02", date)
+		if err != nil {
+			return nil, fmt.Errorf("calculation aborted: invalid metric date %s: %w", date, err)
+		}
+
+		age, err := utils.GetAge(profile, calculationDate)
 		if err != nil {
 			return nil, fmt.Errorf("calculation aborted: invalid profile for date %s: %w", date, err)
 		}
@@ -65,7 +76,7 @@ func GetAllWeeklyScores(db database.Querier) ([]models.MasterScore, error) {
 			continue
 		}
 
-		rhrBaseline, _ := db.GetRHRBaseline()
+		rhrBaseline, _ := db.GetRHRBaselineForDate(date)
 		if rhrBaseline == 0 {
 			rhrBaseline = h.RHR
 		}
@@ -80,6 +91,7 @@ func GetAllWeeklyScores(db database.Querier) ([]models.MasterScore, error) {
 			models.GetVO2MaxBaseline(age, profile.Sex),
 			models.GetReactionTimeBaseline(age),
 			whtr,
+			calculationDate,
 		)
 
 		scores = append(scores, models.MasterScore{
@@ -98,29 +110,29 @@ func GetAllWeeklyScores(db database.Querier) ([]models.MasterScore, error) {
 }
 
 func CalculateHealthPillar(m models.HealthMetrics, rhrBaseline int, whtr float64) float64 {
-	sleepPoints := (m.SleepScore - 75) * 2
-	whtrPoints := (0.48 - whtr) * 1000
-	rhrPoints := (rhrBaseline - m.RHR) * 5
-	nutritionPoints := (m.NutritionScore - 7) * 5
+	sleepPoints := cappedContribution(float64(m.SleepScore-75), 0.6, 0.9, 8.0, 12.0)
+	whtrPoints := cappedContribution(0.48-whtr, 180.0, 260.0, 10.0, 15.0)
+	rhrPoints := cappedContribution(float64(rhrBaseline-m.RHR), 1.0, 1.5, 7.0, 10.0)
+	nutritionPoints := cappedContribution(m.NutritionScore-7.0, 1.5, 2.0, 4.5, 6.0)
 
-	return float64(sleepPoints) + whtrPoints + float64(rhrPoints) + nutritionPoints
+	return sleepPoints + whtrPoints + rhrPoints + nutritionPoints
 }
 
 func CalculateFitnessPillar(m models.FitnessMetrics, vo2MaxBaseline float64) float64 {
-	vo2Points := (m.VO2Max - vo2MaxBaseline) * 20
-	workoutPoints := float64(m.Workouts-3) * 20
-	stepPoints := float64(m.DailySteps-8000) / 150
-	mobilityPoints := float64(m.Mobility-3) * 10
-	recoveryPoints := float64(m.CardioRecovery-25) * 3
+	vo2Points := cappedContribution(m.VO2Max-vo2MaxBaseline, 2.5, 3.5, 16.0, 22.0)
+	workoutPoints := cappedContribution(float64(m.Workouts-3), 1.5, 2.5, 6.0, 9.0)
+	stepPoints := cappedContribution(float64(m.DailySteps-8000)/2000.0, 1.0, 1.5, 3.0, 5.0)
+	mobilityPoints := cappedContribution(float64(m.Mobility-3), 1.0, 1.5, 3.0, 4.5)
+	recoveryPoints := cappedContribution(float64(m.CardioRecovery-25)/5.0, 1.0, 1.5, 4.0, 6.0)
 
 	return vo2Points + workoutPoints + stepPoints + mobilityPoints + recoveryPoints
 }
 
 func CalculateCognitionPillar(m models.CognitionMetrics, reactionBaseline int) float64 {
-	memoryPoints := float64(m.DualNBackLevel-2) * 20
-	reactionPoints := float64(reactionBaseline-m.ReactionTime) / 2
-	mindfulnessPoints := float64(m.Mindfulness-3) * 5
-	learningPoints := float64(m.DeepLearning-90) / 5
+	memoryPoints := cappedContribution(float64(m.DualNBackLevel-2), 1.0, 1.5, 3.0, 4.0)
+	reactionPoints := cappedContribution(float64(reactionBaseline-m.ReactionTime)/20.0, 1.0, 1.5, 4.0, 6.0)
+	mindfulnessPoints := cappedContribution(float64(m.Mindfulness-3), 0.6, 1.0, 2.0, 3.0)
+	learningPoints := cappedContribution(float64(m.DeepLearning-90)/45.0, 0.6, 1.0, 2.0, 3.0)
 
 	return memoryPoints + reactionPoints + mindfulnessPoints + learningPoints
 }
@@ -135,8 +147,9 @@ func CalculateMasterScore(
 	vo2MaxBaseline float64,
 	reactionBaseline int,
 	whtr float64,
+	calculationDate time.Time,
 ) (float64, float64, float64, float64, float64) {
-	age, _ := utils.GetAge(&profile, time.Now())
+	age, _ := utils.GetAge(&profile, calculationDate)
 	weeklyDecayRate := (float64(age*age) / 8000.0) / 52.0
 
 	tax := currentScore * weeklyDecayRate
@@ -144,8 +157,18 @@ func CalculateMasterScore(
 	fScore := CalculateFitnessPillar(fitness, vo2MaxBaseline)
 	cScore := CalculateCognitionPillar(cognition, reactionBaseline)
 
-	performance := hScore + fScore + cScore
-	finalScore := (currentScore - tax) + performance
+	postTaxScore := currentScore - tax
+	targetScore := defaultMasterScore + hScore + fScore + cScore
+	adjustment := (targetScore - postTaxScore) * scoreAdjustmentRate
+	finalScore := postTaxScore + adjustment
 
 	return math.Max(0, finalScore), hScore, fScore, cScore, tax
+}
+
+func cappedContribution(delta, positiveSlope, negativeSlope, positiveCap, negativeCap float64) float64 {
+	if delta >= 0 {
+		return math.Min(delta*positiveSlope, positiveCap)
+	}
+
+	return math.Max(delta*negativeSlope, -negativeCap)
 }

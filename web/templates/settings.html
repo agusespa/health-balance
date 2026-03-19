@@ -31,8 +31,8 @@
                                 <label for="birth_date">Birth Date</label>
                                 <input type="date" id="birth_date" name="birth_date" {{if
                                     .Profile}}value="{{.Profile.BirthDate}}" {{end}} required>
-                                <small class="help-text">Used to calculate your weekly biological entropy (Aging
-                                    Tax).</small>
+                                <small class="help-text">Used to set age-adjusted baselines for your reserve
+                                    metrics.</small>
                             </div>
 
                             <div class="form-group">
@@ -44,8 +44,8 @@
                                     <option value="female" {{if .Profile}}{{if eq .Profile.Sex "female"
                                         }}selected{{end}}{{end}}>Female</option>
                                 </select>
-                                <small class="help-text">Used to set the correct biological baseline for VO2 Max
-                                    scaling.</small>
+                                <small class="help-text">Used to set the correct biological baselines for reserve
+                                    markers like VO2 Max.</small>
                             </div>
                         </div>
 
@@ -54,8 +54,7 @@
                                 <label for="height_cm">Height (cm)</label>
                                 <input type="number" id="height_cm" name="height_cm" step="0.1" min="100" max="250" {{if
                                     .Profile}}value="{{printf "%.1f" .Profile.HeightCm}}"{{end}} required>
-                                <small class="help-text">Static variable used for Waist-to-Height Ratio (WHtR)
-                                    calculation.</small>
+                                <small class="help-text">Used to calculate Waist-to-Height Ratio.</small>
                             </div>
                         </div>
 

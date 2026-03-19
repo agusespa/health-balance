@@ -18,7 +18,7 @@ type MockDB struct {
 	DeleteHealthMetricsFunc       func(date string) error
 	DeleteFitnessMetricsFunc      func(date string) error
 	DeleteCognitionMetricsFunc    func(date string) error
-	GetRHRBaselineFunc            func() (int, error)
+	GetRHRBaselineForDateFunc     func(date string) (int, error)
 	GetUserProfileFunc            func() (*models.UserProfile, error)
 	SaveUserProfileFunc           func(profile models.UserProfile) error
 	SavePushSubscriptionFunc      func(sub models.PushSubscription) error
@@ -119,9 +119,9 @@ func (m *MockDB) DeleteCognitionMetrics(date string) error {
 	return nil
 }
 
-func (m *MockDB) GetRHRBaseline() (int, error) {
-	if m.GetRHRBaselineFunc != nil {
-		return m.GetRHRBaselineFunc()
+func (m *MockDB) GetRHRBaselineForDate(date string) (int, error) {
+	if m.GetRHRBaselineForDateFunc != nil {
+		return m.GetRHRBaselineForDateFunc(date)
 	}
 	return 0, nil
 }

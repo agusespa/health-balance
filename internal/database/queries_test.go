@@ -352,7 +352,7 @@ func TestDeleteMetrics(t *testing.T) {
 	}
 }
 
-func TestGetRHRBaseline(t *testing.T) {
+func TestGetRHRBaselineForDate(t *testing.T) {
 	tempDir := t.TempDir()
 	dbPath := filepath.Join(tempDir, "test.db")
 
@@ -366,25 +366,34 @@ func TestGetRHRBaseline(t *testing.T) {
 		}
 	}()
 
-	// Insert health metrics with RHR
-	healthMetrics := models.HealthMetrics{
-		SleepScore:     80,
-		WaistCm:        85.0,
-		RHR:            60,
-		NutritionScore: 7.5,
-	}
-	if err := db.SaveHealthMetrics(healthMetrics); err != nil {
-		t.Fatalf("Failed to save health metrics: %v", err)
+	rows := []struct {
+		date string
+		rhr  int
+	}{
+		{date: "2025-01-05", rhr: 70},
+		{date: "2025-02-02", rhr: 66},
+		{date: "2025-04-06", rhr: 60},
+		{date: "2025-05-04", rhr: 58},
 	}
 
-	baseline, err := db.GetRHRBaseline()
+	for _, row := range rows {
+		_, err := db.Exec(`
+			INSERT INTO health_metrics (date, sleep_score, waist_cm, rhr, nutrition_score)
+			VALUES (?, ?, ?, ?, ?)
+		`, row.date, 80, 85.0, row.rhr, 7.5)
+		if err != nil {
+			t.Fatalf("Failed to insert dated health metric %s: %v", row.date, err)
+		}
+	}
+
+	baseline, err := db.GetRHRBaselineForDate("2025-04-06")
 	if err != nil {
-		t.Fatalf("Failed to get RHR baseline: %v", err)
+		t.Fatalf("Failed to get dated RHR baseline: %v", err)
 	}
 
-	// Since we only have one entry, the baseline should be the RHR value
-	if baseline != 60 {
-		t.Errorf("Expected RHR baseline 60, got %d", baseline)
+	// Previous 3 months up to 2025-04-06 include 2025-02-02 and 2025-04-06, but not 2025-05-04.
+	if baseline != 63 {
+		t.Errorf("Expected dated RHR baseline 63, got %d", baseline)
 	}
 }
 

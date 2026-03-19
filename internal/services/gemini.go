@@ -142,34 +142,42 @@ func constructPrompt(profile *models.UserProfile, data []WeeklyData) string {
 
 	prompt := fmt.Sprintf(`You are an expert longevity and health coach. Based on the following health data for a %d-year-old %s (height: %.1f cm), provide a summary and actionable recommendations.
 
-The "Master Score" starts at a baseline of 1000 and compounds weekly. It is calculated as follows:
+The "Master Score" starts at a baseline of 1000 and updates weekly as a slow-moving estimate of long-term health reserve. It is calculated as follows:
 
 1. **Aging Tax** (Weekly Decay):
    - Formula: (Age^2 / 8000) / 52
    - This rate is applied to the current total score every week, representing natural biological decay.
    - For this user, the weekly decay rate is approximately %.4f%%.
 
-2. **Health Pillar** (Weights):
-   - Sleep: +2 points for every point above 75 (Sleep Score 0-100).
-   - WHtR (Waist-to-Height Ratio): +/- 10 points for every 0.01 deviation from 0.48 (Goal < 0.48).
-   - RHR (Resting Heart Rate): +5 points for every BPM below the 3-month rolling average.
-   - Nutrition: +5 points for every 1.0 above 7.0 (Scale 1-10).
+2. **Reserve Markers** carry the most weight:
+   - VO2 Max
+   - WHtR (Waist-to-Height Ratio)
+   - RHR (Resting Heart Rate versus baseline)
+   - Reaction Time and selected cognitive signals
 
-3. **Fitness Pillar** (Weights):
-   - VO2 Max: +20 points for every 1.0 above the age/sex-adjusted general baseline.
-   - Workouts: +20 points for every session above 3 per week.
-   - Steps: +1 point for every 150 steps above 8,000 per day.
-   - Mobility: +10 points for every session above 3 per week.
-   - Cardio Recovery: +3 points for every BPM drop above 25 (60s post-exercise).
+3. **Reserve-Building Behaviors** still matter because they build or protect reserve over time:
+   - Sleep
+   - Nutrition
+   - Workouts
+   - Steps
+   - Mobility
+   - Cardio Recovery
+   - Mindfulness
+   - Deep Learning
+   - Dual N-Back
 
-4. **Cognition Pillar** (Weights):
-   - Memory (Dual N-Back): +20 points for every level above Level 2.
-   - Reaction Time: +1 point for every 2ms improvement over the age-adjusted baseline.
-   - Mindfulness: +5 points for every session above 3 per week.
-   - Deep Learning (Language/Instruments): +2 points for every 10 minutes above 90 minutes/week.
+4. **Anti-Gaming Logic**:
+   - Contributions are capped, so extreme volume does not keep adding unlimited points.
+   - Penalties are generally steeper than bonuses.
+   - The score does not jump directly by the full pillar totals each week.
+
+5. **Slow Adjustment**:
+   - The current metrics define a target reserve level.
+   - After the Aging Tax is applied, the total score only moves part of the way toward that target each week.
+   - This makes the score slower-moving and more representative of long-term reserve than short-term performance.
 
 Detailed Weekly Data (most recent first):
-`, age, profile.Sex, profile.HeightCm, (float64(age*age)/8000.0)/52.0*100.0)
+	`, age, profile.Sex, profile.HeightCm, (float64(age*age)/8000.0)/52.0*100.0)
 
 	for _, d := range data {
 		s := d.Score

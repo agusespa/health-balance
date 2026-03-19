@@ -22,7 +22,7 @@ type Querier interface {
 	DeleteHealthMetrics(date string) error
 	DeleteFitnessMetrics(date string) error
 	DeleteCognitionMetrics(date string) error
-	GetRHRBaseline() (int, error)
+	GetRHRBaselineForDate(date string) (int, error)
 	GetUserProfile() (*models.UserProfile, error)
 	SaveUserProfile(profile models.UserProfile) error
 	SavePushSubscription(sub models.PushSubscription) error
@@ -279,16 +279,21 @@ func (db *DB) DeleteCognitionMetrics(date string) error {
 	return err
 }
 
-// GetRHRBaseline calculates the 3-month average RHR
-func (db *DB) GetRHRBaseline() (int, error) {
-	threeMonthsAgo := time.Now().AddDate(0, -3, 0).Format("2006-01-02")
+// GetRHRBaselineForDate calculates the 3-month average RHR up to the given date.
+func (db *DB) GetRHRBaselineForDate(date string) (int, error) {
+	asOfDate, err := time.Parse("2006-01-02", date)
+	if err != nil {
+		return 0, err
+	}
+
+	threeMonthsAgo := asOfDate.AddDate(0, -3, 0).Format("2006-01-02")
 
 	var baseline int
-	err := db.QueryRow(`
+	err = db.QueryRow(`
 		SELECT AVG(rhr)
 		FROM health_metrics
-		WHERE date >= ?
-	`, threeMonthsAgo).Scan(&baseline)
+		WHERE date >= ? AND date <= ?
+	`, threeMonthsAgo, date).Scan(&baseline)
 
 	if err != nil {
 		return 0, err
