@@ -7,6 +7,11 @@
 
 html {
     color-scheme: dark;
+    min-height: 100%;
+    background-color: #07111d;
+    background:
+        radial-gradient(circle at top, rgba(120, 162, 255, 0.12), transparent 34%),
+        linear-gradient(180deg, #0b1625 0%, var(--bg) 100%);
 }
 
 :root {
@@ -51,9 +56,7 @@ html {
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
         sans-serif;
-    background:
-        radial-gradient(circle at top, rgba(120, 162, 255, 0.12), transparent 34%),
-        linear-gradient(180deg, #0b1625 0%, var(--bg) 100%);
+    background: transparent;
     color: var(--text-primary);
     min-height: 100vh;
     padding-top: calc(24px + env(safe-area-inset-top, 0px));
