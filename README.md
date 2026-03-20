@@ -31,6 +31,7 @@ docker-compose up -d
 
 ### Configuration
 The application is configured using environment variables. Most are **optional**:
+- `DB_PATH`: (Optional) Filesystem path to the SQLite database (default: `./data/health.db`).
 - `VAPID_PUBLIC_KEY`: (Optional) Your Web Push public key. Required to enable weekly reminders.
 - `VAPID_PRIVATE_KEY`: (Optional) Your Web Push private key. Required to enable weekly reminders.
 - `GEMINI_API_KEY`: (Optional) Your Google AI Studio API key. Required to enable the **AI Insights** feature.
@@ -62,7 +63,7 @@ To prevent anyone from accessing your data, add an Access Application in the Clo
 The application uses a **Bind Mount** to ensure your health data persists on your host machine.
 
 - **Host Path**: `./data` (relative to your `docker-compose.yml`)
-- **Mount Point**: `/data` (inside the container)
+- **Mount Point**: `/app/data` (inside the container)
 - **Database File**: `./data/health.db`
 
 ## Backups & Recovery

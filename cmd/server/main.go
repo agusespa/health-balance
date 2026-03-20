@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"health-balance/internal/database"
 	"health-balance/internal/handlers"
@@ -26,8 +27,8 @@ func main() {
 		dbPath = "./data/health.db"
 	}
 
-	if err := os.MkdirAll("./data", 0755); err != nil {
-		log.Fatalf("failed to create data directory: %v", err)
+	if err := os.MkdirAll(filepath.Dir(dbPath), 0755); err != nil {
+		log.Fatalf("failed to create data directory for %s: %v", dbPath, err)
 	}
 
 	db, err := database.Init(dbPath)
