@@ -5,7 +5,27 @@
   fill="none"
   xmlns="http://www.w3.org/2000/svg"
 >
-  <rect width="512" height="512" rx="96" fill="#5b6ee1"/>
+  <defs>
+    <linearGradient id="bg" x1="84" y1="64" x2="430" y2="448" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5B87BC" />
+      <stop offset="0.48" stop-color="#2D4D72" />
+      <stop offset="1" stop-color="#16283F" />
+    </linearGradient>
+    <linearGradient id="sheen" x1="128" y1="96" x2="352" y2="304" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.18" />
+      <stop offset="0.35" stop-color="#D9E7FF" stop-opacity="0.1" />
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0" />
+    </linearGradient>
+    <radialGradient id="accent" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(378 152) rotate(132) scale(262 238)">
+      <stop offset="0" stop-color="#5DE0D1" stop-opacity="0.16" />
+      <stop offset="0.42" stop-color="#8FB5FF" stop-opacity="0.08" />
+      <stop offset="1" stop-color="#5DE0D1" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#bg)" />
+  <rect width="512" height="512" rx="112" fill="url(#accent)" />
+  <rect width="512" height="512" rx="112" fill="url(#sheen)" />
 
   <path
     d="M256 396
@@ -28,4 +48,3 @@
     stroke-linejoin="round"
   />
 </svg>
-
