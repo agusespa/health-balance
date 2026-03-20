@@ -1,10 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"health-balance/internal/database"
 	"health-balance/internal/handlers"
@@ -48,6 +51,18 @@ func main() {
 			return a / b
 		},
 		"lt": func(a, b float64) bool { return a < b },
+		"asset": func(path string) string {
+			trimmed := strings.TrimPrefix(path, "/")
+			diskPath := trimmed
+			if strings.HasPrefix(trimmed, "static/") {
+				diskPath = filepath.Join("web", trimmed)
+			}
+			info, err := os.Stat(diskPath)
+			if err != nil {
+				return path
+			}
+			return fmt.Sprintf("%s?v=%d", path, info.ModTime().Unix())
+		},
 	}
 
 	templates := template.Must(template.New("").Funcs(funcMap).ParseGlob("web/templates/*.html"))

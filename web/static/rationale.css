@@ -7,14 +7,14 @@
 .rationale-header h1 {
     font-size: 1.9rem;
     font-weight: 600;
-    color: var(--text-primary, #111827);
+    color: var(--text-primary);
     margin-bottom: 10px;
     line-height: 1.25;
 }
 
 .rationale-header p.lead {
     font-size: 1rem;
-    color: var(--text-secondary, #4b5563);
+    color: var(--text-secondary);
     line-height: 1.55;
     max-width: 680px;
     margin: 0 auto;
@@ -22,11 +22,11 @@
 
 /* ---------- Cards ---------- */
 .rationale-card {
-    background: var(--surface, #ffffff);
-    border-radius: 14px;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
     padding: 22px;
     margin-bottom: 20px;
-    border: 1px solid var(--border, #e5e7eb);
+    border: 1px solid var(--border);
 }
 
 .main-algo {
@@ -39,8 +39,9 @@
 
 /* ---------- Intro Block ---------- */
 .rationale-intro-header {
-    background: var(--surface-muted, #f9fafb);
-    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(120, 162, 255, 0.08), transparent),
+        var(--surface-muted);
+    border-radius: calc(var(--radius-lg) - 4px);
     padding: 26px;
 }
 
@@ -48,10 +49,10 @@
 .rationale-card h2 {
     font-size: 1.25rem;
     font-weight: 600;
-    color: var(--accent, #5b6ee1);
+    color: var(--accent);
     margin-bottom: 14px;
     padding-bottom: 6px;
-    border-bottom: 1px solid var(--border, #e5e7eb);
+    border-bottom: 1px solid var(--border);
 }
 
 /* ---------- Concepts ---------- */
@@ -63,16 +64,16 @@
 }
 
 .concept-item {
-    background: var(--surface-muted, #f9fafb);
-    border-radius: 10px;
+    background: var(--surface-muted);
+    border-radius: var(--radius-md);
     padding: 18px;
-    border: 1px solid var(--border, #e5e7eb);
+    border: 1px solid var(--border);
 }
 
 .concept-item h3 {
     font-size: 0.95rem;
     font-weight: 600;
-    color: var(--text-primary, #111827);
+    color: var(--text-primary);
     margin-bottom: 8px;
 }
 
@@ -81,7 +82,7 @@
     text-align: center;
     font-size: 1.05rem;
     margin: 16px 0;
-    color: var(--text-secondary, #4b5563);
+    color: var(--text-secondary);
     font-family: "Times New Roman", Georgia, serif;
     letter-spacing: 0.01em;
 }
@@ -97,7 +98,7 @@
 .pillar-desc {
     font-size: 0.85rem;
     font-style: italic;
-    color: var(--text-muted, #6b7280);
+    color: var(--text-muted);
     margin-bottom: 14px;
     line-height: 1.5;
 }
@@ -106,7 +107,7 @@
 .logic-list {
     list-style-type: disc;
     margin-left: 18px;
-    color: var(--text-secondary, #4b5563);
+    color: var(--text-secondary);
     font-size: 0.9rem;
 }
 
@@ -118,7 +119,7 @@
 /* ---------- Disclaimer ---------- */
 .disclaimer-box {
     background: var(--warning-muted);
-    border: 2px solid var(--warning);
+    border: 1px solid rgba(251, 191, 36, 0.34);
     padding: 28px;
     border-radius: var(--radius-lg);
     margin-top: 20px;
@@ -135,7 +136,7 @@
 
 .disclaimer-box p {
     font-size: 0.85rem;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     line-height: 1.5;
     margin: 0;
 }

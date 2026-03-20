@@ -3,13 +3,14 @@
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#07111d">
     <title>Health Balance</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script src="/static/app.js"></script>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="stylesheet" href="/static/settings.css">
-    <link rel="manifest" href="/static/manifest.json">
-    <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+    <script src="{{asset "/static/app.js"}}"></script>
+    <link rel="stylesheet" href="{{asset "/static/style.css"}}">
+    <link rel="stylesheet" href="{{asset "/static/settings.css"}}">
+    <link rel="manifest" href="{{asset "/static/manifest.json"}}">
+    <link rel="icon" href="{{asset "/static/icon.svg"}}" type="image/svg+xml">
 </head>
 
 <body>
@@ -73,7 +74,7 @@
                 <div class="settings-content">
                     <form id="notification-form" onsubmit="subscribeToPush(event)">
                         <div class="toggle-row">
-                            <p class="help-text" style="margin: 0;">Enable Weekly Reminders</p>
+                            <p class="help-text toggle-label">Enable Weekly Reminders</p>
                             <label class="switch">
                                 <input type="checkbox" id="notification-toggle" onchange="toggleNotificationUI()" {{if
                                     not .VapidPublicKey}}disabled{{else}}{{if .Subscription}}checked{{end}}{{end}}>
@@ -82,9 +83,8 @@
                         </div>
 
                         {{if not .VapidPublicKey}}
-                        <div class="warning-box"
-                            style="margin-bottom: 1.25rem; padding: 12px; background: rgba(255, 193, 7, 0.1); border: 1px solid #ffc107; border-radius: 8px;">
-                            <p class="help-text" style="margin: 0; color: #856404; font-size: 0.85rem;">
+                        <div class="warning-box">
+                            <p class="help-text">
                                 <strong>Notifications Not Configured:</strong> To enable reminders, you must provide
                                 <code>VAPID_PUBLIC_KEY</code> and <code>VAPID_PRIVATE_KEY</code> in your environment.
                                 See the README for instructions.
@@ -94,7 +94,7 @@
 
                         <div id="notification-settings"
                             class="{{if or (not .Subscription) (not .VapidPublicKey)}}hidden{{end}}">
-                            <p class="help-text" style="margin-bottom: 1.25rem;">Receive a cross-platform push
+                            <p class="help-text notification-help">Receive a cross-platform push
                                 notification to record your metrics. <strong>Note for iOS:</strong> You must "Add to
                                 Home Screen" first.</p>
 
