@@ -1,7 +1,7 @@
 .PHONY: run docker test lint seed seed-reset
 
 run:
-	go run ./cmd/server/main.go
+	go run ./cmd/server
 
 seed:
 	go run ./cmd/seed/main.go
