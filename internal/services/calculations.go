@@ -337,9 +337,9 @@ func calculateLowerBodyStrengthPoints(m models.FitnessMetrics, bodyWeight float6
 	if m.LowerBodyWeight <= 0 || m.LowerBodyReps <= 0 || bodyWeight <= 0 {
 		return 0
 	}
-	
+
 	rsi := (m.LowerBodyWeight / bodyWeight) * float64(m.LowerBodyReps)
-	
+
 	// Baseline RSI of 24 (e.g., 2.0x bodyweight for 12 reps)
 	// Elite: 36+ (3.0x bodyweight for 12 reps)
 	// Strong: 30+ (2.5x bodyweight for 12 reps)
@@ -352,7 +352,7 @@ func calculateGripStrengthPoints(m models.FitnessMetrics) float64 {
 	if m.DeadHangSeconds <= 0 {
 		return 0
 	}
-	
+
 	// Baseline: 60 seconds (healthy adult standard)
 	// Elite: 120+ seconds (2+ minutes)
 	// High fitness: 90-120 seconds
