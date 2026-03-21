@@ -15,6 +15,7 @@ type HealthMetrics struct {
 	Date           string
 	SleepScore     int
 	WaistCm        float64
+	BodyWeightKg   float64
 	RHR            int
 	SystolicBP     int
 	DiastolicBP    int
@@ -31,6 +32,7 @@ type FitnessMetrics struct {
 	CardioRecovery  int
 	LowerBodyWeight float64
 	LowerBodyReps   int
+	DeadHangSeconds int
 }
 
 // CognitionMetrics represents the Cognition Pillar

@@ -8,10 +8,11 @@
         <thead>
             <tr>
                 <th>Week</th>
-                <th>Sleep</th>
+                <th>Weight (kg)</th>
                 <th>Waist (cm)</th>
-                <th>RHR</th>
                 <th>BP</th>
+                <th>RHR</th>
+                <th>Sleep</th>
                 <th>Nutrition</th>
                 <th></th>
             </tr>
@@ -20,10 +21,11 @@
             {{range .}}
             <tr>
                 <td data-label="Week">{{.Date}}</td>
-                <td data-label="Sleep">{{.SleepScore}}</td>
+                <td data-label="Weight (kg)">{{printf "%.1f" .BodyWeightKg}}</td>
                 <td data-label="Waist (cm)">{{printf "%.1f" .WaistCm}}</td>
-                <td data-label="RHR">{{.RHR}}</td>
                 <td data-label="BP">{{.SystolicBP}}/{{.DiastolicBP}}</td>
+                <td data-label="RHR">{{.RHR}}</td>
+                <td data-label="Sleep">{{.SleepScore}}</td>
                 <td data-label="Nutrition">{{printf "%.1f" .NutritionScore}}</td>
                 <td>
                     <button class="icon-button delete-btn" hx-delete="/delete-health-metric?date={{.Date}}"

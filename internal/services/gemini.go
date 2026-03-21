@@ -195,8 +195,8 @@ Detailed Weekly Data (most recent first):
 		}
 		if d.Fitness != nil {
 			f := d.Fitness
-			prompt += fmt.Sprintf("- **Fitness Metrics**: VO2 Max: %.1f | Workouts: %d | Daily Steps: %d | Mobility: %d | Cardio Recovery: %d bpm drop | Leg Press: %.1f x %d total reps\n",
-				f.VO2Max, f.Workouts, f.DailySteps, f.Mobility, f.CardioRecovery, f.LowerBodyWeight, f.LowerBodyReps)
+			prompt += fmt.Sprintf("- **Fitness Metrics**: VO2 Max: %.1f | Workouts: %d | Daily Steps: %d | Mobility: %d | Cardio Recovery: %d bpm drop | Leg Press: %.1f x %d reps | Dead Hang: %d seconds\n",
+				f.VO2Max, f.Workouts, f.DailySteps, f.Mobility, f.CardioRecovery, f.LowerBodyWeight, f.LowerBodyReps, f.DeadHangSeconds)
 		}
 		if d.Cognition != nil {
 			c := d.Cognition

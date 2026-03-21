@@ -86,11 +86,12 @@ function copyValuesToInputs(fieldValues) {
 
 function copyHealthFromLastWeek(button) {
     copyValuesToInputs({
-        sleep_score: button.dataset.sleepScore,
+        body_weight_kg: button.dataset.bodyWeightKg,
         waist_cm: button.dataset.waistCm,
-        rhr: button.dataset.rhr,
         systolic_bp: button.dataset.systolicBp,
         diastolic_bp: button.dataset.diastolicBp,
+        rhr: button.dataset.rhr,
+        sleep_score: button.dataset.sleepScore,
         nutrition_score: button.dataset.nutritionScore,
     });
     showToast("Last week's health values copied into this week's form.");
@@ -98,12 +99,13 @@ function copyHealthFromLastWeek(button) {
 
 function copyFitnessFromLastWeek(button) {
     copyValuesToInputs({
+        daily_steps: button.dataset.dailySteps,
         vo2_max: button.dataset.vo2Max,
         workouts: button.dataset.workouts,
-        daily_steps: button.dataset.dailySteps,
         mobility: button.dataset.mobility,
-        cardio_recovery: button.dataset.cardioRecovery,
+        dead_hang_seconds: button.dataset.deadHangSeconds,
         leg_press_set: button.dataset.legPressSet,
+        cardio_recovery: button.dataset.cardioRecovery,
     });
     showToast("Last week's fitness values copied into this week's form.");
 }

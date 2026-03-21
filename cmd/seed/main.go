@@ -126,22 +126,23 @@ func resetSeedTables(db *database.DB) error {
 
 func upsertWeek(db *database.DB, date string, sample weekSample) error {
 	if _, err := db.Exec(`
-		INSERT INTO health_metrics (date, sleep_score, waist_cm, rhr, systolic_bp, diastolic_bp, nutrition_score)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO health_metrics (date, sleep_score, waist_cm, body_weight_kg, rhr, systolic_bp, diastolic_bp, nutrition_score)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(date) DO UPDATE SET
 			sleep_score = excluded.sleep_score,
 			waist_cm = excluded.waist_cm,
+			body_weight_kg = excluded.body_weight_kg,
 			rhr = excluded.rhr,
 			systolic_bp = excluded.systolic_bp,
 			diastolic_bp = excluded.diastolic_bp,
 			nutrition_score = excluded.nutrition_score
-	`, date, sample.health.SleepScore, sample.health.WaistCm, sample.health.RHR, sample.health.SystolicBP, sample.health.DiastolicBP, sample.health.NutritionScore); err != nil {
+	`, date, sample.health.SleepScore, sample.health.WaistCm, sample.health.BodyWeightKg, sample.health.RHR, sample.health.SystolicBP, sample.health.DiastolicBP, sample.health.NutritionScore); err != nil {
 		return err
 	}
 
 	if _, err := db.Exec(`
-		INSERT INTO fitness_metrics (date, vo2_max, workouts, daily_steps, mobility, cardio_recovery, lower_body_weight, lower_body_reps)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO fitness_metrics (date, vo2_max, workouts, daily_steps, mobility, cardio_recovery, lower_body_weight, lower_body_reps, dead_hang_seconds)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(date) DO UPDATE SET
 			vo2_max = excluded.vo2_max,
 			workouts = excluded.workouts,
@@ -149,8 +150,9 @@ func upsertWeek(db *database.DB, date string, sample weekSample) error {
 			mobility = excluded.mobility,
 			cardio_recovery = excluded.cardio_recovery,
 			lower_body_weight = excluded.lower_body_weight,
-			lower_body_reps = excluded.lower_body_reps
-	`, date, sample.fitness.VO2Max, sample.fitness.Workouts, sample.fitness.DailySteps, sample.fitness.Mobility, sample.fitness.CardioRecovery, sample.fitness.LowerBodyWeight, sample.fitness.LowerBodyReps); err != nil {
+			lower_body_reps = excluded.lower_body_reps,
+			dead_hang_seconds = excluded.dead_hang_seconds
+	`, date, sample.fitness.VO2Max, sample.fitness.Workouts, sample.fitness.DailySteps, sample.fitness.Mobility, sample.fitness.CardioRecovery, sample.fitness.LowerBodyWeight, sample.fitness.LowerBodyReps, sample.fitness.DeadHangSeconds); err != nil {
 		return err
 	}
 
@@ -177,6 +179,7 @@ func buildWeekSample(recency float64, offset int) weekSample {
 		health: models.HealthMetrics{
 			SleepScore:     clampInt(72+int(math.Round(recency*10))+int(math.Round(waveA*3)), 66, 90),
 			WaistCm:        clampFloat(87.2-recency*2.4+(waveB*0.4), 82.5, 90.0),
+			BodyWeightKg:   clampFloat(78.0-recency*3.0+(waveB*0.5), 72.0, 82.0),
 			RHR:            clampInt(66-int(math.Round(recency*6))+int(math.Round(waveA)), 56, 69),
 			SystolicBP:     clampInt(124-int(math.Round(recency*5))+int(math.Round(waveB*2)), 114, 130),
 			DiastolicBP:    clampInt(82-int(math.Round(recency*4))+int(math.Round(waveA)), 72, 88),
@@ -190,6 +193,7 @@ func buildWeekSample(recency float64, offset int) weekSample {
 			CardioRecovery:  clampInt(21+int(math.Round(recency*6))+int(math.Round(waveA*2)), 17, 32),
 			LowerBodyWeight: clampFloat(165+recency*38+(waveB*6), 150, 230),
 			LowerBodyReps:   clampInt(8+positiveSwing(offset+2, 5)+int(math.Round(recency*2)), 8, 13),
+			DeadHangSeconds: clampInt(35+int(math.Round(recency*50))+int(math.Round(waveA*8)), 25, 95),
 		},
 		cognition: models.CognitionMetrics{
 			Mindfulness:  clampInt(1+int(math.Round(recency*2))+positiveSwing(offset+3, 4), 1, 5),

@@ -68,8 +68,8 @@ func TestCalculatePillars(t *testing.T) {
 		high := models.FitnessMetrics{VO2Max: 42, Workouts: 7, DailySteps: 9000, Mobility: 3, CardioRecovery: 25}
 		extreme := models.FitnessMetrics{VO2Max: 42, Workouts: 12, DailySteps: 9000, Mobility: 3, CardioRecovery: 25}
 
-		highScore := CalculateFitnessPillar(high, 40)
-		extremeScore := CalculateFitnessPillar(extreme, 40)
+		highScore := CalculateFitnessPillar(high, 40, 75)
+		extremeScore := CalculateFitnessPillar(extreme, 40, 75)
 
 		if highScore != extremeScore {
 			t.Errorf("Expected workout contribution to cap out, got %.2f vs %.2f", highScore, extremeScore)
@@ -80,8 +80,8 @@ func TestCalculatePillars(t *testing.T) {
 		reserveHeavy := models.FitnessMetrics{VO2Max: 46, Workouts: 4, DailySteps: 9000, Mobility: 3, CardioRecovery: 25}
 		behaviorHeavy := models.FitnessMetrics{VO2Max: 42, Workouts: 10, DailySteps: 9000, Mobility: 3, CardioRecovery: 25}
 
-		reserveScore := CalculateFitnessPillar(reserveHeavy, 40)
-		behaviorScore := CalculateFitnessPillar(behaviorHeavy, 40)
+		reserveScore := CalculateFitnessPillar(reserveHeavy, 40, 75)
+		behaviorScore := CalculateFitnessPillar(behaviorHeavy, 40, 75)
 
 		if reserveScore <= behaviorScore {
 			t.Errorf("Expected stronger VO2 reserve to outweigh excess workouts, got reserve %.2f vs behavior %.2f", reserveScore, behaviorScore)
@@ -97,15 +97,17 @@ func TestCalculatePillars(t *testing.T) {
 		}
 	})
 
-	t.Run("Strength Scores Leg Press Performance", func(t *testing.T) {
-		moderate := calculateLowerBodyStrengthPoints(models.FitnessMetrics{LowerBodyWeight: 180, LowerBodyReps: 10})
-		strong := calculateLowerBodyStrengthPoints(models.FitnessMetrics{LowerBodyWeight: 260, LowerBodyReps: 12})
+	t.Run("Strength Scores Leg Press Performance with RSI", func(t *testing.T) {
+		// 60kg person pressing 180kg for 10 reps: RSI = (180/60) * 10 = 30 (strong)
+		lightPerson := calculateLowerBodyStrengthPoints(models.FitnessMetrics{LowerBodyWeight: 180, LowerBodyReps: 10}, 60)
+		// 90kg person pressing 180kg for 10 reps: RSI = (180/90) * 10 = 20 (moderate)
+		heavyPerson := calculateLowerBodyStrengthPoints(models.FitnessMetrics{LowerBodyWeight: 180, LowerBodyReps: 10}, 90)
 
-		if moderate <= 0 {
-			t.Fatalf("Expected leg press strength score to be positive, got %.2f", moderate)
+		if lightPerson <= 0 {
+			t.Fatalf("Expected leg press strength score to be positive, got %.2f", lightPerson)
 		}
-		if strong <= moderate {
-			t.Fatalf("Expected stronger leg press performance to score better, got %.2f vs %.2f", strong, moderate)
+		if lightPerson <= heavyPerson {
+			t.Fatalf("Expected lighter person with same absolute weight to score better (RSI), got %.2f vs %.2f", lightPerson, heavyPerson)
 		}
 	})
 
@@ -137,12 +139,12 @@ func TestGetAllWeeklyScores_Compounding(t *testing.T) {
 		AllDates:    []string{date2, date1},
 		UserProfile: &models.UserProfile{BirthDate: "1990-12-26", HeightCm: 180, Sex: "male"},
 		HealthMap: map[string]*models.HealthMetrics{
-			date1: {RHR: 65, WaistCm: 85, SleepScore: 75, NutritionScore: 7},
-			date2: {RHR: 60, WaistCm: 85, SleepScore: 85, NutritionScore: 8},
+			date1: {RHR: 65, WaistCm: 85, BodyWeightKg: 75, SleepScore: 75, NutritionScore: 7},
+			date2: {RHR: 60, WaistCm: 85, BodyWeightKg: 75, SleepScore: 85, NutritionScore: 8},
 		},
 		FitnessMap: map[string]*models.FitnessMetrics{
-			date1: {VO2Max: 40, Workouts: 3, DailySteps: 8000, Mobility: 3, CardioRecovery: 20},
-			date2: {VO2Max: 42, Workouts: 4, DailySteps: 10000, Mobility: 3, CardioRecovery: 25},
+			date1: {VO2Max: 40, Workouts: 3, DailySteps: 8000, Mobility: 3, CardioRecovery: 20, DeadHangSeconds: 50},
+			date2: {VO2Max: 42, Workouts: 4, DailySteps: 10000, Mobility: 3, CardioRecovery: 25, DeadHangSeconds: 65},
 		},
 		CognitionMap: map[string]*models.CognitionMetrics{
 			date1: {Mindfulness: 3, DeepLearning: 50, StressScore: 3, SocialDays: 3},
@@ -180,8 +182,8 @@ func TestGetAllWeeklyScores_Compounding(t *testing.T) {
 
 func TestCalculateMasterScore_ConvergesInsteadOfRunningAway(t *testing.T) {
 	profile := models.UserProfile{BirthDate: "1990-01-01", HeightCm: 180, Sex: "male"}
-	health := models.HealthMetrics{SleepScore: 84, WaistCm: 82, RHR: 58, NutritionScore: 8.5}
-	fitness := models.FitnessMetrics{VO2Max: 47, Workouts: 5, DailySteps: 10500, Mobility: 4, CardioRecovery: 28}
+	health := models.HealthMetrics{SleepScore: 84, WaistCm: 82, BodyWeightKg: 75, RHR: 58, NutritionScore: 8.5}
+	fitness := models.FitnessMetrics{VO2Max: 47, Workouts: 5, DailySteps: 10500, Mobility: 4, CardioRecovery: 28, DeadHangSeconds: 85}
 	cognition := models.CognitionMetrics{Mindfulness: 4, DeepLearning: 120, StressScore: 2, SocialDays: 5}
 
 	score := defaultMasterScore
@@ -225,12 +227,12 @@ func TestGetAllWeeklyScores_UsesHistoricalRHRBaseline(t *testing.T) {
 		AllDates:    []string{date2, date1},
 		UserProfile: &models.UserProfile{BirthDate: "1990-01-01", HeightCm: 180, Sex: "male"},
 		HealthMap: map[string]*models.HealthMetrics{
-			date1: {RHR: 70, WaistCm: 85, SleepScore: 75, NutritionScore: 7},
-			date2: {RHR: 60, WaistCm: 85, SleepScore: 75, NutritionScore: 7},
+			date1: {RHR: 70, WaistCm: 85, BodyWeightKg: 75, SleepScore: 75, NutritionScore: 7},
+			date2: {RHR: 60, WaistCm: 85, BodyWeightKg: 75, SleepScore: 75, NutritionScore: 7},
 		},
 		FitnessMap: map[string]*models.FitnessMetrics{
-			date1: {VO2Max: 42, Workouts: 3, DailySteps: 8000, Mobility: 3, CardioRecovery: 25},
-			date2: {VO2Max: 42, Workouts: 3, DailySteps: 8000, Mobility: 3, CardioRecovery: 25},
+			date1: {VO2Max: 42, Workouts: 3, DailySteps: 8000, Mobility: 3, CardioRecovery: 25, DeadHangSeconds: 60},
+			date2: {VO2Max: 42, Workouts: 3, DailySteps: 8000, Mobility: 3, CardioRecovery: 25, DeadHangSeconds: 60},
 		},
 		CognitionMap: map[string]*models.CognitionMetrics{
 			date1: {Mindfulness: 3, DeepLearning: 90, StressScore: 3, SocialDays: 4},
@@ -286,13 +288,14 @@ func TestGetAllWeeklyScores_WeightsConsistencyOverOneWeekSpike(t *testing.T) {
 		rhrBaselineByDate := make(map[string]int, len(dates))
 
 		for i, date := range ordered {
-			healthMap[date] = &models.HealthMetrics{RHR: 60, WaistCm: 85, SleepScore: 80, NutritionScore: 8}
+			healthMap[date] = &models.HealthMetrics{RHR: 60, WaistCm: 85, BodyWeightKg: 75, SleepScore: 80, NutritionScore: 8}
 			fitnessMap[date] = &models.FitnessMetrics{
-				VO2Max:         42,
-				Workouts:       workouts[i],
-				DailySteps:     8000,
-				Mobility:       3,
-				CardioRecovery: 25,
+				VO2Max:          42,
+				Workouts:        workouts[i],
+				DailySteps:      8000,
+				Mobility:        3,
+				CardioRecovery:  25,
+				DeadHangSeconds: 60,
 			}
 			cognitionMap[date] = &models.CognitionMetrics{Mindfulness: 3, DeepLearning: 90, StressScore: 3, SocialDays: 4}
 			rhrBaselineByDate[date] = 60
@@ -370,12 +373,12 @@ func TestGetAllWeeklyScores_FillsMissingWeeksAndAppliesAging(t *testing.T) {
 		AllDates:    []string{date3, date1},
 		UserProfile: &models.UserProfile{BirthDate: "1990-01-01", HeightCm: 180, Sex: "male"},
 		HealthMap: map[string]*models.HealthMetrics{
-			date1: {RHR: 60, WaistCm: 85, SleepScore: 80, NutritionScore: 8, SystolicBP: 120, DiastolicBP: 80},
-			date3: {RHR: 60, WaistCm: 85, SleepScore: 80, NutritionScore: 8, SystolicBP: 120, DiastolicBP: 80},
+			date1: {RHR: 60, WaistCm: 85, BodyWeightKg: 75, SleepScore: 80, NutritionScore: 8, SystolicBP: 120, DiastolicBP: 80},
+			date3: {RHR: 60, WaistCm: 85, BodyWeightKg: 75, SleepScore: 80, NutritionScore: 8, SystolicBP: 120, DiastolicBP: 80},
 		},
 		FitnessMap: map[string]*models.FitnessMetrics{
-			date1: {VO2Max: 42, Workouts: 4, DailySteps: 8000, Mobility: 3, CardioRecovery: 25, LowerBodyWeight: 180, LowerBodyReps: 10},
-			date3: {VO2Max: 42, Workouts: 4, DailySteps: 8000, Mobility: 3, CardioRecovery: 25, LowerBodyWeight: 180, LowerBodyReps: 10},
+			date1: {VO2Max: 42, Workouts: 4, DailySteps: 8000, Mobility: 3, CardioRecovery: 25, LowerBodyWeight: 180, LowerBodyReps: 10, DeadHangSeconds: 60},
+			date3: {VO2Max: 42, Workouts: 4, DailySteps: 8000, Mobility: 3, CardioRecovery: 25, LowerBodyWeight: 180, LowerBodyReps: 10, DeadHangSeconds: 60},
 		},
 		CognitionMap: map[string]*models.CognitionMetrics{
 			date1: {Mindfulness: 3, DeepLearning: 90, StressScore: 2, SocialDays: 4},
@@ -425,7 +428,7 @@ func TestImputationRules_SubjectiveCarryThenDrift(t *testing.T) {
 }
 
 func TestImputationRules_StableCarryThenDrift(t *testing.T) {
-	start := models.FitnessMetrics{VO2Max: 50, CardioRecovery: 30, LowerBodyWeight: 200, LowerBodyReps: 12}
+	start := models.FitnessMetrics{VO2Max: 50, CardioRecovery: 30, LowerBodyWeight: 200, LowerBodyReps: 12, DeadHangSeconds: 90}
 	profile := models.UserProfile{Sex: "male"}
 
 	weekOne := imputeFitnessMetrics(start, 1, 35, profile)

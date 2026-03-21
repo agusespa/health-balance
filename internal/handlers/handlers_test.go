@@ -134,7 +134,7 @@ func TestHandleAddHealthMetrics(t *testing.T) {
 		return nil
 	}
 
-	formData := "sleep_score=80&waist_cm=85.0&rhr=60&systolic_bp=118&diastolic_bp=76&nutrition_score=7.5"
+	formData := "sleep_score=80&waist_cm=85.0&body_weight_kg=75.0&rhr=60&systolic_bp=118&diastolic_bp=76&nutrition_score=7.5"
 	req, err := http.NewRequest("POST", "/add-health-metrics", strings.NewReader(formData))
 	if err != nil {
 		t.Fatal(err)
@@ -208,7 +208,7 @@ func TestHandleAddFitnessMetrics(t *testing.T) {
 		return nil
 	}
 
-	formData := "vo2_max=45.0&workouts=4&daily_steps=10000&mobility=3&cardio_recovery=25&leg_press_set=180x12"
+	formData := "vo2_max=45.0&workouts=4&daily_steps=10000&mobility=3&cardio_recovery=25&leg_press_set=180x12&dead_hang_seconds=75"
 	req, err := http.NewRequest("POST", "/add-fitness-metrics", strings.NewReader(formData))
 	if err != nil {
 		t.Fatal(err)

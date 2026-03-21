@@ -11,11 +11,12 @@
         <p class="week-status-eyebrow">No entry yet this week</p>
         <p class="week-status-text">Your most recent health entry is now in History. Start fresh or copy it into the form below as a baseline.</p>
         <button type="button" class="secondary-button copy-button" onclick="copyHealthFromLastWeek(this)"
-            data-sleep-score="{{.LastHealth.SleepScore}}"
+            data-body-weight-kg="{{printf "%.1f" .LastHealth.BodyWeightKg}}"
             data-waist-cm="{{printf "%.1f" .LastHealth.WaistCm}}"
-            data-rhr="{{.LastHealth.RHR}}"
             data-systolic-bp="{{.LastHealth.SystolicBP}}"
             data-diastolic-bp="{{.LastHealth.DiastolicBP}}"
+            data-rhr="{{.LastHealth.RHR}}"
+            data-sleep-score="{{.LastHealth.SleepScore}}"
             data-nutrition-score="{{printf "%.1f" .LastHealth.NutritionScore}}">
             Copy last week
         </button>
@@ -42,12 +43,13 @@
         <p class="week-status-eyebrow">No entry yet this week</p>
         <p class="week-status-text">Your most recent fitness entry is now in History. Start fresh or copy it into the form below as a baseline.</p>
         <button type="button" class="secondary-button copy-button" onclick="copyFitnessFromLastWeek(this)"
+            data-daily-steps="{{.LastFitness.DailySteps}}"
             data-vo2-max="{{printf "%.1f" .LastFitness.VO2Max}}"
             data-workouts="{{.LastFitness.Workouts}}"
-            data-daily-steps="{{.LastFitness.DailySteps}}"
             data-mobility="{{.LastFitness.Mobility}}"
-            data-cardio-recovery="{{.LastFitness.CardioRecovery}}"
-            data-leg-press-set="{{printf "%.1fx%d" .LastFitness.LowerBodyWeight .LastFitness.LowerBodyReps}}">
+            data-dead-hang-seconds="{{.LastFitness.DeadHangSeconds}}"
+            data-leg-press-set="{{printf "%.1fx%d" .LastFitness.LowerBodyWeight .LastFitness.LowerBodyReps}}"
+            data-cardio-recovery="{{.LastFitness.CardioRecovery}}">
             Copy last week
         </button>
     </div>

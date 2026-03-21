@@ -33,6 +33,7 @@ func createTables(db *sql.DB) error {
 			date TEXT NOT NULL UNIQUE,
 			sleep_score INTEGER,
 			waist_cm REAL,
+			body_weight_kg REAL,
 			rhr INTEGER,
 			systolic_bp INTEGER,
 			diastolic_bp INTEGER,
@@ -47,7 +48,8 @@ func createTables(db *sql.DB) error {
 			mobility INTEGER,
 			cardio_recovery INTEGER,
 			lower_body_weight REAL,
-			lower_body_reps INTEGER
+			lower_body_reps INTEGER,
+			dead_hang_seconds INTEGER
 		);`,
 		`CREATE TABLE IF NOT EXISTS cognition_metrics (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -190,6 +190,7 @@ func (h *Handler) HandleAddHealthMetrics(w http.ResponseWriter, r *http.Request)
 	health := models.HealthMetrics{
 		SleepScore:     getI("sleep_score"),
 		WaistCm:        getF("waist_cm"),
+		BodyWeightKg:   getF("body_weight_kg"),
 		RHR:            getI("rhr"),
 		SystolicBP:     getI("systolic_bp"),
 		DiastolicBP:    getI("diastolic_bp"),
@@ -250,6 +251,7 @@ func (h *Handler) HandleAddFitnessMetrics(w http.ResponseWriter, r *http.Request
 		CardioRecovery:  getI("cardio_recovery"),
 		LowerBodyWeight: lowerBodyWeight,
 		LowerBodyReps:   lowerBodyReps,
+		DeadHangSeconds: getI("dead_hang_seconds"),
 	}
 
 	if len(errs) > 0 {

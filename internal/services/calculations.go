@@ -205,15 +205,16 @@ func CalculateHealthPillar(m models.HealthMetrics, rhrBaseline int, whtr float64
 	return sleepPoints + whtrPoints + rhrPoints + bloodPressurePoints + nutritionPoints
 }
 
-func CalculateFitnessPillar(m models.FitnessMetrics, vo2MaxBaseline float64) float64 {
+func CalculateFitnessPillar(m models.FitnessMetrics, vo2MaxBaseline float64, bodyWeight float64) float64 {
 	vo2Points := cappedContribution(m.VO2Max-vo2MaxBaseline, 2.5, 3.5, 16.0, 22.0)
 	workoutPoints := cappedContribution(float64(m.Workouts-3), 1.5, 2.5, 6.0, 9.0)
 	stepPoints := cappedContribution(float64(m.DailySteps-8000)/2000.0, 1.0, 1.5, 3.0, 5.0)
 	mobilityPoints := cappedContribution(float64(m.Mobility-3), 1.0, 1.5, 3.0, 4.5)
 	recoveryPoints := cappedContribution(float64(m.CardioRecovery-25)/5.0, 1.0, 1.5, 4.0, 6.0)
-	strengthPoints := calculateLowerBodyStrengthPoints(m)
+	legStrengthPoints := calculateLowerBodyStrengthPoints(m, bodyWeight)
+	gripStrengthPoints := calculateGripStrengthPoints(m)
 
-	return vo2Points + workoutPoints + stepPoints + mobilityPoints + recoveryPoints + strengthPoints
+	return vo2Points + workoutPoints + stepPoints + mobilityPoints + recoveryPoints + legStrengthPoints + gripStrengthPoints
 }
 
 func CalculateCognitionPillar(m models.CognitionMetrics) float64 {
@@ -241,7 +242,7 @@ func CalculateMasterScore(
 
 	tax := currentScore * weeklyDecayRate
 	hScore := CalculateHealthPillar(health, rhrBaseline, whtr)
-	fScore := CalculateFitnessPillar(fitness, vo2MaxBaseline)
+	fScore := CalculateFitnessPillar(fitness, vo2MaxBaseline, health.BodyWeightKg)
 	cScore := CalculateCognitionPillar(cognition)
 
 	postTaxScore := currentScore - tax
@@ -330,13 +331,34 @@ func calculateBloodPressurePoints(m models.HealthMetrics) float64 {
 	return systolicPoints + diastolicPoints
 }
 
-func calculateLowerBodyStrengthPoints(m models.FitnessMetrics) float64 {
-	if m.LowerBodyWeight <= 0 || m.LowerBodyReps <= 0 {
+// calculateLowerBodyStrengthPoints calculates strength score using Relative Strength Index (RSI)
+// RSI = (leg_press_weight / body_weight) × reps
+func calculateLowerBodyStrengthPoints(m models.FitnessMetrics, bodyWeight float64) float64 {
+	if m.LowerBodyWeight <= 0 || m.LowerBodyReps <= 0 || bodyWeight <= 0 {
 		return 0
 	}
+	
+	rsi := (m.LowerBodyWeight / bodyWeight) * float64(m.LowerBodyReps)
+	
+	// Baseline RSI of 24 (e.g., 2.0x bodyweight for 12 reps)
+	// Elite: 36+ (3.0x bodyweight for 12 reps)
+	// Strong: 30+ (2.5x bodyweight for 12 reps)
+	// Good: 24+ (2.0x bodyweight for 12 reps)
+	// Moderate: 18+ (1.5x bodyweight for 12 reps)
+	return cappedContribution((rsi-24.0)/6.0, 1.2, 1.5, 6.0, 8.0)
+}
 
-	legPressLoad := m.LowerBodyWeight * float64(m.LowerBodyReps)
-	return cappedContribution((legPressLoad-1200.0)/200.0, 1.2, 1.5, 6.0, 8.0)
+func calculateGripStrengthPoints(m models.FitnessMetrics) float64 {
+	if m.DeadHangSeconds <= 0 {
+		return 0
+	}
+	
+	// Baseline: 60 seconds (healthy adult standard)
+	// Elite: 120+ seconds (2+ minutes)
+	// High fitness: 90-120 seconds
+	// Solid: 60 seconds
+	// Below average: < 30 seconds (frailty risk)
+	return cappedContribution((float64(m.DeadHangSeconds)-60.0)/30.0, 1.5, 2.0, 7.0, 10.0)
 }
 
 func expandWeeklyDates(start, end time.Time) []time.Time {
@@ -352,6 +374,7 @@ func imputeHealthMetrics(previous models.HealthMetrics, missedWeeks int, profile
 	imputed.SleepScore = imputeSubjectiveInt(previous.SleepScore, neutralSleepScore, missedWeeks)
 	imputed.NutritionScore = imputeSubjectiveFloat(previous.NutritionScore, neutralNutritionScore, missedWeeks)
 	imputed.WaistCm = imputeStableFloat(previous.WaistCm, profile.HeightCm*0.48, missedWeeks)
+	imputed.BodyWeightKg = imputeStableFloat(previous.BodyWeightKg, previous.BodyWeightKg, missedWeeks)
 
 	targetRHR := float64(rhrBaseline)
 	if targetRHR == 0 {
@@ -372,6 +395,7 @@ func imputeFitnessMetrics(previous models.FitnessMetrics, missedWeeks int, age i
 	imputed.CardioRecovery = imputeStableInt(previous.CardioRecovery, neutralCardioRecovery, missedWeeks)
 	imputed.LowerBodyWeight = imputeStableFloat(previous.LowerBodyWeight, neutralLegPressWeight, missedWeeks)
 	imputed.LowerBodyReps = imputeStableInt(previous.LowerBodyReps, neutralLegPressReps, missedWeeks)
+	imputed.DeadHangSeconds = imputeStableInt(previous.DeadHangSeconds, 60, missedWeeks)
 	return imputed
 }
 
