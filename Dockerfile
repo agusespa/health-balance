@@ -36,7 +36,7 @@ COPY --from=builder /app/health-balance .
 COPY --from=builder /app/web ./web
 
 RUN mkdir -p /app/data
-ENV DATABASE_URL=/app/data/health.db
+ENV DB_PATH=/app/data/health.db
 EXPOSE 8080
 
 CMD ["./health-balance"]

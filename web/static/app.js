@@ -65,13 +65,31 @@ document.addEventListener("htmx:confirm", function (evt) {
     }
 });
 
-// Global listener for showToast events (can be triggered from backend via HX-Trigger)
 document.addEventListener("showToast", function (evt) {
     const message = evt.detail.value || evt.detail.message;
     const type = evt.detail.type || "success";
     if (message) {
         showToast(message, type);
     }
+});
+
+document.addEventListener("htmx:responseError", function (evt) {
+    const status = evt.detail.xhr.status;
+    let message = "An error occurred. Please try again.";
+    
+    if (status === 500) {
+        message = "Server error. Please try again or contact support.";
+    } else if (status === 400) {
+        message = evt.detail.xhr.responseText || "Invalid data. Please check your inputs.";
+    } else if (status === 0) {
+        message = "Cannot connect to server. Please check your connection.";
+    }
+    
+    showToast(message, "error");
+});
+
+document.addEventListener("htmx:sendError", function (evt) {
+    showToast("Network error. Please check your connection.", "error");
 });
 
 function copyValuesToInputs(fieldValues) {
