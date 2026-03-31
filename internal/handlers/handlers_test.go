@@ -54,6 +54,26 @@ func TestLimitMasterScoresKeepsMostRecentEntries(t *testing.T) {
 	}
 }
 
+func TestReverseMasterScoresShowsMostRecentFirst(t *testing.T) {
+	scores := []models.MasterScore{
+		{Date: "2024-01-03", Score: 3},
+		{Date: "2024-01-10", Score: 10},
+		{Date: "2024-01-17", Score: 17},
+	}
+
+	reversed := reverseMasterScores(scores)
+
+	if reversed[0].Date != "2024-01-17" {
+		t.Fatalf("expected first score to be the most recent date, got %s", reversed[0].Date)
+	}
+	if reversed[len(reversed)-1].Date != "2024-01-03" {
+		t.Fatalf("expected last score to be the oldest date, got %s", reversed[len(reversed)-1].Date)
+	}
+	if scores[0].Date != "2024-01-03" {
+		t.Fatalf("expected original slice to remain unchanged, got %s", scores[0].Date)
+	}
+}
+
 func TestHandleHome(t *testing.T) {
 	handler, mockDB := setupTestHandler()
 

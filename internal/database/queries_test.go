@@ -23,7 +23,7 @@ func TestGetAllDatesWithData(t *testing.T) {
 		}
 	}()
 
-	testDate := utils.GetCurrentWeekSundayDate()
+	testDate := utils.GetActiveWeekEndDate()
 	healthMetrics := models.HealthMetrics{
 		SleepScore:     80,
 		WaistCm:        85.0,
@@ -83,10 +83,10 @@ func TestGetRecentHealthMetrics(t *testing.T) {
 		t.Fatalf("Failed to get recent health metrics: %v", err)
 	}
 
-	// Since we just saved data for the current week, it shouldn't appear in recent metrics
-	// (recent metrics exclude the current week)
+	// Since we just saved data for the active reporting week, it shouldn't appear in recent metrics
+	// (recent metrics exclude the active reporting week)
 	if len(metrics) != 0 {
-		t.Errorf("Expected no recent metrics (current week excluded), got %d", len(metrics))
+		t.Errorf("Expected no recent metrics (active week excluded), got %d", len(metrics))
 	}
 }
 
@@ -123,10 +123,10 @@ func TestGetRecentFitnessMetrics(t *testing.T) {
 		t.Fatalf("Failed to get recent fitness metrics: %v", err)
 	}
 
-	// Since we just saved data for the current week, it shouldn't appear in recent metrics
-	// (recent metrics exclude the current week)
+	// Since we just saved data for the active reporting week, it shouldn't appear in recent metrics
+	// (recent metrics exclude the active reporting week)
 	if len(metrics) != 0 {
-		t.Errorf("Expected no recent metrics (current week excluded), got %d", len(metrics))
+		t.Errorf("Expected no recent metrics (active week excluded), got %d", len(metrics))
 	}
 }
 
@@ -160,10 +160,10 @@ func TestGetRecentCognitionMetrics(t *testing.T) {
 		t.Fatalf("Failed to get recent cognition metrics: %v", err)
 	}
 
-	// Since we just saved data for the current week, it shouldn't appear in recent metrics
-	// (recent metrics exclude the current week)
+	// Since we just saved data for the active reporting week, it shouldn't appear in recent metrics
+	// (recent metrics exclude the active reporting week)
 	if len(metrics) != 0 {
-		t.Errorf("Expected no recent metrics (current week excluded), got %d", len(metrics))
+		t.Errorf("Expected no recent metrics (active week excluded), got %d", len(metrics))
 	}
 }
 
@@ -181,8 +181,8 @@ func TestSaveAndRetrieveHealthMetrics(t *testing.T) {
 		}
 	}()
 
-	// Get the date for the current week's Sunday (upcoming or today if Sunday)
-	testDate := utils.GetCurrentWeekSundayDate()
+	// Get the date for the currently editable reporting week end (Friday).
+	testDate := utils.GetActiveWeekEndDate()
 
 	healthMetrics := models.HealthMetrics{
 		SleepScore:     85,
@@ -233,8 +233,8 @@ func TestSaveAndRetrieveFitnessMetrics(t *testing.T) {
 		}
 	}()
 
-	// Get the date for the current week's Sunday (upcoming or today if Sunday)
-	testDate := utils.GetCurrentWeekSundayDate()
+	// Get the date for the currently editable reporting week end (Friday).
+	testDate := utils.GetActiveWeekEndDate()
 
 	fitnessMetrics := models.FitnessMetrics{
 		VO2Max:          48.0,
@@ -289,8 +289,8 @@ func TestSaveAndRetrieveCognitionMetrics(t *testing.T) {
 		}
 	}()
 
-	// Get the date for the current week's Sunday (upcoming or today if Sunday)
-	testDate := utils.GetCurrentWeekSundayDate()
+	// Get the date for the currently editable reporting week end (Friday).
+	testDate := utils.GetActiveWeekEndDate()
 
 	cognitionMetrics := models.CognitionMetrics{
 		Mindfulness:  5,
@@ -333,8 +333,8 @@ func TestDeleteMetrics(t *testing.T) {
 		}
 	}()
 
-	// Get the date for the current week's Sunday (upcoming or today if Sunday)
-	testDate := utils.GetCurrentWeekSundayDate()
+	// Get the date for the currently editable reporting week end (Friday).
+	testDate := utils.GetActiveWeekEndDate()
 
 	// Insert health metrics
 	healthMetrics := models.HealthMetrics{

@@ -79,9 +79,9 @@ func GetAllWeeklyScores(db database.Querier) ([]models.MasterScore, error) {
 		return nil, fmt.Errorf("calculation aborted: invalid metric date %s: %w", allDates[len(allDates)-1], err)
 	}
 
-	endDate, err := time.Parse("2006-01-02", utils.GetCurrentWeekSundayDate())
+	endDate, err := time.Parse("2006-01-02", utils.GetActiveWeekEndDate())
 	if err != nil {
-		return nil, fmt.Errorf("calculation aborted: invalid current week date: %w", err)
+		return nil, fmt.Errorf("calculation aborted: invalid active week date: %w", err)
 	}
 	if endDate.Before(startDate) {
 		endDate = startDate

@@ -4,6 +4,7 @@ function showToast(message, type = "success") {
 
     const toast = document.createElement("div");
     toast.className = `toast toast-${type}`;
+    toast.setAttribute("data-testid", "toast");
     toast.textContent = message;
 
     const container =

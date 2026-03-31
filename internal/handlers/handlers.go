@@ -93,7 +93,7 @@ func (h *Handler) HandleRationale(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) HandleCurrentScore(w http.ResponseWriter, r *http.Request) {
 	currentScore, _ := services.GetCurrentMasterScore(h.db)
-	weekDateRange := utils.GetCurrentWeekDateRange()
+	weekDateRange := utils.GetActiveWeekDateRange()
 	data := struct {
 		CurrentScore  *models.MasterScore
 		WeekDateRange string
@@ -110,7 +110,7 @@ func (h *Handler) HandleScores(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	h.render(w, "scores.html", limitMasterScores(scores, historyPreviewLimit))
+	h.render(w, "scores.html", reverseMasterScores(limitMasterScores(scores, historyPreviewLimit)))
 }
 
 func (h *Handler) HandleHealthMetrics(w http.ResponseWriter, r *http.Request) {
@@ -153,6 +153,18 @@ func limitMasterScores(scores []models.MasterScore, limit int) []models.MasterSc
 		return scores
 	}
 	return scores[len(scores)-limit:]
+}
+
+func reverseMasterScores(scores []models.MasterScore) []models.MasterScore {
+	if len(scores) <= 1 {
+		return scores
+	}
+
+	reversed := make([]models.MasterScore, len(scores))
+	for i := range scores {
+		reversed[i] = scores[len(scores)-1-i]
+	}
+	return reversed
 }
 
 func (h *Handler) HandleCognitionWeekState(w http.ResponseWriter, r *http.Request) {
@@ -570,14 +582,14 @@ func (h *Handler) buildDashboardData() DashboardData {
 }
 
 func (h *Handler) buildWeekStateData() DashboardData {
-	date := utils.GetCurrentWeekSundayDate()
+	date := utils.GetActiveWeekEndDate()
 
 	todayHealth, _ := h.db.GetHealthMetricsByDate(date)
 	todayFitness, _ := h.db.GetFitnessMetricsByDate(date)
 	todayCognition, _ := h.db.GetCognitionMetricsByDate(date)
 
 	return DashboardData{
-		WeekDateRange:  utils.GetCurrentWeekDateRange(),
+		WeekDateRange:  utils.GetActiveWeekDateRange(),
 		TodayHealth:    todayHealth,
 		TodayFitness:   todayFitness,
 		TodayCognition: todayCognition,

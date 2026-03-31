@@ -7,53 +7,44 @@ import (
 	"time"
 )
 
-// GetCurrentWeekSundayDate returns the Sunday date for the current week
-// If today is Sunday, it returns today's date
-// If today is Monday-Saturday, it returns the upcoming Sunday's date
-func GetCurrentWeekSundayDate() string {
-	now := time.Now()
-	weekday := now.Weekday()
-
-	if weekday == time.Sunday {
-		// If today is Sunday, this is the current week
-		return now.Format("2006-01-02")
-	}
-
-	// For Monday-Saturday, the current week is the upcoming Sunday
-	daysUntilSunday := 7 - int(weekday)
-	nextSunday := now.AddDate(0, 0, daysUntilSunday)
-	return nextSunday.Format("2006-01-02")
+// GetActiveWeekEndDate returns the Friday date for the most recently completed
+// Saturday-Friday reporting week. That week is the one users can edit during
+// the current Saturday-Friday entry window.
+func GetActiveWeekEndDate() string {
+	return getActiveWeekRange(time.Now()).end.Format("2006-01-02")
 }
 
-// GetCurrentWeekDateRange returns the Monday and Sunday dates for the current week
-// Returns in format "Mon DD - Mon DD" or "Mon DD - Mon DD, YYYY" if crossing year boundary
-func GetCurrentWeekDateRange() string {
-	now := time.Now()
-	weekday := now.Weekday()
+// GetActiveWeekDateRange returns the Saturday-Friday range for the week that is
+// currently editable on the dashboard.
+func GetActiveWeekDateRange() string {
+	weekRange := getActiveWeekRange(time.Now())
+	return formatWeekRange(weekRange.start, weekRange.end)
+}
 
-	var monday, sunday time.Time
+type weekRange struct {
+	start time.Time
+	end   time.Time
+}
 
-	if weekday == time.Sunday {
-		// If today is Sunday, go back 6 days to get Monday
-		monday = now.AddDate(0, 0, -6)
-		sunday = now
-	} else {
-		// For Monday-Saturday, calculate the Monday of this week and upcoming Sunday
-		daysSinceMonday := int(weekday) - 1
-		monday = now.AddDate(0, 0, -daysSinceMonday)
-		daysUntilSunday := 7 - int(weekday)
-		sunday = now.AddDate(0, 0, daysUntilSunday)
-	}
+func getActiveWeekRange(now time.Time) weekRange {
+	currentDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	daysSinceSaturday := (int(currentDate.Weekday()) - int(time.Saturday) + 7) % 7
+	windowStart := currentDate.AddDate(0, 0, -daysSinceSaturday)
+	end := windowStart.AddDate(0, 0, -1)
+	start := end.AddDate(0, 0, -6)
+	return weekRange{start: start, end: end}
+}
 
+func formatWeekRange(start, end time.Time) string {
 	// Format: "Feb 23 - Mar 1" or "Dec 30 - Jan 5, 2027" if crossing year
-	if monday.Year() == sunday.Year() {
+	if start.Year() == end.Year() {
 		return fmt.Sprintf("%s %d - %s %d",
-			monday.Month().String()[:3], monday.Day(),
-			sunday.Month().String()[:3], sunday.Day())
+			start.Month().String()[:3], start.Day(),
+			end.Month().String()[:3], end.Day())
 	}
 	return fmt.Sprintf("%s %d - %s %d, %d",
-		monday.Month().String()[:3], monday.Day(),
-		sunday.Month().String()[:3], sunday.Day(), sunday.Year())
+		start.Month().String()[:3], start.Day(),
+		end.Month().String()[:3], end.Day(), end.Year())
 }
 
 func GetAge(p *models.UserProfile, now time.Time) (int, error) {

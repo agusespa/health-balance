@@ -48,8 +48,8 @@ func checkAndSendNotifications(db database.Querier) {
 		return
 	}
 
-	// Only send if data is missing for the current week
-	currentWeekDate := utils.GetCurrentWeekSundayDate()
+	// Only send if data is missing for the active reporting week.
+	currentWeekDate := utils.GetActiveWeekEndDate()
 	h, _ := db.GetHealthMetricsByDate(currentWeekDate)
 	f, _ := db.GetFitnessMetricsByDate(currentWeekDate)
 	c, _ := db.GetCognitionMetricsByDate(currentWeekDate)

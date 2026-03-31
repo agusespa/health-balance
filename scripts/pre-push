@@ -5,6 +5,8 @@ echo "> Running pre-push hook..."
 set -e
 
 ./scripts/verify.sh
+npx playwright install chromium
+npm run test:e2e
 
 echo "✓ All checks passed!"
 exit 0

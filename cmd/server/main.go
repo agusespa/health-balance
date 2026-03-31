@@ -26,6 +26,14 @@ func main() {
 	if dbPath == "" {
 		dbPath = "./data/health.db"
 	}
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	host := os.Getenv("HOST")
+	if host == "" {
+		host = ""
+	}
 
 	if err := os.MkdirAll(filepath.Dir(dbPath), 0755); err != nil {
 		log.Fatalf("failed to create data directory for %s: %v", dbPath, err)
@@ -80,6 +88,7 @@ func main() {
 
 	services.StartNotificationScheduler(db)
 
-	log.Println("Server starting on :8080")
-	log.Fatal(http.ListenAndServe(":8080", middleware.RequestLogger(mux)))
+	addr := host + ":" + port
+	log.Printf("Server starting on %s", addr)
+	log.Fatal(http.ListenAndServe(addr, middleware.RequestLogger(mux)))
 }
