@@ -123,11 +123,6 @@ body {
     letter-spacing: -0.02em;
 }
 
-.score-date {
-    font-size: 0.85rem;
-    opacity: 0.8;
-}
-
 /* ---------- Score Header ---------- */
 .score-header {
     display: flex;

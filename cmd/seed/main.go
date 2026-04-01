@@ -33,7 +33,7 @@ func main() {
 	flag.StringVar(&dbPath, "db", defaultDBPath, "SQLite database path")
 	flag.IntVar(&weeks, "weeks", 14, "number of recent weeks to seed")
 	flag.BoolVar(&reset, "reset", false, "clear existing metrics and profile before seeding")
-	flag.BoolVar(&includeCurrentWeek, "include-current-week", false, "seed the current week instead of leaving it empty")
+	flag.BoolVar(&includeCurrentWeek, "include-current-week", false, "seed the active reporting week instead of leaving it empty")
 	flag.Parse()
 
 	if weeks < 4 {
@@ -68,9 +68,9 @@ func main() {
 		log.Fatalf("failed to seed profile: %v", err)
 	}
 
-	currentWeek, err := time.Parse("2006-01-02", utils.GetCurrentWeekSundayDate())
+	currentWeek, err := time.Parse("2006-01-02", utils.GetActiveWeekEndDate())
 	if err != nil {
-		log.Fatalf("failed to parse current week: %v", err)
+		log.Fatalf("failed to parse active reporting week: %v", err)
 	}
 
 	skippedOffsets := map[int]bool{
@@ -100,9 +100,6 @@ func main() {
 	fmt.Printf("Seeded %d weeks into %s\n", seededWeeks, dbPath)
 	if reset {
 		fmt.Println("Existing profile and metric rows were cleared before seeding.")
-	}
-	if !includeCurrentWeek {
-		fmt.Println("The current week was left empty on purpose so you can test the copy/rollover flow.")
 	}
 	fmt.Println("Intentional gaps were added a few weeks back to exercise missed-week scoring.")
 }

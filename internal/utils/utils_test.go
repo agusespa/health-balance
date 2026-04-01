@@ -6,123 +6,96 @@ import (
 	"time"
 )
 
-func TestGetCurrentWeekSundayDate(t *testing.T) {
-	dateStr := GetCurrentWeekSundayDate()
+func TestGetActiveWeekEndDate(t *testing.T) {
+	dateStr := GetActiveWeekEndDate()
 
 	parsed, err := time.Parse("2006-01-02", dateStr)
 	if err != nil {
-		t.Errorf("GetCurrentWeekSundayDate() returned invalid format: %v", err)
+		t.Fatalf("GetActiveWeekEndDate() returned invalid format: %v", err)
 	}
 
-	if parsed.Weekday() != time.Sunday {
-		t.Errorf("GetCurrentWeekSundayDate() returned %v, which is a %v, not a Sunday", dateStr, parsed.Weekday())
+	if parsed.Weekday() != time.Friday {
+		t.Fatalf("GetActiveWeekEndDate() returned %v, which is a %v, not a Friday", dateStr, parsed.Weekday())
 	}
 
 	now := time.Now()
-	// The returned Sunday should be >= today (either today if Sunday, or upcoming)
-	if parsed.Before(now.Truncate(24 * time.Hour)) {
-		t.Errorf("GetCurrentWeekSundayDate() returned a past Sunday %v, should return current or upcoming", dateStr)
-	}
-
-	// Should be within 7 days of today
-	daysUntilSunday := parsed.Sub(now.Truncate(24*time.Hour)).Hours() / 24
-	if daysUntilSunday > 7 {
-		t.Errorf("GetCurrentWeekSundayDate() returned Sunday %v which is more than 7 days away", dateStr)
+	currentDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	daysSinceSaturday := (int(currentDate.Weekday()) - int(time.Saturday) + 7) % 7
+	expected := currentDate.AddDate(0, 0, -daysSinceSaturday-1)
+	if parsed.Format("2006-01-02") != expected.Format("2006-01-02") {
+		t.Fatalf("GetActiveWeekEndDate() = %s, want %s", dateStr, expected.Format("2006-01-02"))
 	}
 }
 
-func TestGetCurrentWeekDateRange(t *testing.T) {
-	// Test that the function returns a non-empty string
-	dateRange := GetCurrentWeekDateRange()
+func TestGetActiveWeekDateRange(t *testing.T) {
+	dateRange := GetActiveWeekDateRange()
 	if dateRange == "" {
-		t.Error("GetCurrentWeekDateRange() returned empty string")
+		t.Fatal("GetActiveWeekDateRange() returned empty string")
 	}
 
-	// Test that it contains expected format elements
-	// Should contain month abbreviations and numbers
-	// Examples: "Feb 23 - Mar 1" or "Dec 30 - Jan 5, 2027"
-
-	// Verify the range makes sense by checking the underlying dates
 	now := time.Now()
-	weekday := now.Weekday()
+	weekRange := getActiveWeekRange(now)
 
-	var monday, sunday time.Time
-	if weekday == time.Sunday {
-		monday = now.AddDate(0, 0, -6)
-		sunday = now
-	} else {
-		daysSinceMonday := int(weekday) - 1
-		monday = now.AddDate(0, 0, -daysSinceMonday)
-		daysUntilSunday := 7 - int(weekday)
-		sunday = now.AddDate(0, 0, daysUntilSunday)
+	if weekRange.start.Weekday() != time.Saturday {
+		t.Fatalf("Calculated range start is %v, not Saturday", weekRange.start.Weekday())
+	}
+	if weekRange.end.Weekday() != time.Friday {
+		t.Fatalf("Calculated range end is %v, not Friday", weekRange.end.Weekday())
 	}
 
-	// Verify Monday is actually a Monday
-	if monday.Weekday() != time.Monday {
-		t.Errorf("Calculated Monday is %v, not Monday", monday.Weekday())
-	}
-
-	// Verify Sunday is actually a Sunday
-	if sunday.Weekday() != time.Sunday {
-		t.Errorf("Calculated Sunday is %v, not Sunday", sunday.Weekday())
-	}
-
-	// Verify the range is exactly 6 days
-	daysDiff := sunday.Sub(monday).Hours() / 24
+	daysDiff := weekRange.end.Sub(weekRange.start).Hours() / 24
 	if daysDiff != 6 {
-		t.Errorf("Date range should be 6 days, got %.0f days", daysDiff)
+		t.Fatalf("Date range should be 6 days, got %.0f days", daysDiff)
 	}
 
-	// Verify Monday is not in the future
-	if monday.After(now) {
-		t.Errorf("Monday %v should not be after today %v", monday, now)
-	}
-
-	// Verify Sunday is not in the past (unless today is Sunday)
-	if weekday != time.Sunday && sunday.Before(now.Truncate(24*time.Hour)) {
-		t.Errorf("Sunday %v should not be before today %v", sunday, now)
+	expected := formatWeekRange(weekRange.start, weekRange.end)
+	if dateRange != expected {
+		t.Fatalf("GetActiveWeekDateRange() = %q, want %q", dateRange, expected)
 	}
 }
 
-func TestGetCurrentWeekDateRangeFormat(t *testing.T) {
+func TestGetActiveWeekRange(t *testing.T) {
 	tests := []struct {
-		name        string
-		testDate    time.Time
-		expectYear  bool
-		description string
+		name      string
+		now       time.Time
+		wantStart string
+		wantEnd   string
 	}{
 		{
-			name:        "Mid-week in February",
-			testDate:    time.Date(2026, 2, 25, 12, 0, 0, 0, time.UTC), // Wednesday
-			expectYear:  false,
-			description: "Should not include year when within same year",
+			name:      "Saturday starts new entry window",
+			now:       time.Date(2026, 4, 4, 9, 0, 0, 0, time.UTC),
+			wantStart: "2026-03-28",
+			wantEnd:   "2026-04-03",
 		},
 		{
-			name:        "Monday in March",
-			testDate:    time.Date(2026, 3, 2, 12, 0, 0, 0, time.UTC), // Monday
-			expectYear:  false,
-			description: "Monday should show current week",
+			name:      "Friday still edits previous completed week",
+			now:       time.Date(2026, 4, 3, 12, 0, 0, 0, time.UTC),
+			wantStart: "2026-03-21",
+			wantEnd:   "2026-03-27",
 		},
 		{
-			name:        "Sunday",
-			testDate:    time.Date(2026, 3, 1, 12, 0, 0, 0, time.UTC), // Sunday
-			expectYear:  false,
-			description: "Sunday should show Mon-Sun of that week",
+			name:      "Tuesday stays in same entry window",
+			now:       time.Date(2026, 3, 31, 12, 0, 0, 0, time.UTC),
+			wantStart: "2026-03-21",
+			wantEnd:   "2026-03-27",
 		},
 		{
-			name:        "Week crossing year boundary",
-			testDate:    time.Date(2026, 12, 30, 12, 0, 0, 0, time.UTC), // Wednesday
-			expectYear:  true,
-			description: "Should include year when crossing year boundary",
+			name:      "Cross year boundary",
+			now:       time.Date(2027, 1, 2, 8, 0, 0, 0, time.UTC),
+			wantStart: "2026-12-26",
+			wantEnd:   "2027-01-01",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Note: This test validates the logic but can't directly test with a specific date
-			// since GetCurrentWeekDateRange uses time.Now()
-			// In a real scenario, you'd refactor to accept a time parameter for testing
-			t.Logf("Test case: %s - %s", tt.name, tt.description)
+			got := getActiveWeekRange(tt.now)
+			if got.start.Format("2006-01-02") != tt.wantStart {
+				t.Fatalf("start = %s, want %s", got.start.Format("2006-01-02"), tt.wantStart)
+			}
+			if got.end.Format("2006-01-02") != tt.wantEnd {
+				t.Fatalf("end = %s, want %s", got.end.Format("2006-01-02"), tt.wantEnd)
+			}
 		})
 	}
 }

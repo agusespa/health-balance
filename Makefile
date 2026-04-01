@@ -1,4 +1,4 @@
-.PHONY: run docker test lint seed seed-reset
+.PHONY: run docker test lint seed seed-reset e2e
 
 run:
 	go run ./cmd/server
@@ -14,6 +14,9 @@ docker:
 
 test:
 	go test -v -race -coverprofile=coverage.out ./...
+
+e2e:
+	npm run test:e2e
 
 lint:
 	golangci-lint run ./...

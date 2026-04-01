@@ -27,7 +27,7 @@
 
     {{define "score_display"}}
 
-    <div class="card score-display" id="score-container" hx-get="/current-score" hx-trigger="refreshScore from:body"
+    <div class="card score-display" id="score-container" data-testid="score-container" hx-get="/current-score" hx-trigger="refreshScore from:body"
         hx-swap="outerHTML">
         <div class="score-header">
             <a href="/rationale" class="icon-link">
@@ -62,8 +62,6 @@
                 <span>2000</span>
             </div>
         </div>
-        <p class="score-date">Last updated: week of {{.WeekDateRange}}</p>
-
         <div class="history-toggle" onclick="toggleHistory()">
             <h2>Score History</h2>
             <span class="toggle-icon" id="history-icon">▶</span>
@@ -76,18 +74,18 @@
 
     {{template "score_display" .}}
 
-    <div class="card pillar-card">
-        <div class="pillar-header" onclick="togglePillar('health')">
+    <div class="card pillar-card" data-testid="health-pillar">
+        <div class="pillar-header" data-testid="health-pillar-toggle" onclick="togglePillar('health')">
             <h2>Basic Health</h2>
             <span class="toggle-icon" id="health-icon">▶</span>
         </div>
         <div class="pillar-content" id="health-content" style="display: none;">
             <div class="add-data-section">
-                <div id="health-week-state" hx-get="/health-week-state"
+                <div id="health-week-state" data-testid="health-week-state" hx-get="/health-week-state"
                     hx-trigger="refreshHealthWeekState from:body" hx-swap="innerHTML">
                     {{template "health_week_state" .}}
                 </div>
-                <form id="health-form" hx-post="/add-health-metrics" hx-swap="none" hx-indicator="#health-spinner">
+                <form id="health-form" data-testid="health-form" hx-post="/add-health-metrics" hx-swap="none" hx-indicator="#health-spinner">
                     <div class="form-group">
                         <label for="body_weight_kg">Body Weight</label>
                         <input type="number" id="body_weight_kg" name="body_weight_kg" step="0.1"
@@ -146,7 +144,7 @@
                         <small class="help-text">Self-assessment (1-10). 7+ is good.</small>
                     </div>
 
-                    <button type="submit">
+                    <button type="submit" data-testid="save-health-button">
                         <span class="button-text">Save Health Data</span>
                         <div id="health-spinner" class="spinner htmx-indicator"></div>
                     </button>
@@ -156,18 +154,18 @@
         </div>
     </div>
 
-    <div class="card pillar-card">
-        <div class="pillar-header" onclick="togglePillar('fitness')">
+    <div class="card pillar-card" data-testid="fitness-pillar">
+        <div class="pillar-header" data-testid="fitness-pillar-toggle" onclick="togglePillar('fitness')">
             <h2>Fitness</h2>
             <span class="toggle-icon" id="fitness-icon">▶</span>
         </div>
         <div class="pillar-content" id="fitness-content" style="display: none;">
             <div class="add-data-section">
-                <div id="fitness-week-state" hx-get="/fitness-week-state"
+                <div id="fitness-week-state" data-testid="fitness-week-state" hx-get="/fitness-week-state"
                     hx-trigger="refreshFitnessWeekState from:body" hx-swap="innerHTML">
                     {{template "fitness_week_state" .}}
                 </div>
-                <form id="fitness-form" hx-post="/add-fitness-metrics" hx-swap="none" hx-indicator="#fitness-spinner">
+                <form id="fitness-form" data-testid="fitness-form" hx-post="/add-fitness-metrics" hx-swap="none" hx-indicator="#fitness-spinner">
                     <div class="form-group">
                         <label for="daily_steps">Daily Steps</label>
                         <input type="number" id="daily_steps" name="daily_steps" min="0" placeholder="Average count"
@@ -223,7 +221,7 @@
                             BPM.</small>
                     </div>
 
-                    <button type="submit">
+                    <button type="submit" data-testid="save-fitness-button">
                         <span class="button-text">Save Fitness Data</span>
                         <div id="fitness-spinner" class="spinner htmx-indicator"></div>
                     </button>
@@ -233,18 +231,18 @@
         </div>
     </div>
 
-    <div class="card pillar-card">
-        <div class="pillar-header" onclick="togglePillar('cognition')">
+    <div class="card pillar-card" data-testid="cognition-pillar">
+        <div class="pillar-header" data-testid="cognition-pillar-toggle" onclick="togglePillar('cognition')">
             <h2>Cognition</h2>
             <span class="toggle-icon" id="cognition-icon">▶</span>
         </div>
         <div class="pillar-content" id="cognition-content" style="display: none;">
             <div class="add-data-section">
-                <div id="cognition-week-state" hx-get="/cognition-week-state"
+                <div id="cognition-week-state" data-testid="cognition-week-state" hx-get="/cognition-week-state"
                     hx-trigger="refreshCognitionWeekState from:body" hx-swap="innerHTML">
                     {{template "cognition_week_state" .}}
                 </div>
-                <form id="cognition-form" hx-post="/add-cognition-metrics" hx-swap="none" hx-indicator="#cognition-spinner">
+                <form id="cognition-form" data-testid="cognition-form" hx-post="/add-cognition-metrics" hx-swap="none" hx-indicator="#cognition-spinner">
                     <div class="form-group">
                         <label for="mindfulness">Mindfulness Sessions</label>
                         <input type="number" id="mindfulness" name="mindfulness" min="0"
@@ -278,7 +276,7 @@
                         <small class="help-text">How many days this week included meaningful social contact.</small>
                     </div>
 
-                    <button type="submit">
+                    <button type="submit" data-testid="save-cognition-button">
                         <span class="button-text">Save Cognition Data</span>
                         <div id="cognition-spinner" class="spinner htmx-indicator"></div>
                     </button>

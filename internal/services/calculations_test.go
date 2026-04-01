@@ -127,9 +127,9 @@ func TestCalculatePillars(t *testing.T) {
 }
 
 func TestGetAllWeeklyScores_Compounding(t *testing.T) {
-	currentWeek, err := time.Parse("2006-01-02", utils.GetCurrentWeekSundayDate())
+	currentWeek, err := time.Parse("2006-01-02", utils.GetActiveWeekEndDate())
 	if err != nil {
-		t.Fatalf("Failed to parse current week: %v", err)
+		t.Fatalf("Failed to parse active week: %v", err)
 	}
 
 	date1 := currentWeek.AddDate(0, 0, -7).Format("2006-01-02")
@@ -215,9 +215,9 @@ func TestCalculateMasterScore_ConvergesInsteadOfRunningAway(t *testing.T) {
 }
 
 func TestGetAllWeeklyScores_UsesHistoricalRHRBaseline(t *testing.T) {
-	currentWeek, err := time.Parse("2006-01-02", utils.GetCurrentWeekSundayDate())
+	currentWeek, err := time.Parse("2006-01-02", utils.GetActiveWeekEndDate())
 	if err != nil {
-		t.Fatalf("Failed to parse current week: %v", err)
+		t.Fatalf("Failed to parse active week: %v", err)
 	}
 
 	date1 := currentWeek.AddDate(0, 0, -7).Format("2006-01-02")
@@ -268,9 +268,9 @@ func TestGetAllWeeklyScores_UsesHistoricalRHRBaseline(t *testing.T) {
 }
 
 func TestGetAllWeeklyScores_WeightsConsistencyOverOneWeekSpike(t *testing.T) {
-	currentWeek, err := time.Parse("2006-01-02", utils.GetCurrentWeekSundayDate())
+	currentWeek, err := time.Parse("2006-01-02", utils.GetActiveWeekEndDate())
 	if err != nil {
-		t.Fatalf("Failed to parse current week: %v", err)
+		t.Fatalf("Failed to parse active week: %v", err)
 	}
 
 	ordered := []string{
@@ -334,9 +334,9 @@ func TestGetAllWeeklyScores_WeightsConsistencyOverOneWeekSpike(t *testing.T) {
 }
 
 func TestDataGate_Behavior(t *testing.T) {
-	currentWeek, err := time.Parse("2006-01-02", utils.GetCurrentWeekSundayDate())
+	currentWeek, err := time.Parse("2006-01-02", utils.GetActiveWeekEndDate())
 	if err != nil {
-		t.Fatalf("Failed to parse current week: %v", err)
+		t.Fatalf("Failed to parse active week: %v", err)
 	}
 
 	date := currentWeek.Format("2006-01-02")
@@ -360,9 +360,9 @@ func TestDataGate_Behavior(t *testing.T) {
 }
 
 func TestGetAllWeeklyScores_FillsMissingWeeksAndAppliesAging(t *testing.T) {
-	currentWeek, err := time.Parse("2006-01-02", utils.GetCurrentWeekSundayDate())
+	currentWeek, err := time.Parse("2006-01-02", utils.GetActiveWeekEndDate())
 	if err != nil {
-		t.Fatalf("Failed to parse current week: %v", err)
+		t.Fatalf("Failed to parse active week: %v", err)
 	}
 
 	date1 := currentWeek.AddDate(0, 0, -14).Format("2006-01-02")
