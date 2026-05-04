@@ -47,8 +47,8 @@
             data-vo2-max="{{printf "%.1f" .LastFitness.VO2Max}}"
             data-workouts="{{.LastFitness.Workouts}}"
             data-mobility="{{.LastFitness.Mobility}}"
-            data-dead-hang-seconds="{{.LastFitness.DeadHangSeconds}}"
-            data-leg-press-set="{{printf "%.1fx%d" .LastFitness.LowerBodyWeight .LastFitness.LowerBodyReps}}"
+            data-squat-weight="{{printf "%.1f" .LastFitness.SquatWeight}}"
+            data-squat-reps="{{.LastFitness.SquatReps}}"
             data-cardio-recovery="{{.LastFitness.CardioRecovery}}">
             Copy last week
         </button>

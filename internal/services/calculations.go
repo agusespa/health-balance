@@ -26,8 +26,8 @@ const (
 	neutralSystolicBP       = 120.0
 	neutralDiastolicBP      = 80.0
 	neutralCardioRecovery   = 25.0
-	neutralLegPressWeight   = 120.0
-	neutralLegPressReps     = 10.0
+	neutralSquatWeight      = 80.0
+	neutralSquatReps        = 8.0
 )
 
 func GetCurrentMasterScore(db database.Querier) (*models.MasterScore, error) {
@@ -211,10 +211,9 @@ func CalculateFitnessPillar(m models.FitnessMetrics, vo2MaxBaseline float64, bod
 	stepPoints := cappedContribution(float64(m.DailySteps-8000)/2000.0, 1.0, 1.5, 3.0, 5.0)
 	mobilityPoints := cappedContribution(float64(m.Mobility-3), 1.0, 1.5, 3.0, 4.5)
 	recoveryPoints := cappedContribution(float64(m.CardioRecovery-25)/5.0, 1.0, 1.5, 4.0, 6.0)
-	legStrengthPoints := calculateLowerBodyStrengthPoints(m, bodyWeight)
-	gripStrengthPoints := calculateGripStrengthPoints(m)
+	squatStrengthPoints := calculateLowerBodyStrengthPoints(m, bodyWeight)
 
-	return vo2Points + workoutPoints + stepPoints + mobilityPoints + recoveryPoints + legStrengthPoints + gripStrengthPoints
+	return vo2Points + workoutPoints + stepPoints + mobilityPoints + recoveryPoints + squatStrengthPoints
 }
 
 func CalculateCognitionPillar(m models.CognitionMetrics) float64 {
@@ -331,34 +330,18 @@ func calculateBloodPressurePoints(m models.HealthMetrics) float64 {
 	return systolicPoints + diastolicPoints
 }
 
-// calculateLowerBodyStrengthPoints calculates strength score using Relative Strength Index (RSI)
-// RSI = (leg_press_weight / body_weight) × reps
+// calculateLowerBodyStrengthPoints calculates a rough squat reserve score using Relative Strength Index (RSI).
+// RSI = (squat_weight / body_weight) x reps
 func calculateLowerBodyStrengthPoints(m models.FitnessMetrics, bodyWeight float64) float64 {
-	if m.LowerBodyWeight <= 0 || m.LowerBodyReps <= 0 || bodyWeight <= 0 {
+	if m.SquatWeight <= 0 || m.SquatReps <= 0 || bodyWeight <= 0 {
 		return 0
 	}
 
-	rsi := (m.LowerBodyWeight / bodyWeight) * float64(m.LowerBodyReps)
+	rsi := (m.SquatWeight / bodyWeight) * float64(m.SquatReps)
 
-	// Baseline RSI of 24 (e.g., 2.0x bodyweight for 12 reps)
-	// Elite: 36+ (3.0x bodyweight for 12 reps)
-	// Strong: 30+ (2.5x bodyweight for 12 reps)
-	// Good: 24+ (2.0x bodyweight for 12 reps)
-	// Moderate: 18+ (1.5x bodyweight for 12 reps)
-	return cappedContribution((rsi-24.0)/6.0, 1.2, 1.5, 6.0, 8.0)
-}
-
-func calculateGripStrengthPoints(m models.FitnessMetrics) float64 {
-	if m.DeadHangSeconds <= 0 {
-		return 0
-	}
-
-	// Baseline: 60 seconds (healthy adult standard)
-	// Elite: 120+ seconds (2+ minutes)
-	// High fitness: 90-120 seconds
-	// Solid: 60 seconds
-	// Below average: < 30 seconds (frailty risk)
-	return cappedContribution((float64(m.DeadHangSeconds)-60.0)/30.0, 1.5, 2.0, 7.0, 10.0)
+	// Baseline RSI around 8 represents a bodyweight-equivalent squat set of 8 reps.
+	// Higher relative loads and rep quality improve the reserve signal without dominating the pillar.
+	return cappedContribution((rsi-8.0)/2.0, 1.2, 1.5, 6.0, 8.0)
 }
 
 func expandWeeklyDates(start, end time.Time) []time.Time {
@@ -393,9 +376,8 @@ func imputeFitnessMetrics(previous models.FitnessMetrics, missedWeeks int, age i
 	imputed.Mobility = decayBehaviorInt(previous.Mobility)
 	imputed.VO2Max = imputeStableFloat(previous.VO2Max, models.GetVO2MaxBaseline(age, profile.Sex), missedWeeks)
 	imputed.CardioRecovery = imputeStableInt(previous.CardioRecovery, neutralCardioRecovery, missedWeeks)
-	imputed.LowerBodyWeight = imputeStableFloat(previous.LowerBodyWeight, neutralLegPressWeight, missedWeeks)
-	imputed.LowerBodyReps = imputeStableInt(previous.LowerBodyReps, neutralLegPressReps, missedWeeks)
-	imputed.DeadHangSeconds = imputeStableInt(previous.DeadHangSeconds, 60, missedWeeks)
+	imputed.SquatWeight = imputeStableFloat(previous.SquatWeight, neutralSquatWeight, missedWeeks)
+	imputed.SquatReps = imputeStableInt(previous.SquatReps, neutralSquatReps, missedWeeks)
 	return imputed
 }
 

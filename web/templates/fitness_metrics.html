@@ -12,8 +12,7 @@
                 <th>VO2 Max</th>
                 <th>Workouts</th>
                 <th>Mobility</th>
-                <th>Dead Hang</th>
-                <th>Leg Press</th>
+                <th>Squat</th>
                 <th>Recovery</th>
                 <th></th>
             </tr>
@@ -26,8 +25,7 @@
                 <td data-label="VO2 Max">{{printf "%.1f" .VO2Max}}</td>
                 <td data-label="Workouts">{{.Workouts}}</td>
                 <td data-label="Mobility">{{.Mobility}}</td>
-                <td data-label="Dead Hang">{{.DeadHangSeconds}}s</td>
-                <td data-label="Leg Press">{{printf "%.1fx%d" .LowerBodyWeight .LowerBodyReps}}</td>
+                <td data-label="Squat">{{printf "%.1fx%d" .SquatWeight .SquatReps}}</td>
                 <td data-label="Recovery">{{.CardioRecovery}}</td>
                 <td>
                     <button class="icon-button delete-btn" hx-delete="/delete-fitness-metric?date={{.Date}}"

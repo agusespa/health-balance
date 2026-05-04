@@ -122,8 +122,8 @@ function copyFitnessFromLastWeek(button) {
         vo2_max: button.dataset.vo2Max,
         workouts: button.dataset.workouts,
         mobility: button.dataset.mobility,
-        dead_hang_seconds: button.dataset.deadHangSeconds,
-        leg_press_set: button.dataset.legPressSet,
+        squat_weight: button.dataset.squatWeight,
+        squat_reps: button.dataset.squatReps,
         cardio_recovery: button.dataset.cardioRecovery,
     });
     showToast("Last week's fitness values copied into this week's form.");

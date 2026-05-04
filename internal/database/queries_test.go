@@ -106,13 +106,13 @@ func TestGetRecentFitnessMetrics(t *testing.T) {
 
 	// Insert test data
 	fitnessMetrics := models.FitnessMetrics{
-		VO2Max:          45.0,
-		Workouts:        4,
-		DailySteps:      10000,
-		Mobility:        3,
-		CardioRecovery:  25,
-		LowerBodyWeight: 180.0,
-		LowerBodyReps:   12,
+		VO2Max:         45.0,
+		Workouts:       4,
+		DailySteps:     10000,
+		Mobility:       3,
+		CardioRecovery: 25,
+		SquatWeight:    180.0,
+		SquatReps:      12,
 	}
 	if err := db.SaveFitnessMetrics(fitnessMetrics); err != nil {
 		t.Fatalf("Failed to save fitness metrics: %v", err)
@@ -237,13 +237,13 @@ func TestSaveAndRetrieveFitnessMetrics(t *testing.T) {
 	testDate := utils.GetActiveWeekEndDate()
 
 	fitnessMetrics := models.FitnessMetrics{
-		VO2Max:          48.0,
-		Workouts:        5,
-		DailySteps:      12000,
-		Mobility:        4,
-		CardioRecovery:  30,
-		LowerBodyWeight: 180.0,
-		LowerBodyReps:   10,
+		VO2Max:         48.0,
+		Workouts:       5,
+		DailySteps:     12000,
+		Mobility:       4,
+		CardioRecovery: 30,
+		SquatWeight:    180.0,
+		SquatReps:      10,
 	}
 
 	if err := db.SaveFitnessMetrics(fitnessMetrics); err != nil {
@@ -270,8 +270,8 @@ func TestSaveAndRetrieveFitnessMetrics(t *testing.T) {
 	if retrieved.CardioRecovery != 30 {
 		t.Errorf("Expected CardioRecovery 30, got %d", retrieved.CardioRecovery)
 	}
-	if retrieved.LowerBodyWeight != 180.0 || retrieved.LowerBodyReps != 10 {
-		t.Errorf("Expected leg press 180.0 x 10, got %.1f x %d", retrieved.LowerBodyWeight, retrieved.LowerBodyReps)
+	if retrieved.SquatWeight != 180.0 || retrieved.SquatReps != 10 {
+		t.Errorf("Expected squat 180.0 x 10, got %.1f x %d", retrieved.SquatWeight, retrieved.SquatReps)
 	}
 }
 

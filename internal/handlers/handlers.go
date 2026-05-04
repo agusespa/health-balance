@@ -250,20 +250,15 @@ func (h *Handler) HandleAddFitnessMetrics(w http.ResponseWriter, r *http.Request
 		}
 		return val
 	}
-	lowerBodyWeight, lowerBodyReps, err := parseWeightAndReps(r.FormValue("leg_press_set"))
-	if err != nil {
-		errs = append(errs, err.Error())
-	}
 
 	fitness := models.FitnessMetrics{
-		VO2Max:          getF("vo2_max"),
-		Workouts:        getI("workouts"),
-		DailySteps:      getI("daily_steps"),
-		Mobility:        getI("mobility"),
-		CardioRecovery:  getI("cardio_recovery"),
-		LowerBodyWeight: lowerBodyWeight,
-		LowerBodyReps:   lowerBodyReps,
-		DeadHangSeconds: getI("dead_hang_seconds"),
+		VO2Max:         getF("vo2_max"),
+		Workouts:       getI("workouts"),
+		DailySteps:     getI("daily_steps"),
+		Mobility:       getI("mobility"),
+		CardioRecovery: getI("cardio_recovery"),
+		SquatWeight:    getF("squat_weight"),
+		SquatReps:      getI("squat_reps"),
 	}
 
 	if len(errs) > 0 {
@@ -540,34 +535,6 @@ func parseFormFloat(r *http.Request, key string) (float64, error) {
 		return 0, fmt.Errorf("%s is required", key)
 	}
 	return strconv.ParseFloat(val, 64)
-}
-
-func parseWeightAndReps(value string) (float64, int, error) {
-	trimmed := strings.TrimSpace(strings.ToLower(value))
-	if trimmed == "" {
-		return 0, 0, fmt.Errorf("leg_press_set is required")
-	}
-
-	parts := strings.Split(trimmed, "x")
-	if len(parts) != 2 {
-		return 0, 0, fmt.Errorf("leg_press_set must use the format weightxreps, for example 180x12")
-	}
-
-	weight, err := strconv.ParseFloat(strings.TrimSpace(parts[0]), 64)
-	if err != nil {
-		return 0, 0, fmt.Errorf("leg_press_set must include a valid weight")
-	}
-
-	reps, err := strconv.Atoi(strings.TrimSpace(parts[1]))
-	if err != nil {
-		return 0, 0, fmt.Errorf("leg_press_set must include valid reps")
-	}
-
-	if weight <= 0 || reps <= 0 {
-		return 0, 0, fmt.Errorf("leg_press_set weight and reps must both be positive")
-	}
-
-	return weight, reps, nil
 }
 
 func (h *Handler) buildDashboardData() DashboardData {

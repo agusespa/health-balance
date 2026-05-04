@@ -102,7 +102,7 @@ func (db *DB) GetRecentHealthMetrics(limit int) ([]models.HealthMetrics, error) 
 func (db *DB) GetRecentFitnessMetrics(limit int) ([]models.FitnessMetrics, error) {
 	currentWeekDate := utils.GetActiveWeekEndDate()
 	rows, err := db.Query(`
-		SELECT date, vo2_max, workouts, daily_steps, mobility, cardio_recovery, lower_body_weight, lower_body_reps, dead_hang_seconds
+		SELECT date, vo2_max, workouts, daily_steps, mobility, cardio_recovery, squat_weight, squat_reps
 		FROM fitness_metrics
 		WHERE date != ?
 		ORDER BY date DESC
@@ -120,7 +120,7 @@ func (db *DB) GetRecentFitnessMetrics(limit int) ([]models.FitnessMetrics, error
 	var metrics []models.FitnessMetrics
 	for rows.Next() {
 		var m models.FitnessMetrics
-		err := rows.Scan(&m.Date, &m.VO2Max, &m.Workouts, &m.DailySteps, &m.Mobility, &m.CardioRecovery, &m.LowerBodyWeight, &m.LowerBodyReps, &m.DeadHangSeconds)
+		err := rows.Scan(&m.Date, &m.VO2Max, &m.Workouts, &m.DailySteps, &m.Mobility, &m.CardioRecovery, &m.SquatWeight, &m.SquatReps)
 		if err != nil {
 			return nil, err
 		}
@@ -187,18 +187,17 @@ func (db *DB) SaveHealthMetrics(m models.HealthMetrics) error {
 func (db *DB) SaveFitnessMetrics(m models.FitnessMetrics) error {
 	date := utils.GetActiveWeekEndDate()
 	_, err := db.Exec(`
-		INSERT INTO fitness_metrics (date, vo2_max, workouts, daily_steps, mobility, cardio_recovery, lower_body_weight, lower_body_reps, dead_hang_seconds)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO fitness_metrics (date, vo2_max, workouts, daily_steps, mobility, cardio_recovery, squat_weight, squat_reps)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(date) DO UPDATE SET
 			vo2_max = excluded.vo2_max,
 			workouts = excluded.workouts,
 			daily_steps = excluded.daily_steps,
 			mobility = excluded.mobility,
 			cardio_recovery = excluded.cardio_recovery,
-			lower_body_weight = excluded.lower_body_weight,
-			lower_body_reps = excluded.lower_body_reps,
-			dead_hang_seconds = excluded.dead_hang_seconds
-	`, date, m.VO2Max, m.Workouts, m.DailySteps, m.Mobility, m.CardioRecovery, m.LowerBodyWeight, m.LowerBodyReps, m.DeadHangSeconds)
+			squat_weight = excluded.squat_weight,
+			squat_reps = excluded.squat_reps
+	`, date, m.VO2Max, m.Workouts, m.DailySteps, m.Mobility, m.CardioRecovery, m.SquatWeight, m.SquatReps)
 	if err != nil {
 		return err
 	}
@@ -245,10 +244,10 @@ func (db *DB) GetHealthMetricsByDate(date string) (*models.HealthMetrics, error)
 func (db *DB) GetFitnessMetricsByDate(date string) (*models.FitnessMetrics, error) {
 	var m models.FitnessMetrics
 	err := db.QueryRow(`
-		SELECT date, vo2_max, workouts, daily_steps, mobility, cardio_recovery, lower_body_weight, lower_body_reps, dead_hang_seconds
+		SELECT date, vo2_max, workouts, daily_steps, mobility, cardio_recovery, squat_weight, squat_reps
 		FROM fitness_metrics
 		WHERE date = ?
-	`, date).Scan(&m.Date, &m.VO2Max, &m.Workouts, &m.DailySteps, &m.Mobility, &m.CardioRecovery, &m.LowerBodyWeight, &m.LowerBodyReps, &m.DeadHangSeconds)
+	`, date).Scan(&m.Date, &m.VO2Max, &m.Workouts, &m.DailySteps, &m.Mobility, &m.CardioRecovery, &m.SquatWeight, &m.SquatReps)
 
 	if err != nil {
 		return nil, err

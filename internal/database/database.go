@@ -47,9 +47,8 @@ func createTables(db *sql.DB) error {
 			daily_steps INTEGER,
 			mobility INTEGER,
 			cardio_recovery INTEGER,
-			lower_body_weight REAL,
-			lower_body_reps INTEGER,
-			dead_hang_seconds INTEGER
+			squat_weight REAL,
+			squat_reps INTEGER
 		);`,
 		`CREATE TABLE IF NOT EXISTS cognition_metrics (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,

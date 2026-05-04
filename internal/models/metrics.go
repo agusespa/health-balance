@@ -24,15 +24,14 @@ type HealthMetrics struct {
 
 // FitnessMetrics represents the Fitness Pillar
 type FitnessMetrics struct {
-	Date            string
-	VO2Max          float64
-	Workouts        int
-	DailySteps      int
-	Mobility        int
-	CardioRecovery  int
-	LowerBodyWeight float64
-	LowerBodyReps   int
-	DeadHangSeconds int
+	Date           string
+	VO2Max         float64
+	Workouts       int
+	DailySteps     int
+	Mobility       int
+	CardioRecovery int
+	SquatWeight    float64
+	SquatReps      int
 }
 
 // CognitionMetrics represents the Cognition Pillar

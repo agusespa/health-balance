@@ -138,18 +138,17 @@ func upsertWeek(db *database.DB, date string, sample weekSample) error {
 	}
 
 	if _, err := db.Exec(`
-		INSERT INTO fitness_metrics (date, vo2_max, workouts, daily_steps, mobility, cardio_recovery, lower_body_weight, lower_body_reps, dead_hang_seconds)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO fitness_metrics (date, vo2_max, workouts, daily_steps, mobility, cardio_recovery, squat_weight, squat_reps)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(date) DO UPDATE SET
 			vo2_max = excluded.vo2_max,
 			workouts = excluded.workouts,
 			daily_steps = excluded.daily_steps,
 			mobility = excluded.mobility,
 			cardio_recovery = excluded.cardio_recovery,
-			lower_body_weight = excluded.lower_body_weight,
-			lower_body_reps = excluded.lower_body_reps,
-			dead_hang_seconds = excluded.dead_hang_seconds
-	`, date, sample.fitness.VO2Max, sample.fitness.Workouts, sample.fitness.DailySteps, sample.fitness.Mobility, sample.fitness.CardioRecovery, sample.fitness.LowerBodyWeight, sample.fitness.LowerBodyReps, sample.fitness.DeadHangSeconds); err != nil {
+			squat_weight = excluded.squat_weight,
+			squat_reps = excluded.squat_reps
+	`, date, sample.fitness.VO2Max, sample.fitness.Workouts, sample.fitness.DailySteps, sample.fitness.Mobility, sample.fitness.CardioRecovery, sample.fitness.SquatWeight, sample.fitness.SquatReps); err != nil {
 		return err
 	}
 
@@ -183,14 +182,13 @@ func buildWeekSample(recency float64, offset int) weekSample {
 			NutritionScore: clampFloat(6.6+recency*1.6+(waveB*0.25), 5.8, 8.8),
 		},
 		fitness: models.FitnessMetrics{
-			VO2Max:          clampFloat(38.5+recency*6.0+(waveA*0.8), 36.5, 47.0),
-			Workouts:        clampInt(2+int(math.Round(recency*2))+positiveSwing(offset, 3), 1, 5),
-			DailySteps:      clampInt(6900+int(math.Round(recency*2600))+int(math.Round(waveB*700)), 5500, 12000),
-			Mobility:        clampInt(1+int(math.Round(recency*2))+positiveSwing(offset+1, 4), 1, 4),
-			CardioRecovery:  clampInt(21+int(math.Round(recency*6))+int(math.Round(waveA*2)), 17, 32),
-			LowerBodyWeight: clampFloat(165+recency*38+(waveB*6), 150, 230),
-			LowerBodyReps:   clampInt(8+positiveSwing(offset+2, 5)+int(math.Round(recency*2)), 8, 13),
-			DeadHangSeconds: clampInt(35+int(math.Round(recency*50))+int(math.Round(waveA*8)), 25, 95),
+			VO2Max:         clampFloat(38.5+recency*6.0+(waveA*0.8), 36.5, 47.0),
+			Workouts:       clampInt(2+int(math.Round(recency*2))+positiveSwing(offset, 3), 1, 5),
+			DailySteps:     clampInt(6900+int(math.Round(recency*2600))+int(math.Round(waveB*700)), 5500, 12000),
+			Mobility:       clampInt(1+int(math.Round(recency*2))+positiveSwing(offset+1, 4), 1, 4),
+			CardioRecovery: clampInt(21+int(math.Round(recency*6))+int(math.Round(waveA*2)), 17, 32),
+			SquatWeight:    clampFloat(85+recency*30+(waveB*5), 80, 130),
+			SquatReps:      clampInt(5+positiveSwing(offset+2, 5)+int(math.Round(recency*2)), 5, 10),
 		},
 		cognition: models.CognitionMetrics{
 			Mindfulness:  clampInt(1+int(math.Round(recency*2))+positiveSwing(offset+3, 4), 1, 5),
