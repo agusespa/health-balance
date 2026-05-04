@@ -321,22 +321,22 @@ form button[type="submit"] {
     flex-direction: column;
 }
 
-.bp-group {
+.half-width-group {
     grid-column: span 1;
 }
 
-.bp-inputs {
+.paired-inputs {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
     gap: 10px;
 }
 
-.bp-inputs input {
+.paired-inputs input {
     text-align: center;
 }
 
-.bp-separator {
+.input-separator {
     color: var(--text-muted);
     font-size: 1.1rem;
     font-weight: 700;
@@ -542,7 +542,7 @@ tbody tr:hover {
         grid-template-columns: 1fr;
     }
 
-    .bp-group {
+    .half-width-group {
         grid-column: auto;
     }
 
