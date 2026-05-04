@@ -321,6 +321,28 @@ form button[type="submit"] {
     flex-direction: column;
 }
 
+.bp-group {
+    grid-column: span 1;
+}
+
+.bp-inputs {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+}
+
+.bp-inputs input {
+    text-align: center;
+}
+
+.bp-separator {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
 label {
     display: block;
     font-size: 0.9rem;
@@ -518,6 +540,10 @@ tbody tr:hover {
 @media (max-width: 768px) {
     form {
         grid-template-columns: 1fr;
+    }
+
+    .bp-group {
+        grid-column: auto;
     }
 
     .score-value {
