@@ -12,6 +12,9 @@ function ensureTmpDir() {
 
 function resetSeededDatabase() {
   ensureTmpDir();
+  for (const file of [dbPath, `${dbPath}-shm`, `${dbPath}-wal`]) {
+    fs.rmSync(file, { force: true });
+  }
   execFileSync(
     "go",
     ["run", "./cmd/seed/main.go", "-db", dbPath, "-reset"],
