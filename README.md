@@ -1,4 +1,4 @@
-<p align="center"> <img src="web/static/icons/icon-192-c4f1f45902a0.png" alt="Health Balance icon" width="128"> </p>
+<p align="center"> <img src="web/static/icons/icon-192-36074ac33339.png" alt="Health Balance icon" width="128"> </p>
 
 # Health Balance
 
