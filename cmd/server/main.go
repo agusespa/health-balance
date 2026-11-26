@@ -39,11 +39,7 @@ func main() {
 		}
 	}()
 
-	// A nil *Claude must not become a non-nil interface value.
-	var insights services.InsightWriter
-	if c := services.NewClaudeFromEnv(); c != nil {
-		insights = c
-	}
+	insights := services.NewInsightWriterFromEnv()
 	services.StartInsightScheduler(db, insights)
 
 	mux := http.NewServeMux()

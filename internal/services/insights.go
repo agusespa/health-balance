@@ -29,8 +29,8 @@ const (
 	insightTimeout   = 5 * time.Minute
 )
 
-// ErrInsightsDisabled means no ANTHROPIC_API_KEY is configured.
-var ErrInsightsDisabled = errors.New("insights are disabled: ANTHROPIC_API_KEY is not set")
+// ErrInsightsDisabled means neither CLAUDE_RUN_URL nor ANTHROPIC_API_KEY is configured.
+var ErrInsightsDisabled = errors.New("insights are disabled: set CLAUDE_RUN_URL or ANTHROPIC_API_KEY")
 
 // InsightWriter turns a prompt into text. Claude implements it; tests fake it.
 type InsightWriter interface {
@@ -138,7 +138,7 @@ func GenerateInsight(ctx context.Context, db database.Querier, w InsightWriter) 
 // next check. It does nothing without a writer.
 func StartInsightScheduler(db database.Querier, w InsightWriter) {
 	if w == nil {
-		log.Printf("Insights: ANTHROPIC_API_KEY not set, weekly insights are off")
+		log.Printf("Insights: neither CLAUDE_RUN_URL nor ANTHROPIC_API_KEY is set, weekly insights are off")
 		return
 	}
 	go func() {

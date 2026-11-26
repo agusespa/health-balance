@@ -17,7 +17,7 @@ Tap **?** in the app for how the score is calculated.
 1. Next to [docker-compose.yml](docker-compose.yml), create a `.env`:
    ```bash
    INGEST_TOKEN=a_long_random_string
-   ANTHROPIC_API_KEY=your_key_here
+   CLAUDE_NETWORK=the_network_your_claude_container_is_on
    ```
 2. Run `docker-compose up -d`.
 3. Open `http://<your-server>:8080`, add it to your Home Screen, and fill in your profile in **Settings**.
@@ -25,8 +25,11 @@ Tap **?** in the app for how the score is calculated.
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `INGEST_TOKEN` | | Required to receive health data. |
-| `ANTHROPIC_API_KEY` | | Enables AI insights. |
-| `ANTHROPIC_MODEL` | `claude-opus-5-5` | Model for insights. |
+| `CLAUDE_NETWORK` | | Docker network of the Claude Code container (docker-compose.yml). |
+| `CLAUDE_RUN_URL` | `http://claude:8080/run` in compose | Claude Code container endpoint; enables AI insights without an API key. |
+| `CLAUDE_RUN_MODEL` | `opus` | Claude Code model alias for insights. |
+| `ANTHROPIC_API_KEY` | | Alternative to `CLAUDE_RUN_URL`: insights via the Messages API. |
+| `ANTHROPIC_MODEL` | `claude-opus-5-5` | Model when using `ANTHROPIC_API_KEY`. |
 | `DB_PATH` | `./data/health.db` | Database file. |
 | `PORT` | `8080` | Listen port. |
 

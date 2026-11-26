@@ -23,7 +23,7 @@ import (
 
 type Handler struct {
 	db       database.Querier
-	insights services.InsightWriter // nil when ANTHROPIC_API_KEY is unset
+	insights services.InsightWriter // nil when no insight writer is configured
 }
 
 func New(db database.Querier, insights services.InsightWriter) *Handler {
@@ -241,7 +241,7 @@ func (h *Handler) HandleRegenerateInsight(w http.ResponseWriter, r *http.Request
 	in, err := services.GenerateInsight(r.Context(), h.db, h.insights)
 	switch {
 	case errors.Is(err, services.ErrInsightsDisabled):
-		writeJSON(w, http.StatusServiceUnavailable, apiError{"insights are off: set ANTHROPIC_API_KEY on the server"})
+		writeJSON(w, http.StatusServiceUnavailable, apiError{"insights are off: set CLAUDE_RUN_URL or ANTHROPIC_API_KEY on the server"})
 	case errors.Is(err, services.ErrProfileRequired):
 		writeJSON(w, http.StatusConflict, apiError{"set your birth date, sex and height in Settings first"})
 	case err != nil:

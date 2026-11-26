@@ -7,8 +7,18 @@ services:
       - "8080:8080"
     environment:
       - DB_PATH=/app/data/health.db
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - CLAUDE_RUN_URL=${CLAUDE_RUN_URL:-http://claude:8080/run}
+      - CLAUDE_RUN_MODEL=${CLAUDE_RUN_MODEL:-opus}
       - INGEST_TOKEN=${INGEST_TOKEN}
       - PORT=8080
     volumes:
       - ./data:/app/data
+    networks:
+      - default
+      - claude
+
+networks:
+  # The Docker network the home-lab claude container (and n8n) is on.
+  claude:
+    external: true
+    name: ${CLAUDE_NETWORK:?set CLAUDE_NETWORK to the Docker network of the claude container}
