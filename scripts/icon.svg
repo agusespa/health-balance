@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<!-- The app icon. Edit this, then run `npm run icons` to regenerate every size.
+     Draw a full square without rounded corners; the script rounds them where needed.
+     Keep the mark inside the maskable safe zone: a circle of radius 204 around the centre. -->
+<!-- A solid heart inside a score gauge, the ring graded green to teal to the app's blue accent. -->
+<defs>
+<radialGradient id="bg" cx="256" cy="200" r="360" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1B3358"/><stop offset="1" stop-color="#0B1625"/></radialGradient>
+<linearGradient id="ring" x1="120" y1="400" x2="392" y2="112" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4ADE80"/><stop offset="0.5" stop-color="#5DE0D1"/><stop offset="1" stop-color="#78A2FF"/></linearGradient>
+</defs>
+<rect width="512" height="512" fill="url(#bg)"/>
+<!-- The gauge: a dim track, then a 78% arc starting at 12 o'clock. -->
+<circle cx="256" cy="256" r="148" fill="none" stroke="#22344F" stroke-width="44"/>
+<circle cx="256" cy="256" r="148" fill="none" stroke="url(#ring)" stroke-width="44" stroke-linecap="round" stroke-dasharray="725 930" transform="rotate(-90 256 256)"/>
+<!-- The heart. -->
+<path fill="#EEF4FB" d="M256 342 C196 302 166 270 166 234 C166 206 186 186 213 186 C232 186 247 196 256 212 C265 196 280 186 299 186 C326 186 346 206 346 234 C346 270 316 302 256 342Z"/>
+</svg>

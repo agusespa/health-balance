@@ -1,0 +1,27 @@
+{
+	"name": "Health Balance",
+	"short_name": "Health",
+	"start_url": "/",
+	"scope": "/",
+	"display": "standalone",
+	"background_color": "#f5f4ef",
+	"theme_color": "#1a6ea9",
+	"icons": [
+		{
+			"src": "/icons/icon-192-c4f1f45902a0.png",
+			"sizes": "192x192",
+			"type": "image/png"
+		},
+		{
+			"src": "/icons/icon-512-c4f1f45902a0.png",
+			"sizes": "512x512",
+			"type": "image/png"
+		},
+		{
+			"src": "/icons/icon-maskable-512-c4f1f45902a0.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		}
+	]
+}

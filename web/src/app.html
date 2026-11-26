@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<meta name="theme-color" content="#1a6ea9" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<meta name="apple-mobile-web-app-title" content="Health Balance" />
+		<!-- App icons -->
+		<link
+			rel="icon"
+			type="image/png"
+			sizes="32x32"
+			href="%sveltekit.assets%/icons/favicon-c4f1f45902a0.png"
+		/>
+		<link
+			rel="icon"
+			type="image/svg+xml"
+			sizes="any"
+			href="%sveltekit.assets%/icons/favicon-c4f1f45902a0.svg"
+		/>
+		<link
+			rel="apple-touch-icon"
+			sizes="180x180"
+			href="%sveltekit.assets%/icons/apple-touch-icon-c4f1f45902a0.png"
+		/>
+		<!-- End app icons -->
+		<link rel="manifest" href="%sveltekit.assets%/manifest.webmanifest" crossorigin="use-credentials" />
+		<title>Health Balance</title>
+		<script>
+			// Resolve the theme before first paint so there is no flash.
+			(function () {
+				var media = matchMedia('(prefers-color-scheme: dark)');
+				function apply() {
+					var pref = localStorage.getItem('theme');
+					var theme = pref === 'light' || pref === 'dark' ? pref : media.matches ? 'dark' : 'light';
+					document.documentElement.dataset.theme = theme;
+					var meta = document.querySelector('meta[name="theme-color"]');
+					if (meta) meta.setAttribute('content', theme === 'dark' ? '#17569c' : '#1a6ea9');
+				}
+				apply();
+				media.addEventListener('change', apply);
+				window.__applyTheme = apply;
+			})();
+		</script>
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>
