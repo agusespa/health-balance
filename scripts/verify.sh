@@ -36,7 +36,7 @@ run_check "Tests with race detection" go test -race ./...
 echo ">> Checking test coverage..."
 go test -coverprofile=coverage.out ./... > /dev/null 2>&1
 if [ -f coverage.out ]; then
-    coverage=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+    coverage=$(go tool cover -func=coverage.out | grep '^total:' | awk '{print $3}' | sed 's/%//')
     
     # Use bc or awk for float comparison
     is_low=$(awk -v cov="$coverage" -v thr="$COVERAGE_THRESHOLD" 'BEGIN {print (cov < thr ? 1 : 0)}')
