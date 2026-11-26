@@ -28,50 +28,38 @@ func Init(dbPath string) (*DB, error) {
 
 func createTables(db *sql.DB) error {
 	queries := []string{
-		`CREATE TABLE IF NOT EXISTS health_metrics (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			date TEXT NOT NULL UNIQUE,
-			sleep_score INTEGER,
-			waist_cm REAL,
-			body_weight_kg REAL,
-			rhr INTEGER,
-			systolic_bp INTEGER,
-			diastolic_bp INTEGER,
-			nutrition_score REAL
-		);`,
-		`CREATE TABLE IF NOT EXISTS fitness_metrics (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			date TEXT NOT NULL UNIQUE,
-			vo2_max REAL,
-			workouts INTEGER,
-			daily_steps INTEGER,
-			mobility INTEGER,
-			cardio_recovery INTEGER,
-			squat_weight REAL,
-			squat_reps INTEGER
-		);`,
-		`CREATE TABLE IF NOT EXISTS cognition_metrics (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			date TEXT NOT NULL UNIQUE,
-			mindfulness INTEGER,
-			deep_learning INTEGER,
-			stress_score INTEGER,
-			social_days INTEGER
-		);`,
 		`CREATE TABLE IF NOT EXISTS user_profile (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			birth_date TEXT NOT NULL,
 			sex TEXT NOT NULL,
 			height_cm REAL NOT NULL
 		);`,
-		`CREATE TABLE IF NOT EXISTS push_subscriptions (
+		`CREATE TABLE IF NOT EXISTS daily_metrics (
+			date TEXT NOT NULL,
+			metric TEXT NOT NULL,
+			value REAL NOT NULL,
+			samples INTEGER NOT NULL DEFAULT 0,
+			source TEXT NOT NULL DEFAULT '',
+			updated_at TEXT NOT NULL,
+			PRIMARY KEY (date, metric)
+		) WITHOUT ROWID;`,
+		`CREATE INDEX IF NOT EXISTS idx_daily_metrics_metric_date ON daily_metrics (metric, date);`,
+		`CREATE TABLE IF NOT EXISTS ingest_runs (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			endpoint TEXT NOT NULL UNIQUE,
-			p256dh TEXT NOT NULL,
-			auth TEXT NOT NULL,
-			reminder_day INTEGER NOT NULL DEFAULT 0,
-			reminder_time TEXT NOT NULL DEFAULT '15:00',
-			timezone TEXT NOT NULL DEFAULT 'UTC'
+			received_at TEXT NOT NULL,
+			kind TEXT NOT NULL,
+			rows INTEGER NOT NULL,
+			accepted INTEGER NOT NULL,
+			rejected INTEGER NOT NULL,
+			from_date TEXT NOT NULL DEFAULT '',
+			to_date TEXT NOT NULL DEFAULT ''
+		);`,
+		`CREATE INDEX IF NOT EXISTS idx_ingest_runs_kind_received ON ingest_runs (kind, received_at);`,
+		`CREATE TABLE IF NOT EXISTS insights (
+			week_end TEXT PRIMARY KEY,
+			model TEXT NOT NULL,
+			created_at TEXT NOT NULL,
+			markdown TEXT NOT NULL
 		);`,
 	}
 

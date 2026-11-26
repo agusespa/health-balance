@@ -38,3 +38,12 @@ data/
 *.db-shm
 
 .DS_Store
+
+# SvelteKit build output, embedded by internal/ui
+web/build/
+web/.svelte-kit/
+web/node_modules/
+internal/ui/dist/*
+!internal/ui/dist/.gitkeep
+
+/bin/

@@ -46,3 +46,23 @@ jobs:
 
       - name: Verify Go build
         run: go build -o /dev/null ./...
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+
+      - name: Type-check the frontend
+        run: |
+          npm --prefix web ci
+          npm --prefix web run check
+
+      - name: Run e2e tests
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm run test:e2e

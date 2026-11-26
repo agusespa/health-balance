@@ -1,0 +1,33 @@
+import { expect, test } from '@playwright/test';
+
+function rows(): string {
+	const lines: string[] = [];
+	for (let i = 6; i >= 0; i--) {
+		const d = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+		lines.push(`RHR; 50;count/min;${d}T00:03:14+01:00;${d}T23:54:13+01:00;Agustin’s Apple Watch`);
+		lines.push(`SETS;12;count;${d}T00:00:00+01:00;${d}T23:59:59+01:00;gympass`);
+	}
+	return lines.join('\n');
+}
+
+test('rejects a request without the token', async ({ request }) => {
+	const res = await request.post('/api/ingest/health', { data: { rows: rows() } });
+	expect(res.status()).toBe(401);
+});
+
+test('stores an ingest payload and records the sync', async ({ request, page }) => {
+	const res = await request.post('/api/ingest/health', {
+		headers: { Authorization: 'Bearer e2e-token' },
+		data: { rows: rows() }
+	});
+	expect(res.ok()).toBe(true);
+	const body = await res.json();
+	expect(body.rejected).toBe(0);
+	expect(body.metrics.rhr).toBe(7);
+
+	const dashboard = await (await request.get('/api/dashboard')).json();
+	expect(dashboard.last_sync.accepted).toBe(body.accepted);
+
+	await page.goto('/');
+	await expect(page.getByTestId('stale-banner')).toHaveCount(0);
+});

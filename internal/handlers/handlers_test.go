@@ -1,560 +1,216 @@
 package handlers
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
-	"html/template"
-	"io"
+	"errors"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
+	"path/filepath"
 	"strings"
 	"testing"
 
+	"health-balance/internal/database"
+	"health-balance/internal/ingest"
 	"health-balance/internal/models"
 	"health-balance/internal/testutil"
 )
 
 func setupTestHandler() (*Handler, *testutil.MockDB) {
-	// Create templates with all the templates that are used in the handlers
-	templates := template.Must(template.New("").Parse(`
-{{define "index.html"}}<html><body>{{if .CurrentScore}}{{.CurrentScore.Score}}{{end}}</body></html>{{end}}
-{{define "settings.html"}}<html><body>Settings</body></html>{{end}}
-{{define "rationale.html"}}<html><body>Rationale</body></html>{{end}}
-{{define "scores.html"}}<html><body>Scores</body></html>{{end}}
-{{define "health_metrics.html"}}<html><body>Health Metrics</body></html>{{end}}
-{{define "fitness_metrics.html"}}<html><body>Fitness Metrics</body></html>{{end}}
-{{define "cognition_metrics.html"}}<html><body>Cognition Metrics</body></html>{{end}}
-{{define "score_display"}}<html><body>Score Display</body></html>{{end}}
-`))
 	mockDB := &testutil.MockDB{}
-	handler := New(mockDB, templates)
-	return handler, mockDB
+	return New(mockDB, nil), mockDB
 }
 
-func TestLimitMasterScoresKeepsMostRecentEntries(t *testing.T) {
-	var scores []models.MasterScore
-	for i := 1; i <= 12; i++ {
-		scores = append(scores, models.MasterScore{
-			Date:  "2024-01-" + strconv.Itoa(i),
-			Score: float64(i),
-		})
-	}
-
-	limited := limitMasterScores(scores, historyPreviewLimit)
-
-	if len(limited) != historyPreviewLimit {
-		t.Fatalf("expected %d scores, got %d", historyPreviewLimit, len(limited))
-	}
-	if limited[0].Date != "2024-01-3" {
-		t.Fatalf("expected first retained score to be 2024-01-3, got %s", limited[0].Date)
-	}
-	if limited[len(limited)-1].Date != "2024-01-12" {
-		t.Fatalf("expected latest retained score to be 2024-01-12, got %s", limited[len(limited)-1].Date)
-	}
+// serve runs a request through the real routes.
+func serve(t *testing.T, h *Handler, method, path, body string) *httptest.ResponseRecorder {
+	t.Helper()
+	mux := http.NewServeMux()
+	h.Routes(mux)
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, httptest.NewRequest(method, path, strings.NewReader(body)))
+	return rec
 }
 
-func TestReverseMasterScoresShowsMostRecentFirst(t *testing.T) {
-	scores := []models.MasterScore{
-		{Date: "2024-01-03", Score: 3},
-		{Date: "2024-01-10", Score: 10},
-		{Date: "2024-01-17", Score: 17},
+func decode[T any](t *testing.T, rec *httptest.ResponseRecorder) T {
+	t.Helper()
+	var v T
+	if err := json.Unmarshal(rec.Body.Bytes(), &v); err != nil {
+		t.Fatalf("decode %q: %v", rec.Body.String(), err)
 	}
-
-	reversed := reverseMasterScores(scores)
-
-	if reversed[0].Date != "2024-01-17" {
-		t.Fatalf("expected first score to be the most recent date, got %s", reversed[0].Date)
-	}
-	if reversed[len(reversed)-1].Date != "2024-01-03" {
-		t.Fatalf("expected last score to be the oldest date, got %s", reversed[len(reversed)-1].Date)
-	}
-	if scores[0].Date != "2024-01-03" {
-		t.Fatalf("expected original slice to remain unchanged, got %s", scores[0].Date)
-	}
+	return v
 }
 
-func TestHandleHome(t *testing.T) {
-	handler, mockDB := setupTestHandler()
-
-	// Mock the database calls
-	mockDB.GetUserProfileFunc = func() (*models.UserProfile, error) {
-		return &models.UserProfile{
-			BirthDate: "1990-01-01",
-			Sex:       "male",
-			HeightCm:  180.0,
-		}, nil
-	}
-
-	req, err := http.NewRequest("GET", "/", nil)
+func realHandler(t *testing.T, profile *models.UserProfile, values []models.DailyMetric) *Handler {
+	t.Helper()
+	db, err := database.Init(filepath.Join(t.TempDir(), "api.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	rr := httptest.NewRecorder()
-	handler.HandleHome(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("Expected status code %d, got %d", http.StatusOK, status)
-	}
-}
-
-func TestHandleSettings(t *testing.T) {
-	handler, mockDB := setupTestHandler()
-
-	// Mock the database calls
-	mockDB.GetUserProfileFunc = func() (*models.UserProfile, error) {
-		return &models.UserProfile{
-			BirthDate: "1990-01-01",
-			Sex:       "male",
-			HeightCm:  180.0,
-		}, nil
-	}
-
-	req, err := http.NewRequest("GET", "/settings", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-	handler.HandleSettings(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("Expected status code %d, got %d", http.StatusOK, status)
-	}
-}
-
-func TestHandleRationale(t *testing.T) {
-	handler, _ := setupTestHandler()
-
-	req, err := http.NewRequest("GET", "/rationale", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-	handler.HandleRationale(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("Expected status code %d, got %d", http.StatusOK, status)
-	}
-}
-
-func TestHandleAddHealthMetrics(t *testing.T) {
-	handler, mockDB := setupTestHandler()
-
-	// Mock the save function
-	mockDB.SaveHealthMetricsFunc = func(m models.HealthMetrics) error {
-		if m.SleepScore != 80 {
-			t.Errorf("Expected SleepScore 80, got %d", m.SleepScore)
+	t.Cleanup(func() { _ = db.Close() })
+	if profile != nil {
+		if err := db.SaveUserProfile(*profile); err != nil {
+			t.Fatal(err)
 		}
-		if m.SystolicBP != 118 || m.DiastolicBP != 76 {
-			t.Errorf("Expected BP 118/76, got %d/%d", m.SystolicBP, m.DiastolicBP)
+	}
+	if _, err := db.SaveIngest(models.IngestRun{Kind: models.IngestKindShortcut}, values); err != nil {
+		t.Fatal(err)
+	}
+	return New(db, nil)
+}
+
+var profile = &models.UserProfile{BirthDate: "1990-06-15", Sex: "male", HeightCm: 180}
+
+func TestDashboardWithoutProfile(t *testing.T) {
+	rec := serve(t, realHandler(t, nil, nil), "GET", "/api/dashboard", "")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status %d", rec.Code)
+	}
+	res := decode[dashboardResponse](t, rec)
+	if res.ProfileComplete || res.Score != nil || res.Week.End == "" || res.LastSync == nil {
+		t.Errorf("got %+v", res)
+	}
+}
+
+func TestDashboardScoresAndHistory(t *testing.T) {
+	h := realHandler(t, profile, []models.DailyMetric{{Date: "2024-03-01", Metric: ingest.MetricVO2Max, Value: 50}})
+
+	res := decode[dashboardResponse](t, serve(t, h, "GET", "/api/dashboard", ""))
+	if !res.ProfileComplete || res.Score == nil || len(res.Score.Metrics) != 11 || res.Score.WeekEnd != res.Week.End {
+		t.Fatalf("dashboard %+v", res)
+	}
+
+	list := decode[[]scoreSummary](t, serve(t, h, "GET", "/api/scores", ""))
+	if len(list) < 100 || list[0].WeekEnd != res.Week.End || list[len(list)-1].WeekEnd != "2024-01-05" {
+		t.Errorf("scores: %d weeks, first %s, last %s", len(list), list[0].WeekEnd, list[len(list)-1].WeekEnd)
+	}
+
+	week := decode[models.WeeklyScore](t, serve(t, h, "GET", "/api/weeks/2024-03-01", ""))
+	for _, m := range week.Metrics {
+		if m.Metric == "vo2_max" && (m.Status != models.StatusMeasured || m.Points <= 0) {
+			t.Errorf("vo2 in its week: %+v", m)
 		}
-		return nil
 	}
-
-	formData := "sleep_score=80&waist_cm=85.0&body_weight_kg=75.0&rhr=60&systolic_bp=118&diastolic_bp=76&nutrition_score=7.5"
-	req, err := http.NewRequest("POST", "/add-health-metrics", strings.NewReader(formData))
-	if err != nil {
-		t.Fatal(err)
+	if rec := serve(t, h, "GET", "/api/weeks/2024-03-02", ""); rec.Code != http.StatusNotFound {
+		t.Errorf("non-Friday week: %d", rec.Code)
 	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	rr := httptest.NewRecorder()
-	handler.HandleAddHealthMetrics(rr, req)
-
-	if status := rr.Code; status != http.StatusNoContent {
-		t.Errorf("Expected status code %d, got %d", http.StatusNoContent, status)
-	}
-
-	// Check if the success trigger is set
-	trigger := rr.Header().Get("HX-Trigger")
-	if trigger == "" {
-		t.Error("Expected HX-Trigger header to be set")
+	if rec := serve(t, h, "GET", "/api/weeks/nope", ""); rec.Code != http.StatusBadRequest {
+		t.Errorf("bad date: %d", rec.Code)
 	}
 }
 
-func TestHandleHealthMetricsUsesHistoryPreviewLimit(t *testing.T) {
-	handler, mockDB := setupTestHandler()
+func TestScoresNeedProfile(t *testing.T) {
+	if rec := serve(t, realHandler(t, nil, nil), "GET", "/api/scores", ""); rec.Code != http.StatusConflict {
+		t.Errorf("status %d, want 409", rec.Code)
+	}
+}
 
-	mockDB.GetRecentHealthMetricsFunc = func(limit int) ([]models.HealthMetrics, error) {
-		if limit != historyPreviewLimit {
-			t.Fatalf("expected limit %d, got %d", historyPreviewLimit, limit)
+func TestDaily(t *testing.T) {
+	h := realHandler(t, nil, []models.DailyMetric{
+		{Date: "2026-11-20", Metric: "rhr", Value: 53},
+		{Date: "2026-11-20", Metric: "steps", Value: 9000},
+		{Date: "2026-11-21", Metric: "rhr", Value: 52},
+	})
+	rows := decode[[]models.DailyMetric](t, serve(t, h, "GET", "/api/daily?from=2026-11-20&to=2026-11-21&metrics=rhr", ""))
+	if len(rows) != 2 || rows[1].Value != 52 {
+		t.Errorf("rows %+v", rows)
+	}
+	empty := serve(t, h, "GET", "/api/daily?from=2020-01-01&to=2020-01-02", "")
+	if strings.TrimSpace(empty.Body.String()) != "[]" {
+		t.Errorf("empty range: %s", empty.Body)
+	}
+	for _, q := range []string{"", "?from=2026-11-21&to=2026-11-20", "?from=x&to=2026-11-20"} {
+		if rec := serve(t, h, "GET", "/api/daily"+q, ""); rec.Code != http.StatusBadRequest {
+			t.Errorf("%q: status %d", q, rec.Code)
 		}
-		return []models.HealthMetrics{}, nil
-	}
-
-	req, err := http.NewRequest("GET", "/health-metrics", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-	handler.HandleHealthMetrics(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("Expected status code %d, got %d", http.StatusOK, status)
 	}
 }
 
-func TestHandleAddHealthMetricsInvalidMethod(t *testing.T) {
-	handler, _ := setupTestHandler()
-
-	req, err := http.NewRequest("GET", "/add-health-metrics", nil)
-	if err != nil {
-		t.Fatal(err)
+func TestProfile(t *testing.T) {
+	h := realHandler(t, nil, nil)
+	if p := decode[models.UserProfile](t, serve(t, h, "GET", "/api/profile", "")); p.BirthDate != "" {
+		t.Errorf("empty profile: %+v", p)
 	}
-
-	rr := httptest.NewRecorder()
-	handler.HandleAddHealthMetrics(rr, req)
-
-	if status := rr.Code; status != http.StatusMethodNotAllowed {
-		t.Errorf("Expected status code %d, got %d", http.StatusMethodNotAllowed, status)
+	rec := serve(t, h, "PUT", "/api/profile", `{"birth_date":"1990-06-15","sex":"male","height_cm":180}`)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("save: %d %s", rec.Code, rec.Body)
 	}
-}
-
-func TestHandleAddFitnessMetrics(t *testing.T) {
-	handler, mockDB := setupTestHandler()
-
-	// Mock the save function
-	mockDB.SaveFitnessMetricsFunc = func(m models.FitnessMetrics) error {
-		if m.VO2Max != 45.0 {
-			t.Errorf("Expected VO2Max 45.0, got %f", m.VO2Max)
+	if p := decode[models.UserProfile](t, serve(t, h, "GET", "/api/profile", "")); p != *profile {
+		t.Errorf("profile %+v", p)
+	}
+	for _, body := range []string{
+		`{"birth_date":"2999-01-01","sex":"male","height_cm":180}`,
+		`{"birth_date":"1990-06-15","sex":"x","height_cm":180}`,
+		`{"birth_date":"1990-06-15","sex":"male","height_cm":20}`,
+		`nope`,
+	} {
+		if rec := serve(t, h, "PUT", "/api/profile", body); rec.Code != http.StatusBadRequest {
+			t.Errorf("%s: %d", body, rec.Code)
 		}
-		if m.SquatWeight != 180.0 || m.SquatReps != 12 {
-			t.Errorf("Expected squat 180.0 x 12, got %.1f x %d", m.SquatWeight, m.SquatReps)
-		}
-		return nil
-	}
-
-	formData := "vo2_max=45.0&workouts=4&daily_steps=10000&mobility=3&cardio_recovery=25&squat_weight=180&squat_reps=12"
-	req, err := http.NewRequest("POST", "/add-fitness-metrics", strings.NewReader(formData))
-	if err != nil {
-		t.Fatal(err)
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	rr := httptest.NewRecorder()
-	handler.HandleAddFitnessMetrics(rr, req)
-
-	if status := rr.Code; status != http.StatusNoContent {
-		t.Errorf("Expected status code %d, got %d", http.StatusNoContent, status)
-	}
-
-	// Check if the success trigger is set
-	trigger := rr.Header().Get("HX-Trigger")
-	if trigger == "" {
-		t.Error("Expected HX-Trigger header to be set")
 	}
 }
 
-func TestHandleFitnessMetricsUsesHistoryPreviewLimit(t *testing.T) {
-	handler, mockDB := setupTestHandler()
-
-	mockDB.GetRecentFitnessMetricsFunc = func(limit int) ([]models.FitnessMetrics, error) {
-		if limit != historyPreviewLimit {
-			t.Fatalf("expected limit %d, got %d", historyPreviewLimit, limit)
-		}
-		return []models.FitnessMetrics{}, nil
+func TestInsights(t *testing.T) {
+	h, mock := setupTestHandler()
+	if rec := serve(t, h, "GET", "/api/insights", ""); strings.TrimSpace(rec.Body.String()) != "null" {
+		t.Errorf("no insight: %s", rec.Body)
 	}
-
-	req, err := http.NewRequest("GET", "/fitness-metrics", nil)
-	if err != nil {
-		t.Fatal(err)
+	mock.GetLatestInsightFunc = func() (*models.Insight, error) {
+		return &models.Insight{WeekEnd: "2026-11-20", Model: "m", Markdown: "**Sleep** is fine <script>alert(1)</script>"}, nil
 	}
-
-	rr := httptest.NewRecorder()
-	handler.HandleFitnessMetrics(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("Expected status code %d, got %d", http.StatusOK, status)
+	res := decode[insightResponse](t, serve(t, h, "GET", "/api/insights", ""))
+	if !strings.Contains(res.HTML, "<strong>Sleep</strong>") || strings.Contains(res.HTML, "<script>") {
+		t.Errorf("html %q", res.HTML)
+	}
+	mock.GetLatestInsightFunc = func() (*models.Insight, error) { return nil, errors.New("boom") }
+	if rec := serve(t, h, "GET", "/api/insights", ""); rec.Code != http.StatusInternalServerError || strings.Contains(rec.Body.String(), "boom") {
+		t.Errorf("error: %d %s", rec.Code, rec.Body)
 	}
 }
 
-func TestHandleAddCognitionMetrics(t *testing.T) {
-	handler, mockDB := setupTestHandler()
-
-	// Mock the save function
-	mockDB.SaveCognitionMetricsFunc = func(m models.CognitionMetrics) error {
-		if m.Mindfulness != 4 {
-			t.Errorf("Expected Mindfulness 4, got %d", m.Mindfulness)
-		}
-		if m.StressScore != 2 || m.SocialDays != 5 {
-			t.Errorf("Expected stress/social 2/5, got %d/%d", m.StressScore, m.SocialDays)
-		}
-		return nil
+func TestUnknownAPIRouteIsJSON404(t *testing.T) {
+	h, _ := setupTestHandler()
+	rec := serve(t, h, "GET", "/api/nope", "")
+	if rec.Code != http.StatusNotFound || !strings.Contains(rec.Body.String(), "not found") {
+		t.Errorf("%d %s", rec.Code, rec.Body)
 	}
-
-	formData := "mindfulness=4&deep_learning=60&stress_score=2&social_days=5"
-	req, err := http.NewRequest("POST", "/add-cognition-metrics", strings.NewReader(formData))
-	if err != nil {
-		t.Fatal(err)
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	rr := httptest.NewRecorder()
-	handler.HandleAddCognitionMetrics(rr, req)
-
-	if status := rr.Code; status != http.StatusNoContent {
-		t.Errorf("Expected status code %d, got %d", http.StatusNoContent, status)
-	}
-
-	// Check if the success trigger is set
-	trigger := rr.Header().Get("HX-Trigger")
-	if trigger == "" {
-		t.Error("Expected HX-Trigger header to be set")
+	if rec := serve(t, h, "GET", "/health", ""); rec.Body.String() != "OK" {
+		t.Errorf("health %s", rec.Body)
 	}
 }
 
-func TestHandleCognitionMetricsUsesHistoryPreviewLimit(t *testing.T) {
-	handler, mockDB := setupTestHandler()
+type stubWriter struct{ err error }
 
-	mockDB.GetRecentCognitionMetricsFunc = func(limit int) ([]models.CognitionMetrics, error) {
-		if limit != historyPreviewLimit {
-			t.Fatalf("expected limit %d, got %d", historyPreviewLimit, limit)
-		}
-		return []models.CognitionMetrics{}, nil
-	}
-
-	req, err := http.NewRequest("GET", "/cognition-metrics", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-	handler.HandleCognitionMetrics(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("Expected status code %d, got %d", http.StatusOK, status)
-	}
+func (s stubWriter) Write(context.Context, string, string) (string, string, error) {
+	return "## Week\nDo **more** steps.", "stub", s.err
 }
 
-func TestHandleDeleteHealthMetric(t *testing.T) {
-	handler, mockDB := setupTestHandler()
-
-	// Mock the delete function
-	mockDB.DeleteHealthMetricsFunc = func(date string) error {
-		if date != "2023-01-01" {
-			t.Errorf("Expected date '2023-01-01', got '%s'", date)
-		}
-		return nil
+func TestRegenerateInsight(t *testing.T) {
+	if rec := serve(t, realHandler(t, profile, nil), "POST", "/api/insights", ""); rec.Code != http.StatusServiceUnavailable {
+		t.Errorf("no key: %d", rec.Code)
 	}
 
-	req, err := http.NewRequest("DELETE", "/delete-health-metric?date=2023-01-01", nil)
+	db, err := database.Init(filepath.Join(t.TempDir(), "insight.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = db.Close() })
 
-	rr := httptest.NewRecorder()
-	handler.HandleDeleteHealthMetric(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("Expected status code %d, got %d", http.StatusOK, status)
+	if rec := serve(t, New(db, stubWriter{}), "POST", "/api/insights", ""); rec.Code != http.StatusConflict {
+		t.Errorf("no profile: %d", rec.Code)
 	}
-
-	// Check if the success trigger is set
-	trigger := rr.Header().Get("HX-Trigger")
-	if trigger == "" {
-		t.Error("Expected HX-Trigger header to be set")
-	}
-}
-
-func TestHandleDeleteFitnessMetric(t *testing.T) {
-	handler, mockDB := setupTestHandler()
-
-	// Mock the delete function
-	mockDB.DeleteFitnessMetricsFunc = func(date string) error {
-		if date != "2023-01-01" {
-			t.Errorf("Expected date '2023-01-01', got '%s'", date)
-		}
-		return nil
-	}
-
-	req, err := http.NewRequest("DELETE", "/delete-fitness-metric?date=2023-01-01", nil)
-	if err != nil {
+	if err := db.SaveUserProfile(*profile); err != nil {
 		t.Fatal(err)
 	}
-
-	rr := httptest.NewRecorder()
-	handler.HandleDeleteFitnessMetric(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("Expected status code %d, got %d", http.StatusOK, status)
+	if rec := serve(t, New(db, stubWriter{err: errors.New("secret upstream detail")}), "POST", "/api/insights", ""); rec.Code != http.StatusBadGateway || strings.Contains(rec.Body.String(), "secret") {
+		t.Errorf("upstream error: %d %s", rec.Code, rec.Body)
 	}
 
-	// Check if the success trigger is set
-	trigger := rr.Header().Get("HX-Trigger")
-	if trigger == "" {
-		t.Error("Expected HX-Trigger header to be set")
+	rec := serve(t, New(db, stubWriter{}), "POST", "/api/insights", "")
+	res := decode[insightResponse](t, rec)
+	if rec.Code != http.StatusOK || res.Model != "stub" || !strings.Contains(res.HTML, "<strong>more</strong>") {
+		t.Errorf("%d %+v", rec.Code, res)
 	}
-}
-
-func TestHandleDeleteCognitionMetric(t *testing.T) {
-	handler, mockDB := setupTestHandler()
-
-	// Mock the delete function
-	mockDB.DeleteCognitionMetricsFunc = func(date string) error {
-		if date != "2023-01-01" {
-			t.Errorf("Expected date '2023-01-01', got '%s'", date)
-		}
-		return nil
-	}
-
-	req, err := http.NewRequest("DELETE", "/delete-cognition-metric?date=2023-01-01", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-	handler.HandleDeleteCognitionMetric(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("Expected status code %d, got %d", http.StatusOK, status)
-	}
-
-	// Check if the success trigger is set
-	trigger := rr.Header().Get("HX-Trigger")
-	if trigger == "" {
-		t.Error("Expected HX-Trigger header to be set")
-	}
-}
-
-func TestHandleUpdateProfile(t *testing.T) {
-	handler, mockDB := setupTestHandler()
-
-	// Mock the save function
-	mockDB.SaveUserProfileFunc = func(profile models.UserProfile) error {
-		if profile.BirthDate != "1990-01-01" {
-			t.Errorf("Expected BirthDate '1990-01-01', got '%s'", profile.BirthDate)
-		}
-		return nil
-	}
-
-	formData := "birth_date=1990-01-01&sex=male&height_cm=180.0"
-	req, err := http.NewRequest("POST", "/update-profile", strings.NewReader(formData))
-	if err != nil {
-		t.Fatal(err)
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	rr := httptest.NewRecorder()
-	handler.HandleUpdateProfile(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("Expected status code %d, got %d", http.StatusOK, status)
-	}
-
-	// Check if the success trigger is set
-	trigger := rr.Header().Get("HX-Trigger")
-	if trigger == "" {
-		t.Error("Expected HX-Trigger header to be set")
-	}
-}
-
-func TestHandleSubscribe(t *testing.T) {
-	handler, mockDB := setupTestHandler()
-
-	// Mock the save function
-	mockDB.SavePushSubscriptionFunc = func(sub models.PushSubscription) error {
-		if sub.Endpoint != "https://example.com/subscription" {
-			t.Errorf("Expected Endpoint 'https://example.com/subscription', got '%s'", sub.Endpoint)
-		}
-		return nil
-	}
-
-	subReq := models.PushSubscriptionRequest{
-		Subscription: models.PushSubscription{
-			Endpoint: "https://example.com/subscription",
-			P256dh:   "p256dh_key",
-			Auth:     "auth_key",
-		},
-		ReminderDay:  1,
-		ReminderTime: "09:00",
-		Timezone:     "UTC",
-	}
-
-	jsonData, _ := json.Marshal(subReq)
-	req, err := http.NewRequest("POST", "/subscribe", bytes.NewReader(jsonData))
-	if err != nil {
-		t.Fatal(err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	rr := httptest.NewRecorder()
-	handler.HandleSubscribe(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("Expected status code %d, got %d", http.StatusOK, status)
-	}
-
-	// Check if the response is JSON
-	responseBody, _ := io.ReadAll(rr.Body)
-	var response map[string]string
-	err = json.Unmarshal(responseBody, &response)
-	if err != nil {
-		t.Errorf("Expected JSON response, got error: %v", err)
-	}
-	if response["status"] != "success" {
-		t.Errorf("Expected status 'success', got '%s'", response["status"])
-	}
-}
-
-func TestHandleAppHealth(t *testing.T) {
-	handler, _ := setupTestHandler()
-
-	req, err := http.NewRequest("GET", "/health", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-	handler.HandleAppHealth(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("Expected status code %d, got %d", http.StatusOK, status)
-	}
-
-	expected := "OK"
-	if rr.Body.String() != expected {
-		t.Errorf("Expected response '%s', got '%s'", expected, rr.Body.String())
-	}
-}
-
-func TestParseFormInt(t *testing.T) {
-	req, err := http.NewRequest("POST", "/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Add form values
-	req.Form = make(map[string][]string)
-	req.Form["test_field"] = []string{"123"}
-
-	result, err := parseFormInt(req, "test_field")
-	if err != nil {
-		t.Errorf("Unexpected error: %v", err)
-	}
-	if result != 123 {
-		t.Errorf("Expected 123, got %d", result)
-	}
-}
-
-func TestParseFormFloat(t *testing.T) {
-	req, err := http.NewRequest("POST", "/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Add form values
-	req.Form = make(map[string][]string)
-	req.Form["test_field"] = []string{"12.34"}
-
-	result, err := parseFormFloat(req, "test_field")
-	if err != nil {
-		t.Errorf("Unexpected error: %v", err)
-	}
-	if result != 12.34 {
-		t.Errorf("Expected 12.34, got %f", result)
+	if got := decode[insightResponse](t, serve(t, New(db, nil), "GET", "/api/insights", "")); got.WeekEnd != res.WeekEnd {
+		t.Errorf("GET after regenerate: %+v", got)
 	}
 }

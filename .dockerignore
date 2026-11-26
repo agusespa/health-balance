@@ -23,3 +23,14 @@ health-balance
 # OS Generated Files
 .DS_Store
 Thumbs.db
+
+# Node and frontend build output (the image builds the frontend itself)
+node_modules/
+web/node_modules/
+web/build/
+web/.svelte-kit/
+internal/ui/dist/*
+!internal/ui/dist/.gitkeep
+bin/
+test-results/
+playwright-report/

@@ -1,11 +1,12 @@
 {
-  "name": "health-balance",
+  "name": "health-balance-e2e",
   "private": true,
+  "type": "module",
   "scripts": {
-    "test:e2e": "playwright test"
+    "test:e2e": "npm --prefix web run build && playwright test",
+    "icons": "node scripts/icons.mjs"
   },
   "devDependencies": {
-    "@playwright/test": "^1.58.2",
-    "playwright": "^1.58.2"
+    "@playwright/test": "^1.58.2"
   }
 }

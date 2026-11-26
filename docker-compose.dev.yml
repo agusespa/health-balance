@@ -7,9 +7,8 @@ services:
       - "8080:8080"
     environment:
       - DB_PATH=/app/data/health.db
-      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
-      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - INGEST_TOKEN=${INGEST_TOKEN}
       - PORT=8080
     volumes:
       - ./data:/app/data

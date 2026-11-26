@@ -1,0 +1,91 @@
+package handlers
+
+import (
+	"encoding/json"
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	"health-balance/internal/models"
+)
+
+const rhrBody = `{"rows":"RHR; 53;count/min;2026-11-18T00:03:14+01:00;2026-11-18T23:54:13+01:00;Agustin’s Apple Watch\nRHR; 55;count/min;2026-11-19T00:01:30+01:00;2026-11-19T23:54:46+01:00;Agustin’s Apple Watch"}`
+
+func ingestRequestWith(body, auth string) *http.Request {
+	req := httptest.NewRequest(http.MethodPost, "/api/ingest/health", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	if auth != "" {
+		req.Header.Set("Authorization", auth)
+	}
+	return req
+}
+
+func TestHandleIngestHealthStores(t *testing.T) {
+	t.Setenv("INGEST_TOKEN", "secret")
+	h, mock := setupTestHandler()
+	var saved []models.DailyMetric
+	var savedRun models.IngestRun
+	mock.SaveIngestFunc = func(run models.IngestRun, values []models.DailyMetric) (int64, error) {
+		savedRun, saved = run, values
+		return 7, nil
+	}
+
+	rec := httptest.NewRecorder()
+	h.HandleIngestHealth(rec, ingestRequestWith(rhrBody, "Bearer secret"))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status %d: %s", rec.Code, rec.Body)
+	}
+	var res struct {
+		RunId    int64          `json:"run_id"`
+		Accepted int            `json:"accepted"`
+		Metrics  map[string]int `json:"metrics"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &res); err != nil {
+		t.Fatal(err)
+	}
+	if res.RunId != 7 || res.Accepted != 2 || res.Metrics["rhr"] != 2 {
+		t.Errorf("response %s", rec.Body)
+	}
+	if len(saved) != 2 || saved[0].Date != "2026-11-18" || saved[0].Value != 53 || savedRun.Kind != models.IngestKindShortcut {
+		t.Errorf("saved %+v run %+v", saved, savedRun)
+	}
+}
+
+func TestHandleIngestHealthErrors(t *testing.T) {
+	tests := []struct {
+		name    string
+		token   string
+		auth    string
+		body    string
+		saveErr error
+		want    int
+	}{
+		{"token not configured", "", "Bearer secret", rhrBody, nil, http.StatusServiceUnavailable},
+		{"no auth header", "secret", "", rhrBody, nil, http.StatusUnauthorized},
+		{"wrong token", "secret", "Bearer nope", rhrBody, nil, http.StatusUnauthorized},
+		{"not bearer", "secret", "secret", rhrBody, nil, http.StatusUnauthorized},
+		{"invalid JSON", "secret", "Bearer secret", `{"rows":`, nil, http.StatusBadRequest},
+		{"no usable rows", "secret", "Bearer secret", `{"rows":"garbage"}`, nil, http.StatusBadRequest},
+		{"too large", "secret", "Bearer secret", `{"rows":"` + strings.Repeat("x", maxIngestBody) + `"}`, nil, http.StatusRequestEntityTooLarge},
+		{"db failure", "secret", "Bearer secret", rhrBody, errors.New("disk full"), http.StatusInternalServerError},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("INGEST_TOKEN", tc.token)
+			h, mock := setupTestHandler()
+			mock.SaveIngestFunc = func(models.IngestRun, []models.DailyMetric) (int64, error) { return 1, tc.saveErr }
+
+			rec := httptest.NewRecorder()
+			h.HandleIngestHealth(rec, ingestRequestWith(tc.body, tc.auth))
+			if rec.Code != tc.want {
+				t.Errorf("status %d, want %d: %s", rec.Code, tc.want, rec.Body)
+			}
+			if strings.Contains(rec.Body.String(), "disk full") {
+				t.Error("internal error leaked to the client")
+			}
+		})
+	}
+}
