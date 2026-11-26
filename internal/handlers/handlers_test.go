@@ -52,7 +52,7 @@ func realHandler(t *testing.T, profile *models.UserProfile, values []models.Dail
 			t.Fatal(err)
 		}
 	}
-	if _, err := db.SaveIngest(models.IngestRun{Kind: models.IngestKindShortcut}, values); err != nil {
+	if _, err := db.SaveIngest(models.IngestRun{Kind: models.IngestKindShortcut}, values, nil); err != nil {
 		t.Fatal(err)
 	}
 	return New(db, nil)

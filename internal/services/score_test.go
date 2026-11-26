@@ -25,7 +25,7 @@ func scoreDB(t *testing.T, values []models.DailyMetric) *database.DB {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = db.Close() })
-	if _, err := db.SaveIngest(models.IngestRun{Kind: models.IngestKindBackfill}, values); err != nil {
+	if _, err := db.SaveIngest(models.IngestRun{Kind: models.IngestKindBackfill}, values, nil); err != nil {
 		t.Fatal(err)
 	}
 	return db

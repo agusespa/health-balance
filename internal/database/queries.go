@@ -8,7 +8,7 @@ import (
 type Querier interface {
 	GetUserProfile() (*models.UserProfile, error)
 	SaveUserProfile(profile models.UserProfile) error
-	SaveIngest(run models.IngestRun, values []models.DailyMetric) (int64, error)
+	SaveIngest(run models.IngestRun, values []models.DailyMetric, clear []models.DayMetric) (int64, error)
 	GetDailyMetrics(from, to string, metrics ...string) ([]models.DailyMetric, error)
 	GetLastIngestRun(kind string) (*models.IngestRun, error)
 	SaveInsight(in models.Insight) error

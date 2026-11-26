@@ -21,6 +21,7 @@ type IngestResult struct {
 	Rejected int              `json:"rejected"` // lines that could not be used
 	From     string           `json:"from"`
 	To       string           `json:"to"`
+	Cleared  int              `json:"cleared"` // stale diary values deleted
 	Metrics  map[string]int   `json:"metrics"` // daily values written per metric
 	Bad      []ingest.BadLine `json:"bad"`     // first few rejected lines
 }
@@ -66,6 +67,8 @@ func IngestShortcutRows(db database.Querier, rows string, receivedAt time.Time) 
 		res.Metrics[dv.Metric]++
 	}
 	res.Accepted = len(values)
+	clear := staleDiaryDays(samples, daily, res.From, res.To)
+	res.Cleared = len(clear)
 
 	id, err := db.SaveIngest(models.IngestRun{
 		ReceivedAt: receivedAt,
@@ -75,10 +78,46 @@ func IngestShortcutRows(db database.Querier, rows string, receivedAt time.Time) 
 		Rejected:   res.Rejected,
 		FromDate:   res.From,
 		ToDate:     res.To,
-	}, values)
+	}, values, clear)
 	if err != nil {
 		return res, fmt.Errorf("save ingest: %w", err)
 	}
 	res.RunId = id
 	return res, nil
+}
+
+// staleDiaryDays lists the stored food diary values to delete: for each diary
+// key the delivery contains at all, every day after the oldest (which is
+// skipped anyway) up to the newest that got no value. Deleting a day's entries
+// in the diary removes them from Health, and they then stop arriving, so
+// without this the old value would stay. A delivery without a key at all (a
+// sender that doesn't read it) clears nothing for that key.
+func staleDiaryDays(samples []ingest.Sample, daily []ingest.DailyValue, from, to string) []models.DayMetric {
+	present := map[string]bool{}
+	for _, s := range samples {
+		present[s.Key] = true
+	}
+	have := map[models.DayMetric]bool{}
+	for _, dv := range daily {
+		have[models.DayMetric{Date: dv.Date, Metric: dv.Metric}] = true
+	}
+	start, err1 := time.Parse("2006-01-02", from)
+	end, err2 := time.Parse("2006-01-02", to)
+	if err1 != nil || err2 != nil {
+		return nil
+	}
+	var out []models.DayMetric
+	for _, key := range ingest.DiaryKeys {
+		metric, _ := ingest.MetricFor(key)
+		if !present[key] {
+			continue
+		}
+		for d := start.AddDate(0, 0, 1); !d.After(end); d = d.AddDate(0, 0, 1) {
+			dm := models.DayMetric{Date: d.Format("2006-01-02"), Metric: metric}
+			if !have[dm] {
+				out = append(out, dm)
+			}
+		}
+	}
+	return out
 }

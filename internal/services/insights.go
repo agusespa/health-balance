@@ -186,6 +186,8 @@ Behaviours (scored on a 4-week average):
 - Gym working sets vs 10 a week
 - Mindfulness sessions vs 3 a week
 
+Nutrition is shown but not scored: daily food energy, protein, carbs, fat, fiber and water from a food diary the person fills in by hand, plus active and resting energy burned from the Watch (kcal_out). A day under 1000 kcal eaten is most likely an unfinished diary, not a fast; leave it out. Mention nutrition only when it plausibly explains another metric (weight, sleep, recovery, training) or protein is clearly short for someone who lifts.
+
 Each metric has a status: measured (data this week), carried (last value reused), imputed (fading toward neutral), missing (no data, 0 points). Treat carried, imputed and missing values as gaps in the data, not as facts about this week.
 
 Write:
@@ -195,6 +197,9 @@ Write:
 4. If data is missing or stale in a way that matters, say which measurement to take.
 
 Keep it under 250 words. Use Markdown with bold headings and flat bullet lists. Be direct and data-driven; do not invent data, and do not give medical diagnoses. If a reading looks clinically concerning, suggest checking with a doctor.`
+
+// metricKcalOut is active plus resting energy, derived for the prompt only.
+const metricKcalOut = "kcal_out"
 
 func insightUserPrompt(p models.UserProfile, scores []models.WeeklyScore, daily []models.DailyMetric, weekEnd time.Time) string {
 	age, _ := utils.GetAge(&p, weekEnd)
@@ -241,6 +246,13 @@ func insightUserPrompt(p models.UserProfile, scores []models.WeeklyScore, daily 
 		{ingest.MetricExerciseMin, "exercise_min", "%.0f"},
 		{ingest.MetricWorkingSets, "sets", "%.0f"},
 		{ingest.MetricMindfulSessions, "mindful", "%.0f"},
+		{ingest.MetricEnergyIn, "kcal_in", "%.0f"},
+		{metricKcalOut, "kcal_out", "%.0f"},
+		{ingest.MetricProtein, "protein_g", "%.0f"},
+		{ingest.MetricCarbs, "carbs_g", "%.0f"},
+		{ingest.MetricFat, "fat_g", "%.0f"},
+		{ingest.MetricFiber, "fiber_g", "%.0f"},
+		{ingest.MetricWater, "water_ml", "%.0f"},
 	}
 	byDate := map[string]map[string]float64{}
 	for _, d := range daily {
@@ -248,6 +260,13 @@ func insightUserPrompt(p models.UserProfile, scores []models.WeeklyScore, daily 
 			byDate[d.Date] = map[string]float64{}
 		}
 		byDate[d.Date][d.Metric] = d.Value
+	}
+	for _, day := range byDate {
+		active, okA := day[ingest.MetricActiveEnergy]
+		resting, okR := day[ingest.MetricRestingEnergy]
+		if okA && okR {
+			day[metricKcalOut] = active + resting
+		}
 	}
 	dates := make([]string, 0, len(byDate))
 	for d := range byDate {

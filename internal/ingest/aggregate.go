@@ -24,6 +24,14 @@ const (
 	MetricSleepAwakeMin   = "sleep_awake_min"  // awake time inside the main sleep period
 	MetricSleepAwakenings = "sleep_awakenings" // interruptions inside the main sleep period
 	MetricWorkingSets     = "working_sets"
+	MetricEnergyIn        = "energy_in_kcal"
+	MetricProtein         = "protein_g"
+	MetricCarbs           = "carbs_g"
+	MetricFat             = "fat_g"
+	MetricFiber           = "fiber_g"
+	MetricWater           = "water_ml"
+	MetricActiveEnergy    = "active_kcal"
+	MetricRestingEnergy   = "resting_kcal"
 )
 
 // DailyValue is one metric's value for one local calendar date.
@@ -71,6 +79,26 @@ var keyMetric = map[string]metricSpec{
 	KeySteps:    {MetricSteps, reduceMaxSourceSum, true},
 	KeyExercise: {MetricExerciseMin, reduceMaxSourceSum, true},
 	KeySets:     {MetricWorkingSets, reduceMaxSourceSum, true},
+
+	KeyEnergyIn:      {MetricEnergyIn, reduceMaxSourceSum, true},
+	KeyProtein:       {MetricProtein, reduceMaxSourceSum, true},
+	KeyCarbs:         {MetricCarbs, reduceMaxSourceSum, true},
+	KeyFat:           {MetricFat, reduceMaxSourceSum, true},
+	KeyFiber:         {MetricFiber, reduceMaxSourceSum, true},
+	KeyWater:         {MetricWater, reduceMaxSourceSum, true},
+	KeyActiveEnergy:  {MetricActiveEnergy, reduceMaxSourceSum, true},
+	KeyRestingEnergy: {MetricRestingEnergy, reduceMaxSourceSum, true},
+}
+
+// DiaryKeys are the keys a food diary writes. A diary entry deleted from
+// Health simply stops being sent, so for these keys a day with no samples
+// inside a delivery that has some means the day's stored value is stale.
+var DiaryKeys = []string{KeyEnergyIn, KeyProtein, KeyCarbs, KeyFat, KeyFiber, KeyWater}
+
+// MetricFor returns the daily metric a key is stored under.
+func MetricFor(key string) (string, bool) {
+	km, ok := keyMetric[key]
+	return km.metric, ok
 }
 
 type dayMetric struct{ date, metric string }
@@ -86,8 +114,9 @@ type acc struct {
 // Aggregate reduces samples to one value per date and metric:
 //   - RHR, VO2 max, cardio recovery: the latest sample of the day
 //   - HRV, weight, waist, blood pressure: the mean of the day
-//   - steps, exercise minutes, working sets: summed per source, the highest
-//     source wins (the Watch and iPhone both count steps)
+//   - steps, exercise minutes, working sets, nutrition, energy burned: summed
+//     per source, the highest source wins (the Watch and iPhone both count
+//     steps)
 //   - mindfulness: distinct sessions and their minutes
 //   - sleep: see aggregateSleep
 //

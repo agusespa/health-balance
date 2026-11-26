@@ -13,11 +13,11 @@ import (
 
 const timeLayout = time.RFC3339Nano
 
-// SaveIngest upserts the daily values and records the run in one transaction.
-// A value for an existing (date, metric) replaces it, so re-sending the same
-// days is safe; days and metrics not in values are left untouched. It returns
-// the run's id.
-func (db *DB) SaveIngest(run models.IngestRun, values []models.DailyMetric) (int64, error) {
+// SaveIngest upserts the daily values, deletes the clear ones and records the
+// run in one transaction. A value for an existing (date, metric) replaces it,
+// so re-sending the same days is safe; days and metrics in neither values nor
+// clear are left untouched. It returns the run's id.
+func (db *DB) SaveIngest(run models.IngestRun, values []models.DailyMetric, clear []models.DayMetric) (int64, error) {
 	if run.ReceivedAt.IsZero() {
 		run.ReceivedAt = time.Now()
 	}
@@ -53,6 +53,12 @@ func (db *DB) SaveIngest(run models.IngestRun, values []models.DailyMetric) (int
 	for _, v := range values {
 		if _, err := stmt.Exec(v.Date, v.Metric, v.Value, v.Samples, v.Source, receivedAt); err != nil {
 			return 0, fmt.Errorf("upsert %s %s: %w", v.Date, v.Metric, err)
+		}
+	}
+
+	for _, c := range clear {
+		if _, err := tx.Exec(`DELETE FROM daily_metrics WHERE date = ? AND metric = ?`, c.Date, c.Metric); err != nil {
+			return 0, fmt.Errorf("clear %s %s: %w", c.Date, c.Metric, err)
 		}
 	}
 

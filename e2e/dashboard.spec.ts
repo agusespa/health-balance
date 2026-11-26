@@ -49,3 +49,14 @@ test('a client-side route loads directly', async ({ page }) => {
 	await page.goto('/rationale');
 	await expect(page.getByRole('heading', { name: 'Biological Reserve Score' })).toBeVisible();
 });
+
+test('shows nutrition for the last 7 days, unscored', async ({ page }) => {
+	await page.goto('/');
+	const card = page.getByTestId('card-nutrition');
+	await expect(card).toContainText('Not part of the score');
+	await expect(card.getByTestId('nutrition-logged')).toHaveText(/^\d\/7 logged$/);
+	await expect(card.getByTestId('nutrition-balance')).toContainText(/kcal\/day/);
+	await expect(card.getByTestId('nutrition-protein')).toContainText(/g\/kg/);
+	await expect(card.getByTestId('nutrition-fiber')).toContainText(/\d+ g/);
+	await expect(card.getByTestId('nutrition-water')).toContainText(/\d\.\d L/);
+});

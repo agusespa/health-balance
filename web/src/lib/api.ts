@@ -37,11 +37,31 @@ export interface IngestRun {
 	to_date: string;
 }
 
+/** Daily averages over the logged days of the last 7 full days. Not scored. */
+export interface Nutrition {
+	from: string;
+	to: string;
+	days: number;
+	logged_days: number;
+	energy_in_kcal: number;
+	protein_g: number;
+	carbs_g: number;
+	fat_g: number;
+	fiber_g: number;
+	protein_per_kg: number;
+	balance_days: number;
+	burned_kcal: number;
+	balance_kcal: number;
+	water_days: number;
+	water_ml: number;
+}
+
 export interface Dashboard {
 	profile_complete: boolean;
 	week: { end: string; range: string };
 	score: WeeklyScore | null;
 	last_sync: IngestRun | null;
+	nutrition: Nutrition | null;
 }
 
 export interface DailyMetric {

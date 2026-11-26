@@ -12,6 +12,12 @@ type DailyMetric struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+// DayMetric names one stored daily value.
+type DayMetric struct {
+	Date   string
+	Metric string
+}
+
 // Ingest run kinds.
 const (
 	IngestKindShortcut = "shortcut"

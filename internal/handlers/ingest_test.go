@@ -23,7 +23,7 @@ func TestHandleIngestHealthStores(t *testing.T) {
 	h, mock := setupTestHandler()
 	var saved []models.DailyMetric
 	var savedRun models.IngestRun
-	mock.SaveIngestFunc = func(run models.IngestRun, values []models.DailyMetric) (int64, error) {
+	mock.SaveIngestFunc = func(run models.IngestRun, values []models.DailyMetric, _ []models.DayMetric) (int64, error) {
 		savedRun, saved = run, values
 		return 7, nil
 	}
@@ -65,7 +65,7 @@ func TestHandleIngestHealthErrors(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			h, mock := setupTestHandler()
-			mock.SaveIngestFunc = func(models.IngestRun, []models.DailyMetric) (int64, error) { return 1, tc.saveErr }
+			mock.SaveIngestFunc = func(models.IngestRun, []models.DailyMetric, []models.DayMetric) (int64, error) { return 1, tc.saveErr }
 
 			rec := httptest.NewRecorder()
 			h.HandleIngestHealth(rec, ingestRequestWith(tc.body))

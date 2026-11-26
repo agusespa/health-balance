@@ -76,3 +76,51 @@ func TestIngestShortcutRowsRejectsUnusablePayload(t *testing.T) {
 		t.Errorf("result %+v", res)
 	}
 }
+
+func TestIngestShortcutRowsClearsDeletedDiaryDays(t *testing.T) {
+	db, err := database.Init(filepath.Join(t.TempDir(), "test.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+
+	// First delivery: food on the 20th–22nd, water on the 21st.
+	first := `KCAL;300;kcal;2026-11-19T08:00:00+01:00;2026-11-19T08:00:00+01:00;Cronometer
+KCAL;2100;kcal;2026-11-20T08:00:00+01:00;2026-11-20T08:00:00+01:00;Cronometer
+KCAL;900;kcal;2026-11-21T08:00:00+01:00;2026-11-21T08:00:00+01:00;Cronometer
+PROTEIN;60;g;2026-11-21T08:00:00+01:00;2026-11-21T08:00:00+01:00;Cronometer
+WATER;1500;mL;2026-11-21T08:00:00+01:00;2026-11-21T08:00:00+01:00;Cronometer
+KCAL;2300;kcal;2026-11-22T08:00:00+01:00;2026-11-22T08:00:00+01:00;Cronometer`
+	if _, err := IngestShortcutRows(db, first, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+
+	// The 21st was deleted in the diary and is no longer in Health. A step
+	// line stretches the delivery to the 23rd, which had nothing logged.
+	second := `KCAL;2100;kcal;2026-11-20T08:00:00+01:00;2026-11-20T08:00:00+01:00;Cronometer
+KCAL;2300;kcal;2026-11-22T08:00:00+01:00;2026-11-22T08:00:00+01:00;Cronometer
+STEPS;5000;count;2026-11-23T08:00:00+01:00;2026-11-23T09:00:00+01:00;Agustin’s iPhone`
+	res, err := IngestShortcutRows(db, second, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Cleared != 2 {
+		t.Errorf("cleared %d, want 2 (energy on the 21st and 23rd; protein and water weren't sent)", res.Cleared)
+	}
+
+	got := map[string]float64{}
+	rows, _ := db.GetDailyMetrics("2026-11-01", "2026-11-30")
+	for _, r := range rows {
+		got[r.Date+" "+r.Metric] = r.Value
+	}
+	if _, ok := got["2026-11-21 energy_in_kcal"]; ok {
+		t.Error("deleted day's energy is still stored")
+	}
+	if got["2026-11-20 energy_in_kcal"] != 2100 || got["2026-11-22 energy_in_kcal"] != 2300 {
+		t.Errorf("kept days changed: %v", got)
+	}
+	// Keys missing from the whole delivery are left alone.
+	if got["2026-11-21 protein_g"] != 60 || got["2026-11-21 water_ml"] != 1500 {
+		t.Errorf("protein/water should be untouched: %v", got)
+	}
+}

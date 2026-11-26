@@ -31,6 +31,17 @@ const (
 	KeyCardio   = "CR"
 	KeyMindful  = "MIND"
 	KeySets     = "SETS" // working sets per day, added by n8n from the gym app
+
+	// Nutrition, written to Health by a food diary app, and the energy
+	// burned it is compared with.
+	KeyEnergyIn      = "KCAL"
+	KeyProtein       = "PROTEIN"
+	KeyCarbs         = "CARBS"
+	KeyFat           = "FAT"
+	KeyFiber         = "FIBER"
+	KeyWater         = "WATER"
+	KeyActiveEnergy  = "ACTIVE"
+	KeyRestingEnergy = "RESTING"
 )
 
 // Normalised source names. Any other source keeps its trimmed original name.
@@ -188,7 +199,7 @@ func NormalizeSource(v string) string {
 }
 
 // unitFactor returns the multiplier from unit to the key's canonical unit:
-// mL/(kg·min), count/min, ms, count, min, kg, cm, mmHg.
+// mL/(kg·min), count/min, ms, count, min, kg, cm, mmHg, kcal, g, mL.
 func unitFactor(key, unit string) (float64, bool) {
 	u := strings.ToLower(strings.ReplaceAll(unit, " ", ""))
 	switch key {
@@ -247,6 +258,33 @@ func unitFactor(key, unit string) (float64, bool) {
 		switch u {
 		case "count", "":
 			return 1, true
+		}
+	case KeyEnergyIn, KeyActiveEnergy, KeyRestingEnergy:
+		switch u {
+		case "kcal", "cal": // Health shows kilocalories as "Cal"
+			return 1, true
+		case "kj":
+			return 1 / 4.184, true
+		}
+	case KeyProtein, KeyCarbs, KeyFat, KeyFiber:
+		switch u {
+		case "g":
+			return 1, true
+		case "mg":
+			return 0.001, true
+		}
+	case KeyWater:
+		switch u {
+		case "ml":
+			return 1, true
+		case "cl":
+			return 10, true
+		case "dl":
+			return 100, true
+		case "l":
+			return 1000, true
+		case "floz", "fl_oz_us", "floz_us":
+			return 29.5735295625, true
 		}
 	}
 	return 0, false

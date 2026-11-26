@@ -41,14 +41,14 @@ func TestSaveIngestIsIdempotent(t *testing.T) {
 	}
 	run := models.IngestRun{Kind: models.IngestKindShortcut, Rows: 10, Accepted: 3, FromDate: "2026-11-24", ToDate: "2026-11-25"}
 
-	if _, err := db.SaveIngest(run, values); err != nil {
+	if _, err := db.SaveIngest(run, values, nil); err != nil {
 		t.Fatalf("first save: %v", err)
 	}
 	first, err := db.GetDailyMetrics("2026-11-01", "2026-11-30")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := db.SaveIngest(run, values); err != nil {
+	if _, err := db.SaveIngest(run, values, nil); err != nil {
 		t.Fatalf("second save: %v", err)
 	}
 	second, err := db.GetDailyMetrics("2026-11-01", "2026-11-30")
@@ -65,13 +65,13 @@ func TestSaveIngestOverwritesOnlyGivenValues(t *testing.T) {
 	if _, err := db.SaveIngest(models.IngestRun{Kind: models.IngestKindShortcut}, []models.DailyMetric{
 		{Date: "2026-11-25", Metric: "rhr", Value: 58, Samples: 1, Source: "watch"},
 		{Date: "2026-11-25", Metric: "vo2_max", Value: 46.1, Samples: 1, Source: "watch"},
-	}); err != nil {
+	}, nil); err != nil {
 		t.Fatal(err)
 	}
 	// A later run replaces today's provisional RHR and has no VO2 reading.
 	if _, err := db.SaveIngest(models.IngestRun{Kind: models.IngestKindShortcut}, []models.DailyMetric{
 		{Date: "2026-11-25", Metric: "rhr", Value: 55, Samples: 1, Source: "watch"},
-	}); err != nil {
+	}, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -98,7 +98,7 @@ func TestGetDailyMetricsFilters(t *testing.T) {
 			models.DailyMetric{Date: d, Metric: "hrv_sdnn", Value: 45},
 		)
 	}
-	if _, err := db.SaveIngest(models.IngestRun{Kind: models.IngestKindBackfill}, values); err != nil {
+	if _, err := db.SaveIngest(models.IngestRun{Kind: models.IngestKindBackfill}, values, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -128,7 +128,7 @@ func TestGetLastIngestRun(t *testing.T) {
 	t0 := time.Date(2026, 11, 24, 6, 30, 0, 0, time.UTC)
 	for i, kind := range []string{models.IngestKindShortcut, models.IngestKindShortcut, models.IngestKindGym} {
 		run := models.IngestRun{Kind: kind, ReceivedAt: t0.Add(time.Duration(i) * time.Hour), Rows: i}
-		if _, err := db.SaveIngest(run, nil); err != nil {
+		if _, err := db.SaveIngest(run, nil, nil); err != nil {
 			t.Fatal(err)
 		}
 	}

@@ -7,6 +7,7 @@ A self-hosted web app that tracks your **Biological Reserve Score**, a weekly es
 - **Weekly score**: starts at 1000 and moves 12% toward a target each week, after an aging tax.
 - **Markers**: VO2 max, waist-to-height, resting heart rate, HRV, blood pressure, cardio recovery.
 - **Behaviours** (4-week average): sleep, steps, exercise, gym working sets, mindfulness.
+- **Nutrition** (shown, not scored): energy balance, macros, fiber and water over the last 7 days.
 - **History**: weekly breakdowns and daily trends.
 - **AI insights**: a weekly summary written by Claude.
 
@@ -70,8 +71,18 @@ One sample per line, up to 5 MB per request. `start` and `end` are ISO 8601 with
 | `SETS` | Gym working sets | count | sum* |
 | `SLEEP` | Sleep stage segment | ignored | see below |
 | `MIND` | Mindfulness session | ignored | sessions and minutes |
+| `KCAL` | Dietary energy | kcal, Cal, kJ | sum*† |
+| `PROTEIN` | Protein | g, mg | sum*† |
+| `CARBS` | Carbohydrates | g, mg | sum*† |
+| `FAT` | Total fat | g, mg | sum*† |
+| `FIBER` | Fiber | g, mg | sum*† |
+| `WATER` | Water | mL, cL, dL, L, fl oz | sum*† |
+| `ACTIVE` | Active energy burned | kcal, Cal, kJ | sum* |
+| `RESTING` | Resting energy burned | kcal, Cal, kJ | sum* |
 
 \* Summed per source; the source with the highest total is kept.
+
+† Food diary keys: when a request contains the key, every day after its oldest without any sample for it is deleted, so a day emptied in the diary is emptied here too. A request without the key leaves it alone.
 
 - `SLEEP`: the value is the stage (`inbed`, `asleep`, `core`, `deep`, `rem`, `awake`). A night counts toward the day you wake up; naps are ignored.
 - `MIND`: the value is ignored.

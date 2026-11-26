@@ -24,6 +24,14 @@ var exportTypes = map[string]string{
 	"HKQuantityTypeIdentifierHeartRateRecoveryOneMinute": KeyCardio,
 	"HKCategoryTypeIdentifierSleepAnalysis":              KeySleep,
 	"HKCategoryTypeIdentifierMindfulSession":             KeyMindful,
+	"HKQuantityTypeIdentifierDietaryEnergyConsumed":      KeyEnergyIn,
+	"HKQuantityTypeIdentifierDietaryProtein":             KeyProtein,
+	"HKQuantityTypeIdentifierDietaryCarbohydrates":       KeyCarbs,
+	"HKQuantityTypeIdentifierDietaryFatTotal":            KeyFat,
+	"HKQuantityTypeIdentifierDietaryFiber":               KeyFiber,
+	"HKQuantityTypeIdentifierDietaryWater":               KeyWater,
+	"HKQuantityTypeIdentifierActiveEnergyBurned":         KeyActiveEnergy,
+	"HKQuantityTypeIdentifierBasalEnergyBurned":          KeyRestingEnergy,
 }
 
 // ExportStats describes one pass over an export.

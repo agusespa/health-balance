@@ -3,6 +3,7 @@
 	import { api, type Dashboard, type Insight, type ScoreSummary } from '#lib/api.ts';
 	import Collapsible from '#lib/Collapsible.svelte';
 	import MetricCard from '#lib/MetricCard.svelte';
+	import NutritionCard from '#lib/NutritionCard.svelte';
 	import ScoreHeader from '#lib/ScoreHeader.svelte';
 	import { hoursSince, shortDate, signed } from '#lib/format.ts';
 
@@ -99,6 +100,10 @@
 	</section>
 	<MetricCard title="Markers" hint="carried forward" metrics={markers} />
 	<MetricCard title="Behaviours" hint="4-week average" metrics={behaviours} />
+{/if}
+
+{#if data?.nutrition}
+	<NutritionCard nutrition={data.nutrition} />
 {/if}
 
 <Collapsible title="Score history" onopen={loadHistory}>

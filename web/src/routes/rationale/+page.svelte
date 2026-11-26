@@ -48,6 +48,16 @@
 </section>
 
 <section class="card">
+	<h2>Nutrition</h2>
+	<p class="muted">Shown on the home page but not part of the score.</p>
+	<p>
+		Daily averages over the last 7 full days: energy eaten, protein, carbs, fat, fiber and water from your food diary, and
+		the balance against active plus resting energy burned from the Watch. A day counts once it has 1,000 kcal logged,
+		so an unfinished diary doesn't show up as a big deficit. Water counts on any day it was logged.
+	</p>
+</section>
+
+<section class="card">
 	<h2>Missing data</h2>
 	<p>
 		A daily measure needs at least 3 days in a week to count. Labels on each metric show when a value is the

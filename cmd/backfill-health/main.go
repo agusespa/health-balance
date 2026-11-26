@@ -136,7 +136,7 @@ func run(exportPath, dbPath, from, to string, fallback *time.Location, dryRun bo
 		Rejected: rejected,
 		FromDate: from,
 		ToDate:   to,
-	}, values)
+	}, values, nil)
 	if err != nil {
 		return err
 	}

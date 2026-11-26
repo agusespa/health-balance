@@ -7,7 +7,7 @@ import (
 type MockDB struct {
 	GetUserProfileFunc   func() (*models.UserProfile, error)
 	SaveUserProfileFunc  func(profile models.UserProfile) error
-	SaveIngestFunc       func(run models.IngestRun, values []models.DailyMetric) (int64, error)
+	SaveIngestFunc       func(run models.IngestRun, values []models.DailyMetric, clear []models.DayMetric) (int64, error)
 	GetDailyMetricsFunc  func(from, to string, metrics ...string) ([]models.DailyMetric, error)
 	GetLastIngestRunFunc func(kind string) (*models.IngestRun, error)
 	SaveInsightFunc      func(in models.Insight) error
@@ -29,9 +29,9 @@ func (m *MockDB) SaveUserProfile(profile models.UserProfile) error {
 	return nil
 }
 
-func (m *MockDB) SaveIngest(run models.IngestRun, values []models.DailyMetric) (int64, error) {
+func (m *MockDB) SaveIngest(run models.IngestRun, values []models.DailyMetric, clear []models.DayMetric) (int64, error) {
 	if m.SaveIngestFunc != nil {
-		return m.SaveIngestFunc(run, values)
+		return m.SaveIngestFunc(run, values, clear)
 	}
 	return 0, nil
 }

@@ -37,6 +37,15 @@ func TestParseValuesAndUnits(t *testing.T) {
 		{"BPSYS;118;mmHg;2026-11-20T07:00:00+01:00;2026-11-20T07:00:00+01:00;Health", KeyBPSys, 118},
 		{"HRV;41,7;ms;2026-11-20T03:00:00+01:00;2026-11-20T03:01:00+01:00;Agustin’s Apple Watch", KeyHRV, 41.7},
 		{"CR;31;count/min;2026-11-20T18:00:00+01:00;2026-11-20T18:00:00+01:00;Agustin’s Apple Watch", KeyCardio, 31},
+		{"KCAL;612,5;kcal;2026-11-20T08:00:00+01:00;2026-11-20T08:00:00+01:00;Cronometer", KeyEnergyIn, 612.5},
+		{"KCAL;418,4;kJ;2026-11-20T08:00:00+01:00;2026-11-20T08:00:00+01:00;Cronometer", KeyEnergyIn, 100},
+		{"ACTIVE;540;Cal;2026-11-20T00:00:00+01:00;2026-11-20T23:59:00+01:00;Agustin’s Apple Watch", KeyActiveEnergy, 540},
+		{"RESTING;1710;kcal;2026-11-20T00:00:00+01:00;2026-11-20T23:59:00+01:00;Agustin’s Apple Watch", KeyRestingEnergy, 1710},
+		{"PROTEIN;42,3;g;2026-11-20T08:00:00+01:00;2026-11-20T08:00:00+01:00;Cronometer", KeyProtein, 42.3},
+		{"FIBER;6,5;g;2026-11-20T08:00:00+01:00;2026-11-20T08:00:00+01:00;Cronometer", KeyFiber, 6.5},
+		{"FAT;1500;mg;2026-11-20T08:00:00+01:00;2026-11-20T08:00:00+01:00;Cronometer", KeyFat, 1.5},
+		{"WATER;0,5;L;2026-11-20T08:00:00+01:00;2026-11-20T08:00:00+01:00;Cronometer", KeyWater, 500},
+		{"WATER;250;mL;2026-11-20T08:00:00+01:00;2026-11-20T08:00:00+01:00;Cronometer", KeyWater, 250},
 	}
 	for _, tc := range tests {
 		samples, bad := Parse(tc.line)
