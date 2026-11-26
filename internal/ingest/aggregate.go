@@ -46,10 +46,13 @@ type DailyValue struct {
 // Options tunes Aggregate.
 type Options struct {
 	// SkipOldestDay drops summed and averaged metrics (steps, exercise, HRV,
-	// mindfulness, sleep) for the oldest date in the input. A Shortcut that
-	// sends "the last 7 days" may cut that day short, and the full value was
-	// already stored by an earlier run. Point metrics (RHR, VO2, weight, …)
-	// are kept.
+	// mindfulness, sleep, nutrition) for the oldest date in the input. A
+	// Shortcut that sends "the last 7 days" may cut that day short, and the
+	// full value was already stored by an earlier run. Point metrics (RHR,
+	// VO2, weight, …) are kept. Keys sent over a shorter window should start
+	// at midnight, so their first day is complete. Sleep also drops the night
+	// its own earliest sample falls on: a window starting at midnight cuts
+	// that night in half.
 	SkipOldestDay bool
 }
 
@@ -122,12 +125,11 @@ type acc struct {
 //
 // The result is sorted by date, then metric.
 func Aggregate(samples []Sample, opt Options) []DailyValue {
+	oldestDays := OldestDays(samples)
 	oldest := ""
-	if opt.SkipOldestDay {
-		for _, s := range samples {
-			if d := dayOf(s.Start); oldest == "" || d < oldest {
-				oldest = d
-			}
+	for _, d := range oldestDays {
+		if oldest == "" || d < oldest {
+			oldest = d
 		}
 	}
 	skip := func(date string, summed bool) bool {
@@ -209,7 +211,7 @@ func Aggregate(samples []Sample, opt Options) []DailyValue {
 	}
 
 	for _, n := range aggregateSleep(sleep) {
-		if skip(n.Date, true) {
+		if skip(n.Date, true) || (opt.SkipOldestDay && n.Date == oldestDays[KeySleep]) {
 			continue
 		}
 		out = append(out, n.dailyValues()...)
@@ -221,6 +223,17 @@ func Aggregate(samples []Sample, opt Options) []DailyValue {
 		}
 		return out[i].Metric < out[j].Metric
 	})
+	return out
+}
+
+// OldestDays returns the earliest date each key has a sample on.
+func OldestDays(samples []Sample) map[string]string {
+	out := map[string]string{}
+	for _, s := range samples {
+		if d, ok := out[s.Key]; !ok || dayOf(s.Start) < d {
+			out[s.Key] = dayOf(s.Start)
+		}
+	}
 	return out
 }
 

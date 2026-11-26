@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"health-balance/internal/database"
+	"health-balance/internal/ingest"
 	"health-balance/internal/models"
 	"health-balance/internal/testutil"
 )
@@ -122,5 +123,28 @@ STEPS;5000;count;2026-11-23T08:00:00+01:00;2026-11-23T09:00:00+01:00;Agustin’s
 	// Keys missing from the whole delivery are left alone.
 	if got["2026-11-21 protein_g"] != 60 || got["2026-11-21 water_ml"] != 1500 {
 		t.Errorf("protein/water should be untouched: %v", got)
+	}
+}
+
+func TestStaleDiaryDaysOnlyInsideEachKeysWindow(t *testing.T) {
+	// Water is sent for 2 days, food for 7: water days before its window
+	// must not be cleared.
+	rows := `KCAL;2100;kcal;2026-11-19T08:00:00+01:00;2026-11-19T08:00:00+01:00;Cronometer
+KCAL;2200;kcal;2026-11-21T08:00:00+01:00;2026-11-21T08:00:00+01:00;Cronometer
+WATER;1500;mL;2026-11-24T08:00:00+01:00;2026-11-24T08:00:00+01:00;Cronometer
+KCAL;2300;kcal;2026-11-25T08:00:00+01:00;2026-11-25T08:00:00+01:00;Cronometer`
+	samples, _ := ingest.Parse(rows)
+	daily := ingest.Aggregate(samples, ingest.Options{SkipOldestDay: true})
+	got := map[string]bool{}
+	for _, c := range staleDiaryDays(samples, daily, "2026-11-25") {
+		got[c.Date+" "+c.Metric] = true
+	}
+	want := map[string]bool{
+		"2026-11-20 energy_in_kcal": true, "2026-11-22 energy_in_kcal": true,
+		"2026-11-23 energy_in_kcal": true, "2026-11-24 energy_in_kcal": true,
+		"2026-11-25 water_ml": true,
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("cleared %v\nwant    %v", got, want)
 	}
 }

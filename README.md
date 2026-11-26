@@ -82,11 +82,11 @@ One sample per line, up to 5 MB per request. `start` and `end` are ISO 8601 with
 
 \* Summed per source; the source with the highest total is kept.
 
-† Food diary keys: when a request contains the key, every day after its oldest without any sample for it is deleted, so a day emptied in the diary is emptied here too. A request without the key leaves it alone.
+† Food diary keys: when a request contains the key, every day from the key's first sample to the request's last day without any sample for it is deleted, so a day emptied in the diary is emptied here too. A request without the key leaves it alone.
 
 - `SLEEP`: the value is the stage (`inbed`, `asleep`, `core`, `deep`, `rem`, `awake`). A night counts toward the day you wake up; naps are ignored.
 - `MIND`: the value is ignored.
-- Summed and averaged metrics skip the oldest day of each request, which is usually incomplete.
+- Summed and averaged metrics skip the oldest day of each request, which is usually incomplete. Keys sent over a shorter window than the rest should start at midnight, so their first day is complete. `SLEEP` also skips the night its earliest sample falls on, since a window starting at midnight cuts it in half.
 - The response reports how many day values were stored, and up to 10 rejected lines with the reason.
 
 ### History

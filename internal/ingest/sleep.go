@@ -62,14 +62,15 @@ func aggregateSleep(samples []Sample) []Night {
 	var nights []Night
 	for date, sources := range bySource {
 		var best Night
+		found := false // a source may be blank, so best.Source can't tell
 		for src, ivs := range sources {
 			n, ok := buildNight(date, src, ivs)
 			if !ok {
 				continue
 			}
 			switch {
-			case best.Source == "":
-				best = n
+			case !found:
+				best, found = n, true
 			case (n.Source == SourceWatch) != (best.Source == SourceWatch):
 				if n.Source == SourceWatch {
 					best = n
@@ -78,7 +79,7 @@ func aggregateSleep(samples []Sample) []Night {
 				best = n
 			}
 		}
-		if best.Source != "" {
+		if found {
 			nights = append(nights, best)
 		}
 	}

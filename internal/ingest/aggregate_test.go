@@ -128,3 +128,18 @@ SETS;9;;2026-11-26T00:00:00+01:00;2026-11-26T23:59:59+01:00;gympass`
 		}
 	}
 }
+
+func TestAggregateSkipsSleepCutByAShorterWindow(t *testing.T) {
+	// Steps cover 7 days; sleep was sent from midnight on the 25th, so the
+	// night ending that morning is only partly there.
+	rows := `STEPS;5000;count;2026-11-20T08:00:00+01:00;2026-11-20T09:00:00+01:00;iPhone
+SLEEP;core;;2026-11-25T00:00:00+01:00;2026-11-25T06:30:00+01:00;Agustin’s Apple Watch
+SLEEP;core;;2026-11-25T23:00:00+01:00;2026-11-26T06:30:00+01:00;Agustin’s Apple Watch`
+	v := values(t, rows, Options{SkipOldestDay: true})
+	if _, ok := v["2026-11-25 sleep_hours"]; ok {
+		t.Error("the cut night of the 25th was kept")
+	}
+	if got := v["2026-11-26 sleep_hours"]; !near(got.Value, 7.5) {
+		t.Errorf("night of the 26th = %+v, want 7.5 h", got)
+	}
+}

@@ -92,3 +92,19 @@ func TestSleepScore(t *testing.T) {
 		}
 	}
 }
+
+func TestSleepWithBlankSource(t *testing.T) {
+	// A real Shortcut payload from 2026-11-26 sent sleep without a source.
+	rows := `SLEEP;Core;;2026-11-25T23:55:07+01:00;2026-11-26T00:05:34+01:00;
+SLEEP;Awake;;2026-11-26T00:05:34+01:00;2026-11-26T00:06:34+01:00;
+SLEEP;Deep;;2026-11-26T00:06:34+01:00;2026-11-26T03:00:00+01:00;
+SLEEP;REM;;2026-11-26T03:00:00+01:00;2026-11-26T06:50:04+01:00;`
+	v := values(t, rows, Options{})
+	got, ok := v["2026-11-26 sleep_hours"]
+	if !ok {
+		t.Fatalf("night dropped: %v", v)
+	}
+	if want := (6*3600 + 53*60 + 57) / 3600.0; !near(got.Value, want) {
+		t.Errorf("asleep %.3f h, want %.3f", got.Value, want)
+	}
+}
