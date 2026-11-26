@@ -16,7 +16,7 @@ import (
 const DefaultRunnerModel = "opus"
 
 // ClaudeRunner writes insights through a Claude Code container that exposes
-// POST /run (the same one n8n uses), so no API key is needed here.
+// POST /run, so no API key is needed here.
 type ClaudeRunner struct {
 	url    string
 	model  string

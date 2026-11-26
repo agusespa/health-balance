@@ -30,7 +30,7 @@ services:
       - app
 
 networks:
-  # The Docker network the home-lab claude container (and n8n) is on.
+  # The Docker network the claude container is on.
   claude:
     external: true
     name: ${CLAUDE_NETWORK:?set CLAUDE_NETWORK to the Docker network of the claude container}

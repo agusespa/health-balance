@@ -39,10 +39,6 @@ func main() {
 		}
 	}()
 
-	if os.Getenv("INGEST_TOKEN") != "" {
-		log.Print("INGEST_TOKEN is no longer used: the API relies on Cloudflare Access like the app; remove it")
-	}
-
 	insights := services.NewInsightWriterFromEnv()
 	services.StartInsightScheduler(db, insights)
 
