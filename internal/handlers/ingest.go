@@ -1,13 +1,10 @@
 package handlers
 
 import (
-	"crypto/subtle"
 	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
-	"os"
-	"strings"
 	"time"
 
 	"health-balance/internal/services"
@@ -26,18 +23,10 @@ type ingestError struct {
 }
 
 // HandleIngestHealth accepts the n8n relay of the iPhone Shortcut payload,
-// {"rows": "KEY;value;unit;start;end;source\n..."}, authenticated with
-// "Authorization: Bearer $INGEST_TOKEN". It responds with what was stored.
+// {"rows": "KEY;value;unit;start;end;source\n..."}, and responds with what
+// was stored. Like the rest of the app it has no auth of its own: it relies on
+// Cloudflare Access (or a private network) in front of the app.
 func (h *Handler) HandleIngestHealth(w http.ResponseWriter, r *http.Request) {
-	token := os.Getenv("INGEST_TOKEN")
-	if token == "" {
-		writeJSON(w, http.StatusServiceUnavailable, ingestError{Error: "ingest is disabled: INGEST_TOKEN is not set"})
-		return
-	}
-	if !validBearer(r.Header.Get("Authorization"), token) {
-		writeJSON(w, http.StatusUnauthorized, ingestError{Error: "unauthorized"})
-		return
-	}
 
 	var req ingestRequest
 	dec := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxIngestBody))
@@ -62,11 +51,6 @@ func (h *Handler) HandleIngestHealth(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Ingest: %d rows, %d daily values, %d rejected, %s..%s", res.Rows, res.Accepted, res.Rejected, res.From, res.To)
 		writeJSON(w, http.StatusOK, res)
 	}
-}
-
-func validBearer(header, token string) bool {
-	got, ok := strings.CutPrefix(header, "Bearer ")
-	return ok && subtle.ConstantTimeCompare([]byte(strings.TrimSpace(got)), []byte(token)) == 1
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

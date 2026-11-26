@@ -9,7 +9,6 @@ services:
       - DB_PATH=/app/data/health.db
       - CLAUDE_RUN_URL=${CLAUDE_RUN_URL:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - INGEST_TOKEN=${INGEST_TOKEN}
       - PORT=8080
     volumes:
       - ./data:/app/data

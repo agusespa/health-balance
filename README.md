@@ -14,17 +14,26 @@ Tap **?** in the app for how the score is calculated.
 
 ## Setup
 
-1. Next to [docker-compose.yml](docker-compose.yml), create a `.env`:
+> [!IMPORTANT]
+> The app has no login of its own, and that includes the ingest endpoint and any future API or MCP. It must only be reachable through a Cloudflare Tunnel protected by Cloudflare Access. Never add a `ports` section to the `app` service or otherwise expose it: anything that can reach the container directly can read and change all your data.
+
+[docker-compose.yml](docker-compose.yml) runs the app next to `cloudflared`, which connects out to Cloudflare, so no port is opened on the server or your router.
+
+1. In Cloudflare Zero Trust, go to **Networks → Tunnels**, create a tunnel and add a public hostname (e.g. `health.example.com`) with the service `http://health-balance:8080`.
+2. Add an Access application for that hostname with a policy that only allows your own email address.
+3. Next to [docker-compose.yml](docker-compose.yml), create a `.env`:
    ```bash
-   INGEST_TOKEN=a_long_random_string
+   TUNNEL_TOKEN=your_tunnel_token
    CLAUDE_NETWORK=the_network_your_claude_container_is_on
    ```
-2. Run `docker-compose up -d`.
-3. Open `http://<your-server>:8080`, add it to your Home Screen, and fill in your profile in **Settings**.
+4. Run `docker compose up -d`.
+5. Open `https://health.example.com`, log in through Access, add it to your Home Screen, and fill in your profile in **Settings**.
+
+Other containers on the same Docker network can reach `http://health-balance:8080` without going through Access, so only run services you trust there.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `INGEST_TOKEN` | | Required to receive health data. |
+| `TUNNEL_TOKEN` | | Cloudflare Tunnel token (docker-compose.yml). |
 | `CLAUDE_NETWORK` | | Docker network of the Claude Code container (docker-compose.yml). |
 | `CLAUDE_RUN_URL` | `http://claude:8080/run` in compose | Claude Code container endpoint; enables AI insights without an API key. |
 | `CLAUDE_RUN_MODEL` | `opus` | Claude Code model alias for insights. |
@@ -39,7 +48,6 @@ Post your samples once a day. Send the last 7 days each time; days already store
 
 ```
 POST /api/ingest/health
-Authorization: Bearer <INGEST_TOKEN>
 Content-Type: application/json
 
 {"rows": "KEY;value;unit;start;end;source\n…"}
@@ -84,7 +92,7 @@ Options: `-from YYYY-MM-DD` (default `2021-10-01`), `-tz` (time zone for untagge
 
 Run `ghcr.io/agusespa/health-balance` (amd64 and arm64; tags `:X.Y.Z` and `:latest`).
 
-Health Balance has no login of its own. Put it behind an access proxy such as Cloudflare Access, and send health data to it over a private network, for example from an n8n container on the same Docker network. The ingest endpoint also requires `INGEST_TOKEN`.
+Health Balance has no login of its own: Cloudflare Access is its only protection (see [Setup](#setup)). Send health data to it over the private Docker network, for example from an n8n container calling `http://health-balance:8080`, which needs no credentials. Requests that change data are refused (`403`) when a browser marks them as coming from another site, so a page you visit can't use your Access session to change your data; scripts and n8n aren't affected.
 
 A sender outside that network, such as a phone posting directly, goes through Access with a **service token**: add a policy with the **Service Auth** action that allows it, and send its `CF-Access-Client-Id` and `CF-Access-Client-Secret` headers with every request.
 

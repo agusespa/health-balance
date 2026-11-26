@@ -13,17 +13,13 @@ import (
 
 const rhrBody = `{"rows":"RHR; 53;count/min;2026-11-18T00:03:14+01:00;2026-11-18T23:54:13+01:00;Agustin’s Apple Watch\nRHR; 55;count/min;2026-11-19T00:01:30+01:00;2026-11-19T23:54:46+01:00;Agustin’s Apple Watch"}`
 
-func ingestRequestWith(body, auth string) *http.Request {
+func ingestRequestWith(body string) *http.Request {
 	req := httptest.NewRequest(http.MethodPost, "/api/ingest/health", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	if auth != "" {
-		req.Header.Set("Authorization", auth)
-	}
 	return req
 }
 
 func TestHandleIngestHealthStores(t *testing.T) {
-	t.Setenv("INGEST_TOKEN", "secret")
 	h, mock := setupTestHandler()
 	var saved []models.DailyMetric
 	var savedRun models.IngestRun
@@ -33,7 +29,7 @@ func TestHandleIngestHealthStores(t *testing.T) {
 	}
 
 	rec := httptest.NewRecorder()
-	h.HandleIngestHealth(rec, ingestRequestWith(rhrBody, "Bearer secret"))
+	h.HandleIngestHealth(rec, ingestRequestWith(rhrBody))
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status %d: %s", rec.Code, rec.Body)
@@ -57,29 +53,22 @@ func TestHandleIngestHealthStores(t *testing.T) {
 func TestHandleIngestHealthErrors(t *testing.T) {
 	tests := []struct {
 		name    string
-		token   string
-		auth    string
 		body    string
 		saveErr error
 		want    int
 	}{
-		{"token not configured", "", "Bearer secret", rhrBody, nil, http.StatusServiceUnavailable},
-		{"no auth header", "secret", "", rhrBody, nil, http.StatusUnauthorized},
-		{"wrong token", "secret", "Bearer nope", rhrBody, nil, http.StatusUnauthorized},
-		{"not bearer", "secret", "secret", rhrBody, nil, http.StatusUnauthorized},
-		{"invalid JSON", "secret", "Bearer secret", `{"rows":`, nil, http.StatusBadRequest},
-		{"no usable rows", "secret", "Bearer secret", `{"rows":"garbage"}`, nil, http.StatusBadRequest},
-		{"too large", "secret", "Bearer secret", `{"rows":"` + strings.Repeat("x", maxIngestBody) + `"}`, nil, http.StatusRequestEntityTooLarge},
-		{"db failure", "secret", "Bearer secret", rhrBody, errors.New("disk full"), http.StatusInternalServerError},
+		{"invalid JSON", `{"rows":`, nil, http.StatusBadRequest},
+		{"no usable rows", `{"rows":"garbage"}`, nil, http.StatusBadRequest},
+		{"too large", `{"rows":"` + strings.Repeat("x", maxIngestBody) + `"}`, nil, http.StatusRequestEntityTooLarge},
+		{"db failure", rhrBody, errors.New("disk full"), http.StatusInternalServerError},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Setenv("INGEST_TOKEN", tc.token)
 			h, mock := setupTestHandler()
 			mock.SaveIngestFunc = func(models.IngestRun, []models.DailyMetric) (int64, error) { return 1, tc.saveErr }
 
 			rec := httptest.NewRecorder()
-			h.HandleIngestHealth(rec, ingestRequestWith(tc.body, tc.auth))
+			h.HandleIngestHealth(rec, ingestRequestWith(tc.body))
 			if rec.Code != tc.want {
 				t.Errorf("status %d, want %d: %s", rec.Code, tc.want, rec.Body)
 			}

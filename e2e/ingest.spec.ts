@@ -10,16 +10,16 @@ function rows(): string {
 	return lines.join('\n');
 }
 
-test('rejects a request without the token', async ({ request }) => {
-	const res = await request.post('/api/ingest/health', { data: { rows: rows() } });
-	expect(res.status()).toBe(401);
+test('refuses a cross-site browser request', async ({ request }) => {
+	const res = await request.post('/api/ingest/health', {
+		headers: { Origin: 'https://evil.example', 'Sec-Fetch-Site': 'cross-site' },
+		data: { rows: rows() }
+	});
+	expect(res.status()).toBe(403);
 });
 
 test('stores an ingest payload and records the sync', async ({ request, page }) => {
-	const res = await request.post('/api/ingest/health', {
-		headers: { Authorization: 'Bearer e2e-token' },
-		data: { rows: rows() }
-	});
+	const res = await request.post('/api/ingest/health', { data: { rows: rows() } });
 	expect(res.ok()).toBe(true);
 	const body = await res.json();
 	expect(body.rejected).toBe(0);

@@ -1,21 +1,33 @@
+# The app has no login of its own, and that includes the ingest endpoint. It
+# must only be reachable through a Cloudflare Tunnel protected by Cloudflare
+# Access (see README, "Setup"), so it publishes no port: cloudflared reaches it
+# over this compose network. Never add a "ports" section to app.
 services:
   app:
     image: ghcr.io/agusespa/health-balance:latest
     container_name: health-balance
     restart: unless-stopped
-    ports:
-      - "8080:8080"
     environment:
       - DB_PATH=/app/data/health.db
       - CLAUDE_RUN_URL=${CLAUDE_RUN_URL:-http://claude:8080/run}
       - CLAUDE_RUN_MODEL=${CLAUDE_RUN_MODEL:-opus}
-      - INGEST_TOKEN=${INGEST_TOKEN}
       - PORT=8080
     volumes:
       - ./data:/app/data
     networks:
       - default
       - claude
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      # From Zero Trust > Networks > Tunnels. In the tunnel's public
+      # hostname, point the service at http://health-balance:8080.
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    depends_on:
+      - app
 
 networks:
   # The Docker network the home-lab claude container (and n8n) is on.

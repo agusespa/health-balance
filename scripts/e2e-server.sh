@@ -15,4 +15,4 @@ mkdir -p test-results
 rm -f test-results/e2e.db test-results/e2e.db-wal test-results/e2e.db-shm
 go build -o test-results/health-balance ./cmd/server
 go run ./cmd/seed -db test-results/e2e.db -days 400
-DB_PATH=test-results/e2e.db INGEST_TOKEN=e2e-token PORT="${PORT:-8181}" exec ./test-results/health-balance
+DB_PATH=test-results/e2e.db PORT="${PORT:-8181}" exec ./test-results/health-balance

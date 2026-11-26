@@ -39,6 +39,10 @@ func main() {
 		}
 	}()
 
+	if os.Getenv("INGEST_TOKEN") != "" {
+		log.Print("INGEST_TOKEN is no longer used: the API relies on Cloudflare Access like the app; remove it")
+	}
+
 	insights := services.NewInsightWriterFromEnv()
 	services.StartInsightScheduler(db, insights)
 
@@ -50,7 +54,7 @@ func main() {
 	log.Printf("Server starting on %s", addr)
 	srv := &http.Server{
 		Addr:              addr,
-		Handler:           middleware.RequestLogger(mux),
+		Handler:           middleware.RequestLogger(middleware.CrossOrigin(mux)),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 	log.Fatal(srv.ListenAndServe())
