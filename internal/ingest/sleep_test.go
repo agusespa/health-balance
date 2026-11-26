@@ -27,8 +27,8 @@ SLEEP;REM;;2026-11-20T02:20:00+01:00;2026-11-20T03:00:00+01:00;Agustin’s Apple
 SLEEP;Core;;2026-11-20T03:00:00+01:00;2026-11-20T06:30:00+01:00;Agustin’s Apple Watch`
 	n := night(t, rows)
 
-	if n.Date != "2026-11-20" || n.Source != SourceWatch {
-		t.Errorf("got %s from %s, want 2026-11-20 from watch", n.Date, n.Source)
+	if n.Date != "2026-11-20" || n.Source != "Agustin’s Apple Watch" {
+		t.Errorf("got %s from %s, want 2026-11-20 from the Watch (in bed isn't asleep)", n.Date, n.Source)
 	}
 	if want := 7 * time.Hour; n.Asleep != want { // 23:10–06:30 is 7:20, minus 20 min awake
 		t.Errorf("asleep %v, want %v", n.Asleep, want)
@@ -48,16 +48,17 @@ func TestSleepBedtimeAfterMidnight(t *testing.T) {
 	}
 }
 
-func TestSleepIgnoresNapAndPrefersWatch(t *testing.T) {
+func TestSleepIgnoresNapAndMergesSources(t *testing.T) {
 	rows := `SLEEP;Asleep;;2026-11-19T23:00:00+01:00;2026-11-20T07:30:00+01:00;Agustin’s iPhone
 SLEEP;Core;;2026-11-19T23:30:00+01:00;2026-11-20T06:30:00+01:00;Agustin’s Apple Watch
 SLEEP;Core;;2026-11-20T14:00:00+01:00;2026-11-20T14:40:00+01:00;Agustin’s Apple Watch`
 	n := night(t, rows)
-	if n.Source != SourceWatch {
-		t.Errorf("source %s, want watch even though the iPhone has more time", n.Source)
+	if n.Source != "mixed" {
+		t.Errorf("source %s, want mixed", n.Source)
 	}
-	if n.Asleep != 7*time.Hour || n.Awakenings != 0 {
-		t.Errorf("asleep %v / %d awakenings, want 7h / 0 (nap ignored)", n.Asleep, n.Awakenings)
+	// The overlapping segments merge into 23:00–07:30.
+	if n.Asleep != 8*time.Hour+30*time.Minute || n.Awakenings != 0 {
+		t.Errorf("asleep %v / %d awakenings, want 8h30 / 0 (nap ignored)", n.Asleep, n.Awakenings)
 	}
 }
 

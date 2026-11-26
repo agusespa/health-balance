@@ -14,7 +14,7 @@ func TestParseRealShortcutLine(t *testing.T) {
 		t.Fatalf("got %d samples, want 1", len(samples))
 	}
 	s := samples[0]
-	if s.Key != KeyRHR || s.Value != 53 || s.Source != SourceWatch {
+	if s.Key != KeyRHR || s.Value != 53 || s.Source != "Agustin’s Apple Watch" {
 		t.Errorf("got %+v", s)
 	}
 	if _, off := s.Start.Zone(); off != 3600 {
@@ -93,19 +93,5 @@ func TestParseBadLinesDoNotAbort(t *testing.T) {
 	}
 	if len(bad) != 7 {
 		t.Errorf("got %d bad lines, want 7: %v", len(bad), bad)
-	}
-}
-
-func TestNormalizeSource(t *testing.T) {
-	tests := map[string]string{
-		"Agustin’s Apple Watch": SourceWatch,
-		"Agus' Apple Watch":     SourceWatch,
-		"Agustin’s iPhone":      SourcePhone,
-		" Withings ":            "Withings",
-	}
-	for in, want := range tests {
-		if got := NormalizeSource(in); got != want {
-			t.Errorf("NormalizeSource(%q) = %q, want %q", in, got, want)
-		}
 	}
 }

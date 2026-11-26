@@ -5,8 +5,10 @@
 //	KEY;value;unit;start;end;source
 //
 // with ISO 8601 dates that carry their UTC offset. Parse reads those lines into
-// Samples; Aggregate reduces Samples to DailyValues. The Apple Health export
-// backfill builds Samples directly and shares Aggregate.
+// Samples; Aggregate reduces Samples to DailyValues. Every sample counts as
+// sent: nothing is filtered or preferred by source. The Apple Health export
+// backfill builds Samples directly and shares Aggregate (it removes duplicate
+// sources from the raw export first).
 package ingest
 
 import (
@@ -42,12 +44,6 @@ const (
 	KeyWater         = "WATER"
 	KeyActiveEnergy  = "ACTIVE"
 	KeyRestingEnergy = "RESTING"
-)
-
-// Normalised source names. Any other source keeps its trimmed original name.
-const (
-	SourceWatch = "watch"
-	SourcePhone = "phone"
 )
 
 // Sleep stages, stored in Sample.Stage for SLEEP samples.
@@ -124,7 +120,7 @@ func NewSample(key, value, unit, startText, endText, source string) (Sample, err
 		return Sample{}, fmt.Errorf("end before start")
 	}
 
-	s := Sample{Key: key, Start: start, End: end, Source: NormalizeSource(source)}
+	s := Sample{Key: key, Start: start, End: end, Source: strings.TrimSpace(source)}
 
 	switch key {
 	case KeySleep:
@@ -182,20 +178,6 @@ func ParseNumber(v string) (float64, error) {
 		return 0, fmt.Errorf("bad number %q", v)
 	}
 	return n, nil
-}
-
-// NormalizeSource maps the Watch and iPhone, under any of their names, to
-// SourceWatch and SourcePhone.
-func NormalizeSource(v string) string {
-	s := strings.TrimSpace(strings.ReplaceAll(v, "’", "'"))
-	lower := strings.ToLower(s)
-	switch {
-	case strings.Contains(lower, "watch"):
-		return SourceWatch
-	case strings.Contains(lower, "iphone"):
-		return SourcePhone
-	}
-	return s
 }
 
 // unitFactor returns the multiplier from unit to the key's canonical unit:

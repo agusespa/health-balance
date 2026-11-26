@@ -85,6 +85,9 @@ func run(exportPath, dbPath, from, to string, fallback *time.Location, dryRun bo
 	var values []models.DailyMetric
 	perMetric := map[string][2]string{}
 	counts := map[string]int{}
+	before := len(samples)
+	samples = dedupeSources(samples)
+	log.Printf("Removed %d duplicate-source samples", before-len(samples))
 	for _, dv := range ingest.Aggregate(samples, ingest.Options{}) {
 		if dv.Date < from || dv.Date > to {
 			continue

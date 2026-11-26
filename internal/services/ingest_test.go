@@ -58,8 +58,8 @@ func TestIngestShortcutRowsStoresAndIsIdempotent(t *testing.T) {
 	}
 
 	steps, _ := db.GetDailyMetrics("2026-11-19", "2026-11-19", "steps")
-	if len(steps) != 1 || steps[0].Value != 9700 || steps[0].Source != "watch" {
-		t.Errorf("steps %v, want 9700 from watch", steps)
+	if len(steps) != 1 || steps[0].Value != 19200 || steps[0].Source != "mixed" {
+		t.Errorf("steps %v, want 9500 + 9700 from both sources", steps)
 	}
 
 	run, _ := db.GetLastIngestRun(models.IngestKindShortcut)
@@ -146,5 +146,37 @@ KCAL;2300;kcal;2026-11-25T08:00:00+01:00;2026-11-25T08:00:00+01:00;Cronometer`
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("cleared %v\nwant    %v", got, want)
+	}
+}
+
+func TestIngestShortcutRowsTreatsZeroDiaryTotalsAsEmpty(t *testing.T) {
+	db, err := database.Init(filepath.Join(t.TempDir(), "test.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+
+	if _, err := IngestShortcutRows(db, `KCAL;100;kcal;2026-11-23T00:00:00+01:00;2026-11-23T00:00:00+01:00;
+KCAL;2100;kcal;2026-11-24T00:00:00+01:00;2026-11-24T00:00:00+01:00;`, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	// Grouped by day: the 24th was emptied in the diary and comes as 0.
+	rows := `KCAL;0;kcal;2026-11-23T00:00:00+01:00;2026-11-23T00:00:00+01:00;
+KCAL;0;kcal;2026-11-24T00:00:00+01:00;2026-11-24T00:00:00+01:00;
+KCAL;900;kcal;2026-11-25T00:00:00+01:00;2026-11-25T00:00:00+01:00;
+WATER;0;mL;2026-11-24T00:00:00+01:00;2026-11-24T00:00:00+01:00;
+WATER;1500;mL;2026-11-25T00:00:00+01:00;2026-11-25T00:00:00+01:00;`
+	if _, err := IngestShortcutRows(db, rows, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	got, _ := db.GetDailyMetrics("2026-11-01", "2026-11-30")
+	var keys []string
+	for _, r := range got {
+		keys = append(keys, r.Date+" "+r.Metric)
+	}
+	// The 24th's 2100 kcal is cleared by its 0; no zeros are stored.
+	want := []string{"2026-11-25 energy_in_kcal", "2026-11-25 water_ml"}
+	if !reflect.DeepEqual(keys, want) {
+		t.Errorf("stored %v, want %v", keys, want)
 	}
 }

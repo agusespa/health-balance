@@ -61,7 +61,7 @@ type reduction int
 const (
 	reduceLast reduction = iota
 	reduceMean
-	reduceMaxSourceSum
+	reduceSum
 )
 
 type metricSpec struct {
@@ -79,18 +79,18 @@ var keyMetric = map[string]metricSpec{
 	KeyWaist:    {MetricWaistCm, reduceMean, false},
 	KeyBPSys:    {MetricBPSys, reduceMean, false},
 	KeyBPDia:    {MetricBPDia, reduceMean, false},
-	KeySteps:    {MetricSteps, reduceMaxSourceSum, true},
-	KeyExercise: {MetricExerciseMin, reduceMaxSourceSum, true},
-	KeySets:     {MetricWorkingSets, reduceMaxSourceSum, true},
+	KeySteps:    {MetricSteps, reduceSum, true},
+	KeyExercise: {MetricExerciseMin, reduceSum, true},
+	KeySets:     {MetricWorkingSets, reduceSum, true},
 
-	KeyEnergyIn:      {MetricEnergyIn, reduceMaxSourceSum, true},
-	KeyProtein:       {MetricProtein, reduceMaxSourceSum, true},
-	KeyCarbs:         {MetricCarbs, reduceMaxSourceSum, true},
-	KeyFat:           {MetricFat, reduceMaxSourceSum, true},
-	KeyFiber:         {MetricFiber, reduceMaxSourceSum, true},
-	KeyWater:         {MetricWater, reduceMaxSourceSum, true},
-	KeyActiveEnergy:  {MetricActiveEnergy, reduceMaxSourceSum, true},
-	KeyRestingEnergy: {MetricRestingEnergy, reduceMaxSourceSum, true},
+	KeyEnergyIn:      {MetricEnergyIn, reduceSum, true},
+	KeyProtein:       {MetricProtein, reduceSum, true},
+	KeyCarbs:         {MetricCarbs, reduceSum, true},
+	KeyFat:           {MetricFat, reduceSum, true},
+	KeyFiber:         {MetricFiber, reduceSum, true},
+	KeyWater:         {MetricWater, reduceSum, true},
+	KeyActiveEnergy:  {MetricActiveEnergy, reduceSum, true},
+	KeyRestingEnergy: {MetricRestingEnergy, reduceSum, true},
 }
 
 // DiaryKeys are the keys a food diary writes. A diary entry deleted from
@@ -110,16 +110,14 @@ type acc struct {
 	last    Sample
 	sum     float64
 	n       int
-	sources map[string]float64 // reduceMaxSourceSum: per-source totals; reduceMean: source set
-	srcN    map[string]int
+	sources map[string]bool
 }
 
 // Aggregate reduces samples to one value per date and metric:
 //   - RHR, VO2 max, cardio recovery: the latest sample of the day
 //   - HRV, weight, waist, blood pressure: the mean of the day
-//   - steps, exercise minutes, working sets, nutrition, energy burned: summed
-//     per source, the highest source wins (the Watch and iPhone both count
-//     steps)
+//   - steps, exercise minutes, working sets, nutrition, energy burned: the
+//     sum of every sample
 //   - mindfulness: distinct sessions and their minutes
 //   - sleep: see aggregateSleep
 //
@@ -160,13 +158,12 @@ func Aggregate(samples []Sample, opt Options) []DailyValue {
 		dm := dayMetric{dayOf(s.Start), km.metric}
 		a := accs[dm]
 		if a == nil {
-			a = &acc{sources: map[string]float64{}, srcN: map[string]int{}}
+			a = &acc{sources: map[string]bool{}}
 			accs[dm] = a
 		}
 		a.n++
 		a.sum += s.Value
-		a.sources[s.Source] += s.Value
-		a.srcN[s.Source]++
+		a.sources[s.Source] = true
 		if a.n == 1 || s.End.After(a.last.End) || (s.End.Equal(a.last.End) && s.Start.After(a.last.Start)) {
 			a.last = s
 		}
@@ -184,14 +181,8 @@ func Aggregate(samples []Sample, opt Options) []DailyValue {
 			dv.Value, dv.Samples, dv.Source = a.last.Value, a.n, a.last.Source
 		case reduceMean:
 			dv.Value, dv.Samples, dv.Source = a.sum/float64(a.n), a.n, joinSources(a.sources)
-		case reduceMaxSourceSum:
-			best := ""
-			for src, total := range a.sources {
-				if best == "" || total > a.sources[best] || (total == a.sources[best] && src < best) {
-					best = src
-				}
-			}
-			dv.Value, dv.Samples, dv.Source = a.sources[best], a.srcN[best], best
+		case reduceSum:
+			dv.Value, dv.Samples, dv.Source = a.sum, a.n, joinSources(a.sources)
 		}
 		out = append(out, dv)
 	}
@@ -246,7 +237,12 @@ func metricInfo(metric string) metricSpec {
 	return metricSpec{}
 }
 
-func joinSources(sources map[string]float64) string {
+// Summed reports whether a key's daily value is the total of its samples.
+func Summed(key string) bool {
+	return keyMetric[key].reduce == reduceSum
+}
+
+func joinSources(sources map[string]bool) string {
 	if len(sources) == 1 {
 		for s := range sources {
 			return s

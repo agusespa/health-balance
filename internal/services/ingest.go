@@ -60,7 +60,7 @@ func IngestShortcutRows(db database.Querier, rows string, receivedAt time.Time) 
 		}
 	}
 
-	daily := ingest.Aggregate(samples, ingest.Options{SkipOldestDay: true})
+	daily := dropEmptyDiaryDays(ingest.Aggregate(samples, ingest.Options{SkipOldestDay: true}))
 	values := make([]models.DailyMetric, len(daily))
 	for i, dv := range daily {
 		values[i] = models.DailyMetric{Date: dv.Date, Metric: dv.Metric, Value: dv.Value, Samples: dv.Samples, Source: dv.Source}
@@ -119,6 +119,25 @@ func staleDiaryDays(samples []ingest.Sample, daily []ingest.DailyValue, to strin
 				out = append(out, dm)
 			}
 		}
+	}
+	return out
+}
+
+// dropEmptyDiaryDays removes diary values of 0. A Shortcut that groups by day
+// sends a 0 total for every day with nothing logged; that is no data, so the
+// day is treated as missing (and any stored value for it is cleared).
+func dropEmptyDiaryDays(daily []ingest.DailyValue) []ingest.DailyValue {
+	diary := map[string]bool{}
+	for _, key := range ingest.DiaryKeys {
+		m, _ := ingest.MetricFor(key)
+		diary[m] = true
+	}
+	out := daily[:0]
+	for _, dv := range daily {
+		if diary[dv.Metric] && dv.Value == 0 {
+			continue
+		}
+		out = append(out, dv)
 	}
 	return out
 }

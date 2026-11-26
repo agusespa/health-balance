@@ -54,7 +54,7 @@ Content-Type: application/json
 {"rows": "KEY;value;unit;start;end;source\n…"}
 ```
 
-One sample per line, up to 5 MB per request. `start` and `end` are ISO 8601 with a UTC offset, and a sample counts toward the date it starts on. Decimal commas are accepted. Sources whose name contains `watch` or `iphone` are grouped as watch and phone.
+One sample per line, up to 5 MB per request. `start` and `end` are ISO 8601 with a UTC offset, and a sample counts toward the date it starts on. Decimal commas are accepted. Every line counts as sent; the source is stored as information only, so de-duplicate before sending (a Shortcut that groups by day gets totals Health has already de-duplicated).
 
 | KEY | Measure | Units | Daily value |
 | --- | --- | --- | --- |
@@ -80,9 +80,9 @@ One sample per line, up to 5 MB per request. `start` and `end` are ISO 8601 with
 | `ACTIVE` | Active energy burned | kcal, Cal, kJ | sum* |
 | `RESTING` | Resting energy burned | kcal, Cal, kJ | sum* |
 
-\* Summed per source; the source with the highest total is kept.
+\* The sum of every line for that day.
 
-† Food diary keys: when a request contains the key, every day from the key's first sample to the request's last day without any sample for it is deleted, so a day emptied in the diary is emptied here too. A request without the key leaves it alone.
+† Food diary keys: when a request contains the key, every day from the key's first sample to the request's last day without any sample for it is deleted, so a day emptied in the diary is emptied here too. A daily total of 0 (what grouping by day sends for an empty day) counts as no sample. A request without the key leaves it alone.
 
 - `SLEEP`: the value is the stage (`inbed`, `asleep`, `core`, `deep`, `rem`, `awake`). A night counts toward the day you wake up; naps are ignored.
 - `MIND`: the value is ignored.
@@ -97,7 +97,7 @@ Older days can be posted the same way, in batches that overlap by one day. To lo
 docker exec health-balance ./backfill-health -export /app/data/export.xml -db /app/data/health.db
 ```
 
-Options: `-from YYYY-MM-DD` (default `2021-10-01`), `-tz` (time zone for untagged records, default `Europe/Stockholm`), `-dry-run`.
+The export holds every device's raw samples, so the import first keeps one source per day for totals (the one with the highest total) and per night for sleep (the Watch when it recorded stages). Options: `-from YYYY-MM-DD` (default `2021-10-01`), `-tz` (time zone for untagged records, default `Europe/Stockholm`), `-dry-run`.
 
 ## Hosting
 

@@ -21,7 +21,7 @@ func values(t *testing.T, rows string, opt Options) map[string]DailyValue {
 
 func near(a, b float64) bool { return math.Abs(a-b) < 1e-6 }
 
-func TestAggregateLastMeanAndMaxSource(t *testing.T) {
+func TestAggregateLastMeanAndSum(t *testing.T) {
 	rows := `RHR;58;count/min;2026-11-25T00:01:37+01:00;2026-11-25T08:00:00+01:00;Agustin’s Apple Watch
 RHR;55;count/min;2026-11-25T00:01:37+01:00;2026-11-25T20:18:32+01:00;Agustin’s Apple Watch
 HRV;40;ms;2026-11-25T02:00:00+01:00;2026-11-25T02:01:00+01:00;Agustin’s Apple Watch
@@ -40,9 +40,9 @@ BPSYS;114;mmHg;2026-11-25T07:05:00+01:00;2026-11-25T07:05:00+01:00;Omron`
 	if got := v["2026-11-25 hrv_sdnn"]; !near(got.Value, 45) {
 		t.Errorf("hrv = %v, want mean 45", got.Value)
 	}
-	// Watch 6500+900 = 7400 beats iPhone 4000+3000 = 7000; both Watch names merge.
-	if got := v["2026-11-25 steps"]; got.Value != 7400 || got.Source != SourceWatch || got.Samples != 2 {
-		t.Errorf("steps = %+v, want 7400 from watch", got)
+	// Every line counts, whatever its source.
+	if got := v["2026-11-25 steps"]; got.Value != 14400 || got.Source != "mixed" || got.Samples != 4 {
+		t.Errorf("steps = %+v, want 14400 from 4 mixed samples", got)
 	}
 	if got := v["2026-11-25 bp_sys"]; !near(got.Value, 116) || got.Source != "Omron" {
 		t.Errorf("bp_sys = %+v, want 116 from Omron", got)
@@ -107,8 +107,8 @@ RHR;50;count/min;2026-11-20T00:00:00+01:00;2026-11-20T23:00:00+01:00;Agustin’s
 			t.Fatalf("run %d differs:\n%v\n%v", i, got, first)
 		}
 	}
-	if first[len(first)-1].Metric != MetricSteps || first[len(first)-1].Source != SourcePhone {
-		t.Errorf("tie between sources should pick the alphabetically first: %+v", first[len(first)-1])
+	if last := first[len(first)-1]; last.Metric != MetricSteps || last.Value != 10000 {
+		t.Errorf("steps should add both sources: %+v", last)
 	}
 }
 

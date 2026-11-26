@@ -39,52 +39,42 @@ func (n Night) dailyValues() []DailyValue {
 
 type interval struct{ start, end time.Time }
 
-// aggregateSleep builds one Night per wake-up date from sleep-stage samples.
-// Per night it uses one source, the Watch when it recorded asleep stages,
-// otherwise the source with the most asleep time. Core, deep, REM and
-// unspecified asleep count as asleep. Awake time is the gaps between asleep
-// segments, so it works for stage data and for pre-2022 data without stages.
+// aggregateSleep builds one Night per wake-up date from sleep-stage samples,
+// merging every source's segments. Core, deep, REM and unspecified asleep
+// count as asleep. Awake time is the gaps between asleep segments, so it works
+// for stage data and for pre-2022 data without stages.
 func aggregateSleep(samples []Sample) []Night {
-	bySource := map[string]map[string][]interval{} // night date → source → asleep intervals
+	ivs := map[string][]interval{} // night date → asleep intervals
+	sources := map[string]map[string]bool{}
 	for _, s := range samples {
-		switch s.Stage {
-		case StageAsleep, StageCore, StageDeep, StageREM:
-		default:
+		if !Asleep(s.Stage) {
 			continue
 		}
-		d := nightOf(s.Start)
-		if bySource[d] == nil {
-			bySource[d] = map[string][]interval{}
+		d := NightOf(s.Start)
+		ivs[d] = append(ivs[d], interval{s.Start, s.End})
+		if sources[d] == nil {
+			sources[d] = map[string]bool{}
 		}
-		bySource[d][s.Source] = append(bySource[d][s.Source], interval{s.Start, s.End})
+		sources[d][s.Source] = true
 	}
 
 	var nights []Night
-	for date, sources := range bySource {
-		var best Night
-		found := false // a source may be blank, so best.Source can't tell
-		for src, ivs := range sources {
-			n, ok := buildNight(date, src, ivs)
-			if !ok {
-				continue
-			}
-			switch {
-			case !found:
-				best, found = n, true
-			case (n.Source == SourceWatch) != (best.Source == SourceWatch):
-				if n.Source == SourceWatch {
-					best = n
-				}
-			case n.Asleep > best.Asleep || (n.Asleep == best.Asleep && n.Source < best.Source):
-				best = n
-			}
-		}
-		if found {
-			nights = append(nights, best)
+	for date, list := range ivs {
+		if n, ok := buildNight(date, joinSources(sources[date]), list); ok {
+			nights = append(nights, n)
 		}
 	}
 	sort.Slice(nights, func(i, j int) bool { return nights[i].Date < nights[j].Date })
 	return nights
+}
+
+// Asleep reports whether a sleep stage counts as asleep.
+func Asleep(stage string) bool {
+	switch stage {
+	case StageAsleep, StageCore, StageDeep, StageREM:
+		return true
+	}
+	return false
 }
 
 func buildNight(date, source string, ivs []interval) (Night, bool) {
@@ -159,8 +149,8 @@ func totalDuration(ivs []interval) time.Duration {
 	return d
 }
 
-// nightOf is the wake-up date a sleep sample belongs to.
-func nightOf(t time.Time) string {
+// NightOf is the wake-up date a sleep sample belongs to.
+func NightOf(t time.Time) string {
 	if t.Hour() >= nightCutoffHour {
 		return dayOf(t.AddDate(0, 0, 1))
 	}
