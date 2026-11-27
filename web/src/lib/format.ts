@@ -32,3 +32,10 @@ export function daysAgo(n: number): string {
 	d.setDate(d.getDate() - n);
 	return isoDate(d);
 }
+
+/** "Nov 14 - Nov 20" for the week ending on `end` (YYYY-MM-DD). */
+export function weekRange(end: string): string {
+	const start = new Date(`${end}T12:00:00`);
+	start.setDate(start.getDate() - 6);
+	return `${shortDate(isoDate(start))} - ${shortDate(end)}`;
+}

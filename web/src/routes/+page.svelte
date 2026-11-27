@@ -1,16 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api, type Dashboard, type Insight, type ScoreSummary } from '#lib/api.ts';
+	import { api, type Dashboard, type Insight } from '#lib/api.ts';
 	import Collapsible from '#lib/Collapsible.svelte';
 	import MetricCard from '#lib/MetricCard.svelte';
 	import NutritionCard from '#lib/NutritionCard.svelte';
 	import ScoreHeader from '#lib/ScoreHeader.svelte';
-	import { daysAgo, shortDate, signed } from '#lib/format.ts';
+	import { daysAgo, shortDate } from '#lib/format.ts';
 
 	let data = $state<Dashboard | null>(null);
 	let error = $state('');
-	let history = $state<ScoreSummary[] | null>(null);
-	let historyError = $state('');
 	let insight = $state<Insight | null | undefined>(undefined);
 	let insightError = $state('');
 	let regenerating = $state(false);
@@ -22,15 +20,6 @@
 			error = (e as Error).message;
 		}
 	});
-
-	async function loadHistory() {
-		if (history) return;
-		try {
-			history = (await api.scores()).slice(0, 10);
-		} catch (e) {
-			historyError = (e as Error).message;
-		}
-	}
 
 	async function loadInsight() {
 		if (insight !== undefined) return;
@@ -62,7 +51,21 @@
 
 </script>
 
-<ScoreHeader {data} {error} />
+<ScoreHeader eyebrow="This week" title={data?.week.range ?? ''} {score} loading={!data} {error}>
+	{#snippet actions()}
+		<a href="/trends" aria-label="Trends" class="icon-btn">
+			<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+				<path d="M4 17l5-5 4 3 7-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+			</svg>
+		</a>
+		<a href="/profile" aria-label="Profile" class="icon-btn">
+			<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+				<circle cx="12" cy="8.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8" />
+				<path d="M5 19.5c1.2-3.2 3.9-4.8 7-4.8s5.8 1.6 7 4.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+			</svg>
+		</a>
+	{/snippet}
+</ScoreHeader>
 
 {#if stale && data}
 	<div class="alert" role="alert" data-testid="stale-banner">
@@ -85,33 +88,13 @@
 {/if}
 
 {#if score}
-	<MetricCard title="Markers" hint="carried forward" metrics={markers} />
-	<MetricCard title="Behaviours" hint="4-week average" metrics={behaviours} />
+	<MetricCard title="Markers" info="Not measured every week. When a week has no new reading, the last one is reused for 2 to 16 weeks depending on the marker, then fades by a quarter each week." metrics={markers} />
+	<MetricCard title="Behaviours" info="Each week scores the average of the last 4 weeks, so a steady habit counts more than one good or bad week." metrics={behaviours} />
 {/if}
 
 {#if data?.nutrition}
 	<NutritionCard nutrition={data.nutrition} />
 {/if}
-
-<Collapsible title="Score history" onopen={loadHistory}>
-	{#if historyError}
-		<p class="error">{historyError}</p>
-	{:else if !history}
-		<p class="muted">Loading…</p>
-	{:else}
-		<ul class="week-list">
-			{#each history as h (h.week_end)}
-				<li>
-					<a href={`/week/${h.week_end}`}>
-						<span>{shortDate(h.week_end)}</span>
-						<span class="num">{h.score.toFixed(1)}</span>
-						<span class="num" class:pos={h.change > 0} class:neg={h.change < 0}>{signed(h.change)}</span>
-					</a>
-				</li>
-			{/each}
-		</ul>
-	{/if}
-</Collapsible>
 
 <Collapsible title="AI insights" onopen={loadInsight}>
 	{#if insight === undefined && !insightError}

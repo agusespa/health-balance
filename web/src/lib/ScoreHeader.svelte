@@ -1,18 +1,32 @@
 <script lang="ts">
-	import type { Dashboard } from '#lib/api.ts';
+	import type { Snippet } from 'svelte';
 	import ReserveGauge from '#lib/ReserveGauge.svelte';
 	import { signed } from '#lib/format.ts';
 
 	/**
-	 * The home page's coloured header. It is fixed to the top and collapses as
-	 * the page scrolls: the week label and gauge fold away and the
-	 * score shrinks into the bar, so the score is always on screen. Everything
-	 * is driven by one CSS variable, --p (0 = expanded, 1 = collapsed); a spacer
-	 * of the expanded height keeps the page from jumping.
+	 * The coloured score header of the home and week pages. It is fixed to the
+	 * top and collapses as the page scrolls: the week label and gauge fold away
+	 * and the score shrinks into the bar, so the score is always on screen.
+	 * Everything is driven by one CSS variable, --p (0 = expanded, 1 =
+	 * collapsed); a spacer of the expanded height keeps the page from jumping.
 	 */
-	let { data, error }: { data: Dashboard | null; error: string } = $props();
-
-	const score = $derived(data?.score ?? null);
+	let {
+		eyebrow,
+		title,
+		score,
+		loading = false,
+		error = '',
+		deltaLabel = 'this week',
+		actions
+	}: {
+		eyebrow: string;
+		title: string;
+		score: { score: number; change: number; target: number } | null;
+		loading?: boolean;
+		error?: string;
+		deltaLabel?: string;
+		actions?: Snippet;
+	} = $props();
 
 	let y = $state(0);
 	let innerH = $state(0);
@@ -37,43 +51,26 @@
 <header class="score-header band" data-testid="score-card" style:--p={p}>
 	<div class="inner" bind:offsetHeight={innerH}>
 		<div class="row" bind:this={row}>
-			<span class="week" aria-hidden={p > 0.4}>
-				{#if data}
-					<span class="eyebrow">This week</span>
-					{data.week.range}
+			<h1 class="week">
+				{#if title}
+					<span class="eyebrow">{eyebrow}</span>
+					{title}
 				{/if}
-			</span>
+			</h1>
 			<div class="actions">
-				<a href="/trends" aria-label="Trends" class="icon-btn">
-					<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-						<path d="M4 17l5-5 4 3 7-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-					</svg>
-				</a>
-				<a href="/rationale" aria-label="How it works" class="icon-btn">
-					<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-						<path d="M9.2 9a2.9 2.9 0 0 1 5.6 1c0 2-2.8 2.5-2.8 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-						<circle cx="12" cy="17.6" r="1.1" fill="currentColor" />
-					</svg>
-				</a>
-				<a href="/settings" aria-label="Settings" class="icon-btn">
-					<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-						<path d="M4 7h10M18 7h2M4 17h2M10 17h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-						<circle cx="16" cy="7" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8" />
-						<circle cx="8" cy="17" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8" />
-					</svg>
-				</a>
+				{@render actions?.()}
 			</div>
 		</div>
 
 		{#if error}
 			<p class="error">{error}</p>
-		{:else if !data}
+		{:else if loading}
 			<div class="figure"><p class="value muted">…</p></div>
 		{:else if score}
 			<div class="figure">
 				<p class="value" data-testid="score-value">{Math.round(score.score)}</p>
 				<span class="delta num" class:up={score.change > 0} class:down={score.change < 0}>
-					{signed(score.change)}<small>this week</small>
+					{signed(score.change)}<small>{deltaLabel}</small>
 				</span>
 				<div class="gauge" aria-hidden={p > 0.5}>
 					<ReserveGauge score={score.score} target={score.target} compact />
@@ -116,6 +113,7 @@
 		gap: 0.5rem;
 	}
 	.week {
+		margin: 0;
 		display: flex;
 		flex-direction: column;
 		font-size: 0.98rem;

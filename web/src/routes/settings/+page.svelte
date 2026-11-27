@@ -45,7 +45,7 @@
 	}
 </script>
 
-<TopBar title="Settings" />
+<TopBar title="Settings" back="/profile" />
 
 <form class="card" onsubmit={saveProfile} data-testid="profile-form">
 	<h2>Profile</h2>
@@ -81,27 +81,6 @@
 
 
 <style>
-	.segmented {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 3px;
-		padding: 3px;
-		margin-top: 0.9rem;
-		background: var(--surface-muted);
-		border-radius: 999px;
-	}
-	.segmented button {
-		border: none;
-		background: transparent;
-		padding: 0.5rem 0;
-		color: var(--text-secondary);
-	}
-	.segmented button.active {
-		background: var(--surface);
-		color: var(--text);
-		font-weight: 600;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-	}
 	.lede {
 		font-size: 0.88rem;
 		line-height: 1.45;

@@ -15,12 +15,13 @@ test('shows the score with markers and behaviours', async ({ page }) => {
 	await expect(behaviours.getByTestId('metric-working_sets')).toContainText('Working sets');
 });
 
-test('opens score history and a week', async ({ page }) => {
+test('opens score history and a week from the profile', async ({ page }) => {
 	await page.goto('/');
-	await page.getByRole('button', { name: 'Score history' }).click();
+	await page.getByRole('link', { name: 'Profile' }).click();
+	await expect(page.getByRole('tab', { name: 'Score history' })).toHaveAttribute('aria-selected', 'true');
 
 	const weeks = page.locator('ul a[href^="/week/"]');
-	await expect(weeks).toHaveCount(10);
+	await expect(weeks.first()).toBeVisible();
 	await weeks.first().click();
 
 	await expect(page).toHaveURL(/\/week\/\d{4}-\d{2}-\d{2}$/);
@@ -39,14 +40,37 @@ test('shows an empty insights state and explains a missing API key', async ({ pa
 });
 
 test('trends shows the metric charts', async ({ page }) => {
-	await page.goto('/trends');
+	await page.goto('/');
+	await page.getByRole('link', { name: 'Trends' }).click();
 	await expect(page.getByTestId('trend-rhr').getByRole('img', { name: 'trend' })).toBeVisible();
 	await expect(page.getByTestId('trend-vo2_max').getByRole('img', { name: 'trend' })).toBeVisible();
 });
 
-test('a client-side route loads directly', async ({ page }) => {
-	await page.goto('/rationale');
+test('profile switches to help and opens settings', async ({ page }) => {
+	await page.goto('/profile');
+	await page.getByRole('tab', { name: 'How it works' }).click();
+	await expect(page).toHaveURL(/\/profile\?view=help$/);
 	await expect(page.getByRole('heading', { name: 'Biological Reserve Score' })).toBeVisible();
+
+	await page.getByRole('link', { name: 'Settings' }).click();
+	await expect(page.getByTestId('profile-form')).toBeVisible();
+	await page.getByRole('link', { name: 'Back' }).click();
+	await expect(page).toHaveURL(/\/profile$/);
+});
+
+test('a client-side route loads directly', async ({ page }) => {
+	await page.goto('/profile?view=help');
+	await expect(page.getByRole('heading', { name: 'Biological Reserve Score' })).toBeVisible();
+});
+
+test('card info icon shows a tooltip in place', async ({ page }) => {
+	await page.goto('/');
+	const card = page.getByTestId('card-markers');
+	await card.getByRole('button', { name: 'How markers are scored' }).click();
+	await expect(card.getByRole('tooltip')).toContainText('last one is reused');
+	await expect(page).toHaveURL(/\/$/);
+	await page.keyboard.press('Escape');
+	await expect(card.getByRole('tooltip')).toBeHidden();
 });
 
 test('shows nutrition for the last 7 days, unscored', async ({ page }) => {

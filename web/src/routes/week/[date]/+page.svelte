@@ -2,9 +2,8 @@
 	import { page } from '$app/state';
 	import { api, type WeeklyScore } from '#lib/api.ts';
 	import MetricCard from '#lib/MetricCard.svelte';
-	import ReserveGauge from '#lib/ReserveGauge.svelte';
-	import TopBar from '#lib/TopBar.svelte';
-	import { shortDate, signed } from '#lib/format.ts';
+	import ScoreHeader from '#lib/ScoreHeader.svelte';
+	import { weekRange } from '#lib/format.ts';
 
 	let week = $state<WeeklyScore | null>(null);
 	let error = $state('');
@@ -20,54 +19,26 @@
 	});
 </script>
 
-<TopBar title={`Week of ${shortDate(page.params.date ?? '')}`} />
+<ScoreHeader eyebrow="Week" title={weekRange(page.params.date ?? '')} score={week} loading={!week && !error} {error} deltaLabel="vs prior week">
+	{#snippet actions()}
+		<a href="/profile" aria-label="Back" class="icon-btn">
+			<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+				<path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+			</svg>
+		</a>
+	{/snippet}
+</ScoreHeader>
 
-{#if error}
-	<p class="error">{error}</p>
-{:else if !week}
-	<p class="muted">Loading…</p>
-{:else}
-	<section class="band band-hero summary">
-		<div class="wrap">
-		<div class="figure">
-			<span class="score">{week.score.toFixed(1)}</span>
-			<span class="num delta" class:pos={week.change > 0} class:neg={week.change < 0}>{signed(week.change)}</span>
-		</div>
-		<ReserveGauge score={week.score} target={week.target} />
-		<p class="facts num">target {week.target.toFixed(1)}&ensp;·&ensp;aging tax −{week.aging_tax.toFixed(1)}</p>
-		</div>
-	</section>
-	<MetricCard title="Markers" hint="carried forward" metrics={week.metrics.filter((m) => m.kind === 'marker')} />
-	<MetricCard title="Behaviours" hint="4-week average" metrics={week.metrics.filter((m) => m.kind === 'behaviour')} />
+{#if week}
+	<p class="facts num">target {week.target.toFixed(1)}&ensp;·&ensp;aging tax −{week.aging_tax.toFixed(1)}</p>
+	<MetricCard title="Markers" info="Not measured every week. When a week has no new reading, the last one is reused for 2 to 16 weeks depending on the marker, then fades by a quarter each week." metrics={week.metrics.filter((m) => m.kind === 'marker')} />
+	<MetricCard title="Behaviours" info="Each week scores the average of the last 4 weeks, so a steady habit counts more than one good or bad week." metrics={week.metrics.filter((m) => m.kind === 'behaviour')} />
 {/if}
 
 <style>
-	.figure {
-		display: flex;
-		align-items: baseline;
-		gap: 0.8rem;
-		margin-bottom: 0.8rem;
-	}
-	.score {
-		font-family: var(--font-display);
-		font-size: 3.2rem;
-		font-weight: 600;
-		line-height: 1;
-		letter-spacing: -0.05em;
-	}
-	.delta {
-		font-weight: 600;
-		color: var(--text-secondary);
-	}
-	.delta.pos {
-		color: var(--positive);
-	}
-	.delta.neg {
-		color: var(--negative);
-	}
 	.facts {
 		font-size: 0.72rem;
 		color: var(--muted);
-		margin: 0.6rem 0 0;
+		margin: 0 0.2rem 0.75rem;
 	}
 </style>

@@ -1,9 +1,3 @@
-<script lang="ts">
-	import TopBar from '#lib/TopBar.svelte';
-</script>
-
-<TopBar title="How it works" />
-
 <section class="card">
 	<h2>Biological Reserve Score</h2>
 	<p>
@@ -22,9 +16,12 @@
 	<p class="muted">Points are capped, and falling short costs more than doing well earns.</p>
 </section>
 
-<section class="card">
+<section class="card" id="markers">
 	<h2>Markers</h2>
-	<p class="muted">Slow-changing measures. When a week has none, the last value is reused for a while, then fades toward neutral.</p>
+	<p class="muted">
+		Slow-changing measures you don't take every week. When a week has no new reading, the last one is reused for a
+		while, then fades (see <a href="#missing-data">missing data</a>).
+	</p>
 	<ul>
 		<li><strong>VO2 max</strong> vs the typical value for your age and sex (up to +16 / −22).</li>
 		<li><strong>Waist / height</strong> vs 0.48 (up to +10 / −15).</li>
@@ -35,9 +32,11 @@
 	</ul>
 </section>
 
-<section class="card">
+<section class="card" id="behaviours">
 	<h2>Behaviours</h2>
-	<p class="muted">Habits, scored on a 4-week average so consistency counts more than one week.</p>
+	<p class="muted">
+		Habits. Each week scores the average of the last 4 weeks, so a steady habit counts more than one good or bad week.
+	</p>
 	<ul>
 		<li><strong>Sleep score</strong> (0–100) vs 85: duration (50 points, full from 8 h), bedtime consistency (30) and interruptions (20).</li>
 		<li><strong>Steps</strong> vs 8,000 a day.</li>
@@ -57,12 +56,26 @@
 	</p>
 </section>
 
-<section class="card">
+<section class="card" id="missing-data">
 	<h2>Missing data</h2>
-	<p>
-		A daily measure needs at least 3 days in a week to count. Labels on each metric show when a value is the
-		<em>last value</em> reused, <em>fading</em> toward neutral, or has <em>no data</em> yet (0 points).
-	</p>
+	<p>A daily measure needs at least 3 days in a week to count. A week without enough data is filled in like this:</p>
+	<ul>
+		<li>
+			<strong>Markers</strong> reuse the last reading unchanged for 2 weeks (resting heart rate, HRV), 4 weeks (VO2 max),
+			8 weeks (waist / height, cardio recovery) or 16 weeks (blood pressure). After that their points shrink by a quarter
+			each week until a new reading arrives.
+		</li>
+		<li>
+			<strong>Behaviours</strong> reuse last week's value once. After that it moves halfway toward the reference (8,000
+			steps, 150 minutes, and so on) each week, so a gap neither rewards nor punishes for long.
+		</li>
+	</ul>
+	<p>Labels on each metric show which case applies:</p>
+	<ul>
+		<li><strong>Last value</strong>: the previous value, reused unchanged.</li>
+		<li><strong>Fading</strong>: an old value on its way toward neutral.</li>
+		<li><strong>No data</strong>: never measured, so 0 points.</li>
+	</ul>
 </section>
 
 <section class="card">
@@ -79,6 +92,16 @@
 	}
 	h2 {
 		margin-bottom: 0.2rem;
+	}
+	/* Linked sections land below the sticky top bar. */
+	section[id] {
+		scroll-margin-top: calc(env(safe-area-inset-top) + 72px);
+	}
+	a {
+		color: inherit;
+		text-decoration: underline;
+		text-decoration-color: var(--border-strong);
+		text-underline-offset: 2px;
 	}
 	strong {
 		color: var(--text);

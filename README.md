@@ -8,10 +8,11 @@ A self-hosted web app that tracks your **Biological Reserve Score**, a weekly es
 - **Markers**: VO2 max, waist-to-height, resting heart rate, HRV, blood pressure, cardio recovery.
 - **Behaviours** (4-week average): sleep, steps, exercise, gym working sets, mindfulness.
 - **Nutrition** (shown, not scored): energy balance, macros, fiber and water over the last 7 days.
-- **History**: weekly breakdowns and daily trends.
+- **Trends**: 90-day and 2-year charts of the daily measures.
+- **Profile**: the weekly score history and how the score works, with Settings in its top bar.
 - **AI insights**: a summary of the latest week, written by Claude when you ask for it.
 
-Tap **?** in the app for how the score is calculated.
+Open **Profile → How it works** in the app for how the score is calculated.
 
 ## Setup
 
