@@ -3,6 +3,7 @@
 	import { api, type DailyMetric } from '#lib/api.ts';
 	import LineChart from '#lib/LineChart.svelte';
 	import MetricIcon from '#lib/MetricIcon.svelte';
+	import PullToRefresh from '#lib/PullToRefresh.svelte';
 	import TopBar from '#lib/TopBar.svelte';
 	import { daysAgo, isoDate, shortDate } from '#lib/format.ts';
 
@@ -18,13 +19,16 @@
 		{ metric: 'waist_cm', label: 'Waist (cm)', days: 730, format: (v: number) => v.toFixed(1) }
 	];
 
-	onMount(async () => {
+	async function load() {
 		try {
 			daily = await api.daily(daysAgo(730), isoDate(new Date()), trends.map((t) => t.metric));
+			error = '';
 		} catch (e) {
 			error = (e as Error).message;
 		}
-	});
+	}
+
+	onMount(load);
 
 	/** Daily values; the 90-day ones as a 7-day rolling average, which reads better than raw day-to-day noise. */
 	function series(metric: string, days: number) {
@@ -40,6 +44,8 @@
 			.filter((p) => p.date >= from);
 	}
 </script>
+
+<PullToRefresh onrefresh={load} />
 
 <TopBar title="Trends" />
 

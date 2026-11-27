@@ -4,6 +4,7 @@
 	import Collapsible from '#lib/Collapsible.svelte';
 	import MetricCard from '#lib/MetricCard.svelte';
 	import NutritionCard from '#lib/NutritionCard.svelte';
+	import PullToRefresh from '#lib/PullToRefresh.svelte';
 	import ScoreHeader from '#lib/ScoreHeader.svelte';
 	import { daysAgo, shortDate } from '#lib/format.ts';
 
@@ -13,13 +14,16 @@
 	let insightError = $state('');
 	let regenerating = $state(false);
 
-	onMount(async () => {
+	async function load() {
 		try {
 			data = await api.dashboard();
+			error = '';
 		} catch (e) {
 			error = (e as Error).message;
 		}
-	});
+	}
+
+	onMount(load);
 
 	async function loadInsight() {
 		if (insight !== undefined) return;
@@ -50,6 +54,8 @@
 	const stale = $derived(!!data && data.latest_data < daysAgo(2));
 
 </script>
+
+<PullToRefresh onrefresh={load} />
 
 <ScoreHeader eyebrow="This week" title={data?.week.range ?? ''} {score} loading={!data} {error}>
 	{#snippet actions()}
