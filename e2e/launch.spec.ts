@@ -25,7 +25,7 @@ test('launches from the cached shell without the network', async ({ page, contex
 	await expect(page.getByRole('button', { name: 'Score history' })).toBeVisible();
 
 	// Every route is the same shell, so deep links open offline too.
-	for (const path of ['/settings', '/history', '/rationale', '/week/2026-01-04']) {
+	for (const path of ['/settings', '/trends', '/rationale', '/week/2026-01-04']) {
 		const res = await page.goto(path);
 		expect(res!.fromServiceWorker(), path).toBe(true);
 		await expect(page.locator('h1').first(), path).toBeVisible();

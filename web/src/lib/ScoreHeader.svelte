@@ -44,6 +44,11 @@
 				{/if}
 			</span>
 			<div class="actions">
+				<a href="/trends" aria-label="Trends" class="icon-btn">
+					<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+						<path d="M4 17l5-5 4 3 7-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+					</svg>
+				</a>
 				<a href="/rationale" aria-label="How it works" class="icon-btn">
 					<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
 						<path d="M9.2 9a2.9 2.9 0 0 1 5.6 1c0 2-2.8 2.5-2.8 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />

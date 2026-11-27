@@ -110,7 +110,6 @@
 				</li>
 			{/each}
 		</ul>
-		<a class="more" href="/history">Full history and trends →</a>
 	{/if}
 </Collapsible>
 
@@ -151,11 +150,6 @@
 		color: var(--warning);
 		font-weight: 600;
 		margin-bottom: 0.15rem;
-	}
-	.more {
-		display: inline-block;
-		margin-top: 0.8rem;
-		font-size: 0.88rem;
 	}
 	.regenerate {
 		margin-top: 0.6rem;

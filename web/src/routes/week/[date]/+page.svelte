@@ -20,7 +20,7 @@
 	});
 </script>
 
-<TopBar title={`Week of ${shortDate(page.params.date ?? '')}`} back="/history" />
+<TopBar title={`Week of ${shortDate(page.params.date ?? '')}`} />
 
 {#if error}
 	<p class="error">{error}</p>

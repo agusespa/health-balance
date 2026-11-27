@@ -263,7 +263,7 @@ label {
 	margin: 1rem 0 0.35rem;
 }
 
-/* Rows of week → score → change, used on the dashboard and history. */
+/* Rows of week → score → change, used on the dashboard. */
 .week-list {
 	list-style: none;
 	padding: 0;
