@@ -70,12 +70,6 @@
 			steps, 150 minutes, and so on) each week, so a gap neither rewards nor punishes for long.
 		</li>
 	</ul>
-	<p>Labels on each metric show which case applies:</p>
-	<ul>
-		<li><strong>Last value</strong>: the previous value, reused unchanged.</li>
-		<li><strong>Fading</strong>: an old value on its way toward neutral.</li>
-		<li><strong>No data</strong>: never measured, so 0 points.</li>
-	</ul>
 </section>
 
 <section class="card">

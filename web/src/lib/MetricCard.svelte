@@ -18,12 +18,6 @@
 	// Bars share a scale within the card so contributions compare at a glance.
 	const scale = $derived(Math.max(8, ...metrics.map((m) => Math.abs(m.points))));
 	const total = $derived(metrics.reduce((sum, m) => sum + m.points, 0));
-
-	const statusText: Record<string, string> = {
-		carried: 'last value',
-		imputed: 'fading',
-		missing: 'no data'
-	};
 </script>
 
 <svelte:window onpointerdown={closeOutside} onkeydown={(e) => e.key === 'Escape' && (open = false)} />
@@ -60,9 +54,6 @@
 			<div class="what">
 				<span class="label">
 					{m.label}
-					{#if m.status !== 'measured'}
-						<span class="badge" data-status={m.status}>{statusText[m.status]}</span>
-					{/if}
 				</span>
 				<span class="sub">
 					{#if m.status === 'missing'}
@@ -212,21 +203,5 @@
 		font-size: 0.88rem;
 		font-weight: 600;
 		color: var(--text-secondary);
-	}
-	.badge {
-		font-family: var(--font-mono);
-		font-size: 0.6rem;
-		letter-spacing: 0.05em;
-		text-transform: uppercase;
-		color: var(--muted);
-		border: 1px solid var(--border-strong);
-		border-radius: 999px;
-		padding: 1px 6px;
-		margin-left: 5px;
-		vertical-align: 2px;
-	}
-	.badge[data-status='imputed'] {
-		color: var(--warning);
-		border-color: color-mix(in srgb, var(--warning) 40%, transparent);
 	}
 </style>
