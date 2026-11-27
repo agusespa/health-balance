@@ -35,7 +35,7 @@
 					aria-describedby={open ? tipId : undefined}
 					onclick={() => (open = !open)}
 				>
-					<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+					<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
 						<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8" />
 						<path d="M12 11v5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
 						<circle cx="12" cy="7.8" r="1.1" fill="currentColor" />
@@ -88,7 +88,7 @@
 	.head .section-label {
 		display: flex;
 		align-items: center;
-		gap: 0.15rem;
+		gap: 0.25rem;
 		margin: 0;
 	}
 	.info-wrap {
@@ -104,8 +104,8 @@
 		cursor: pointer;
 		display: grid;
 		place-items: center;
-		width: 28px;
-		height: 28px;
+		width: 32px;
+		height: 32px;
 		margin: -8px 0;
 		border-radius: 999px;
 		color: var(--muted);

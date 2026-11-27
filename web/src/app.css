@@ -136,11 +136,11 @@ h2 {
  */
 .section {
 	padding: 0.4rem 0 0;
-	margin-bottom: 1.25rem;
+	margin-bottom: 2rem;
 }
 .section + .section {
 	border-top: 1px solid var(--border-strong);
-	padding-top: 1rem;
+	padding-top: 1.75rem;
 }
 
 /* Small uppercase mono labels: the "instrument" voice of the app. */
@@ -152,6 +152,11 @@ h2 {
 	text-transform: uppercase;
 	color: var(--muted);
 	margin: 0 0 0.6rem;
+}
+
+/* Section titles read a step larger than other labels. */
+.section-label {
+	font-size: 0.8rem;
 }
 
 .section-label:has(> .icon) {
