@@ -8,14 +8,13 @@ import (
 )
 
 // GetActiveWeekEndDate returns the Friday date for the most recently completed
-// Saturday-Friday reporting week. That week is the one users can edit during
-// the current Saturday-Friday entry window.
+// Saturday-Friday week, the one the dashboard scores and labels "Last week".
 func GetActiveWeekEndDate() string {
 	return getActiveWeekRange(time.Now()).end.Format("2006-01-02")
 }
 
-// GetActiveWeekDateRange returns the Saturday-Friday range for the week that is
-// currently editable on the dashboard.
+// GetActiveWeekDateRange returns the Saturday-Friday range of the most recently
+// completed week, shown on the dashboard as "Last week".
 func GetActiveWeekDateRange() string {
 	weekRange := getActiveWeekRange(time.Now())
 	return formatWeekRange(weekRange.start, weekRange.end)

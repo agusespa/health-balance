@@ -57,7 +57,7 @@
 
 <PullToRefresh onrefresh={load} />
 
-<ScoreHeader eyebrow="This week" title={data?.week.range ?? ''} {score} loading={!data} {error}>
+<ScoreHeader eyebrow="Last week" deltaLabel="vs prior week" title={data?.week.range ?? ''} {score} loading={!data} {error}>
 	{#snippet actions()}
 		<a href="/trends" aria-label="Trends" class="icon-btn">
 			<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">

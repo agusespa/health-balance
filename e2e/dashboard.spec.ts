@@ -4,6 +4,8 @@ test('shows the score with markers and behaviours', async ({ page }) => {
 	await page.goto('/');
 
 	await expect(page.getByTestId('score-value')).toHaveText(/^\d{3,4}$/);
+	// The dashboard scores the last finished Saturday–Friday week, and says so.
+	await expect(page.getByRole('heading', { level: 1 })).toContainText('Last week');
 	// The seed has data up to today.
 	await expect(page.getByTestId('stale-banner')).toHaveCount(0);
 
