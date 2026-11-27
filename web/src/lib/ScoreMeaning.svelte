@@ -33,7 +33,7 @@
 	const grow = $derived(scored.filter((m) => room(m) > 0.05).sort((a, b) => room(b) - room(a))[0]);
 </script>
 
-<section class="section" data-testid="card-meaning">
+<section class="card meaning" data-testid="card-meaning">
 	<p class="section-label">
 		What your score means
 		<InfoTip
@@ -63,6 +63,13 @@
 </section>
 
 <style>
+	/* A card, unlike the flat sections: it's the summary to read first. */
+	.meaning {
+		margin-bottom: 2rem;
+	}
+	.meaning p:last-child {
+		margin-bottom: 0;
+	}
 	.section-label {
 		display: flex;
 		align-items: center;
