@@ -83,6 +83,31 @@ func TestLatestData(t *testing.T) {
 	}
 }
 
+func TestDrivers(t *testing.T) {
+	h := realHandler(t, profile, []models.DailyMetric{{Date: "2024-03-01", Metric: ingest.MetricVO2Max, Value: 50}})
+	res := decode[driversResponse](t, serve(t, h, "GET", "/api/drivers", ""))
+	if len(res.Metrics) != 11 || len(res.Weeks) < 100 || res.Weeks[0].WeekEnd != "2024-01-05" {
+		t.Fatalf("%d metrics, %d weeks, first %+v", len(res.Metrics), len(res.Weeks), res.Weeks[0])
+	}
+	vo2 := -1
+	for i, m := range res.Metrics {
+		if m.Metric == "vo2_max" {
+			vo2 = i
+		}
+	}
+	for _, w := range res.Weeks {
+		if len(w.Points) != 11 || w.Aging <= 0 {
+			t.Fatalf("week %s has %d points, aging %v", w.WeekEnd, len(w.Points), w.Aging)
+		}
+		if w.WeekEnd == "2024-03-01" && w.Points[vo2] <= 0 {
+			t.Errorf("vo2 points in its week: %v", w.Points[vo2])
+		}
+	}
+	if rec := serve(t, realHandler(t, nil, nil), "GET", "/api/drivers", ""); rec.Code != http.StatusConflict {
+		t.Errorf("without a profile: %d, want 409", rec.Code)
+	}
+}
+
 func TestDashboardScoresAndHistory(t *testing.T) {
 	h := realHandler(t, profile, []models.DailyMetric{{Date: "2024-03-01", Metric: ingest.MetricVO2Max, Value: 50}})
 

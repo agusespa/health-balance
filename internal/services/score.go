@@ -524,6 +524,12 @@ var (
 	mindfulCurve  = curve{0.6, 1.0, 2, 3}
 )
 
+// AgingPoints is a week's aging tax in target points: how far the target must
+// sit above the score for the score to hold still that week.
+func AgingPoints(tax float64) float64 {
+	return tax * (1 - scoreAdjustmentRate) / scoreAdjustmentRate
+}
+
 // settlePoint is the score at which a week with this target and tax rate
 // changes nothing: the aging tax taken off equals the step toward the target.
 func settlePoint(target, taxRate float64) float64 {

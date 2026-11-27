@@ -53,11 +53,18 @@ test('opens AI insights on their own page and explains a missing API key', async
 	await expect(page.getByTestId('insight-error')).toContainText('ANTHROPIC_API_KEY');
 });
 
-test('trends shows the metric charts', async ({ page }) => {
+test('trends shows the score and what drove it', async ({ page }) => {
 	await page.goto('/');
 	await page.getByRole('link', { name: 'Trends' }).click();
-	await expect(page.getByTestId('trend-rhr').getByRole('img', { name: 'trend' })).toBeVisible();
-	await expect(page.getByTestId('trend-vo2_max').getByRole('img', { name: 'trend' })).toBeVisible();
+	await expect(page.getByTestId('trend-score').getByRole('img', { name: 'trend' })).toBeVisible();
+	await expect(page.getByTestId('trend-summary')).toContainText('over the last 6 months');
+	const drivers = page.getByTestId('trend-drivers');
+	await expect(drivers.locator('[data-testid^="driver-"]')).toHaveCount(11);
+	await expect(drivers.getByTestId('driver-vo2_max')).toContainText('VO2 max');
+	await expect(drivers.getByTestId('trend-net')).toContainText(/aging −[\d.]+ levels off near \d{3,4}/);
+
+	await page.getByRole('tab', { name: 'All' }).click();
+	await expect(page.getByTestId('trend-summary')).toContainText('since Jan 5, 2024');
 });
 
 test('profile switches to help and opens settings', async ({ page }) => {

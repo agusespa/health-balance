@@ -36,6 +36,7 @@ func (h *Handler) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/dashboard", h.HandleDashboard)
 	mux.HandleFunc("GET /api/latest-data", h.HandleLatestData)
 	mux.HandleFunc("GET /api/scores", h.HandleScores)
+	mux.HandleFunc("GET /api/drivers", h.HandleDrivers)
 	mux.HandleFunc("GET /api/weeks/{date}", h.HandleWeek)
 	mux.HandleFunc("GET /api/daily", h.HandleDaily)
 	mux.HandleFunc("GET /api/profile", h.HandleGetProfile)
@@ -137,6 +138,45 @@ func (h *Handler) HandleScores(w http.ResponseWriter, r *http.Request) {
 		out = append(out, scoreSummary{s.WeekEnd, s.Score, s.Change, s.Target, s.AgingTax})
 	}
 	writeJSON(w, http.StatusOK, out)
+}
+
+type driverWeek struct {
+	WeekEnd string    `json:"week_end"`
+	Score   float64   `json:"score"`
+	Points  []float64 `json:"points"`
+	// Aging is the week's aging tax in target points, to set against Points.
+	Aging float64 `json:"aging"`
+}
+
+type driversResponse struct {
+	Metrics []models.MetricScore `json:"metrics"`
+	Weeks   []driverWeek         `json:"weeks"`
+}
+
+// HandleDrivers returns every week's score with each metric's points, oldest
+// first. Metrics is the latest week's breakdown and fixes the order of each
+// week's Points.
+func (h *Handler) HandleDrivers(w http.ResponseWriter, r *http.Request) {
+	scores, ok := h.weeklyScores(w)
+	if !ok {
+		return
+	}
+	res := driversResponse{Metrics: []models.MetricScore{}, Weeks: make([]driverWeek, 0, len(scores))}
+	if len(scores) > 0 {
+		res.Metrics = scores[len(scores)-1].Metrics
+	}
+	for _, s := range scores {
+		byMetric := make(map[string]float64, len(s.Metrics))
+		for _, m := range s.Metrics {
+			byMetric[m.Metric] = m.Points
+		}
+		points := make([]float64, len(res.Metrics))
+		for i, m := range res.Metrics {
+			points[i] = byMetric[m.Metric]
+		}
+		res.Weeks = append(res.Weeks, driverWeek{s.WeekEnd, s.Score, points, services.AgingPoints(s.AgingTax)})
+	}
+	writeJSON(w, http.StatusOK, res)
 }
 
 // HandleWeek returns one week's score with its per-metric breakdown.

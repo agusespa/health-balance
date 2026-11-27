@@ -50,11 +50,11 @@ test('a short pull springs back without fetching', async ({ page }) => {
 	expect(fetched).toBe(false);
 });
 
-test('pulling down on trends fetches the daily values again', async ({ page }) => {
+test('pulling down on trends fetches the drivers again', async ({ page }) => {
 	await page.goto('/trends');
 	await expect(page.getByRole('heading', { name: 'Trends' })).toBeVisible();
 
-	const refetch = page.waitForRequest((r) => r.url().includes('/api/daily'));
+	const refetch = page.waitForRequest((r) => r.url().includes('/api/drivers'));
 	await pull(page, 220);
 	await refetch;
 });

@@ -62,12 +62,12 @@ export interface Dashboard {
 	nutrition: Nutrition | null;
 }
 
-export interface DailyMetric {
-	date: string;
-	metric: string;
-	value: number;
-	samples: number;
-	source: string;
+/** Every week's score and metric points, oldest first; `points[i]` belongs to `metrics[i]`. */
+export interface Drivers {
+	/** The latest week's breakdown. */
+	metrics: MetricScore[];
+	/** `aging` is the week's aging tax in target points, to set against `points`. */
+	weeks: { week_end: string; score: number; points: number[]; aging: number }[];
 }
 
 export interface Profile {
@@ -123,8 +123,7 @@ export const api = {
 	latestData: () => request<{ latest_data: string }>('GET', '/api/latest-data'),
 	scores: () => request<ScoreSummary[]>('GET', '/api/scores'),
 	week: (date: string) => request<WeeklyScore>('GET', `/api/weeks/${date}`),
-	daily: (from: string, to: string, metrics: string[]) =>
-		request<DailyMetric[]>('GET', `/api/daily?from=${from}&to=${to}&metrics=${metrics.join(',')}`),
+	drivers: () => request<Drivers>('GET', '/api/drivers'),
 	profile: () => request<Profile>('GET', '/api/profile'),
 	saveProfile: (p: Profile) => request<Profile>('PUT', '/api/profile', p),
 	insights: () => request<Insight | null>('GET', '/api/insights'),

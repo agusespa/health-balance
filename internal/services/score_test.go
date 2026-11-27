@@ -109,6 +109,10 @@ func TestSettlePointIsWhereAWeekChangesNothing(t *testing.T) {
 	if next := post + (w.Target-post)*scoreAdjustmentRate; math.Abs(next-w.Settle) > 1e-9 {
 		t.Errorf("a week at the settle point moves it to %v, want %v", next, w.Settle)
 	}
+	// At the settle point the target sits exactly the aging points above it.
+	if gap := w.Target - w.Settle; math.Abs(gap-AgingPoints(w.Settle*taxRate)) > 1e-9 {
+		t.Errorf("target − settle = %v, want aging points %v", gap, AgingPoints(w.Settle*taxRate))
+	}
 }
 
 func TestMarkerCarriedThenFades(t *testing.T) {
