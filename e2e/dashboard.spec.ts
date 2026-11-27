@@ -31,9 +31,10 @@ test('opens score history and a week from the profile', async ({ page }) => {
 	await expect(page.getByTestId('card-behaviours')).toBeVisible();
 });
 
-test('shows an empty insights state and explains a missing API key', async ({ page }) => {
+test('opens AI insights on their own page and explains a missing API key', async ({ page }) => {
 	await page.goto('/');
-	await page.getByRole('button', { name: 'AI insights' }).click();
+	await page.getByRole('link', { name: 'AI insights' }).click();
+	await expect(page).toHaveURL(/\/insights$/);
 	await expect(page.getByText('No insights yet')).toBeVisible();
 
 	// The e2e server has no ANTHROPIC_API_KEY.

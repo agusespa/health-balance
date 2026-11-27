@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api, type Dashboard, type Insight } from '#lib/api.ts';
-	import Collapsible from '#lib/Collapsible.svelte';
+	import { api, type Dashboard } from '#lib/api.ts';
 	import MetricCard from '#lib/MetricCard.svelte';
 	import NutritionCard from '#lib/NutritionCard.svelte';
 	import PullToRefresh from '#lib/PullToRefresh.svelte';
@@ -10,9 +9,6 @@
 
 	let data = $state<Dashboard | null>(null);
 	let error = $state('');
-	let insight = $state<Insight | null | undefined>(undefined);
-	let insightError = $state('');
-	let regenerating = $state(false);
 
 	async function load() {
 		try {
@@ -25,26 +21,6 @@
 
 	onMount(load);
 
-	async function loadInsight() {
-		if (insight !== undefined) return;
-		try {
-			insight = await api.insights();
-		} catch (e) {
-			insightError = (e as Error).message;
-		}
-	}
-
-	async function regenerate() {
-		regenerating = true;
-		insightError = '';
-		try {
-			insight = await api.regenerateInsight();
-		} catch (e) {
-			insightError = (e as Error).message;
-		} finally {
-			regenerating = false;
-		}
-	}
 
 	const score = $derived(data?.score ?? null);
 	const markers = $derived(score?.metrics.filter((m) => m.kind === 'marker') ?? []);
@@ -59,6 +35,12 @@
 
 <ScoreHeader eyebrow="Last week" deltaLabel="vs prior week" title={data?.week.range ?? ''} {score} loading={!data} {error}>
 	{#snippet actions()}
+		<a href="/insights" aria-label="AI insights" class="icon-btn">
+			<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+				<path d="M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9L12 17.5l-1.9-5.1L5 10.5l5.1-1.9z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+				<path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z" fill="currentColor" />
+			</svg>
+		</a>
 		<a href="/trends" aria-label="Trends" class="icon-btn">
 			<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
 				<path d="M4 17l5-5 4 3 7-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
@@ -102,26 +84,6 @@
 	<NutritionCard nutrition={data.nutrition} />
 {/if}
 
-<Collapsible title="AI insights" onopen={loadInsight}>
-	{#if insight === undefined && !insightError}
-		<p class="muted">Loading…</p>
-	{:else if regenerating}
-		<p class="muted" data-testid="insight-writing">Writing… this can take a minute.</p>
-	{:else if insight}
-		<p class="section-label">Week ending {shortDate(insight.week_end)}</p>
-		<div class="insight" data-testid="insight">{@html insight.html}</div>
-	{:else if !insightError}
-		<p class="muted">No insights yet. Write them when you want a summary of the latest week.</p>
-	{/if}
-	{#if insightError}
-		<p class="error" data-testid="insight-error">{insightError}</p>
-	{/if}
-	{#if insight !== undefined || insightError}
-		<button class="regenerate" onclick={regenerate} disabled={regenerating}>
-			{insight ? 'Regenerate' : 'Write insights now'}
-		</button>
-	{/if}
-</Collapsible>
 
 <style>
 	.alert {
@@ -139,16 +101,5 @@
 		color: var(--warning);
 		font-weight: 600;
 		margin-bottom: 0.15rem;
-	}
-	.regenerate {
-		margin-top: 0.6rem;
-	}
-	.insight :global(p),
-	.insight :global(li) {
-		line-height: 1.55;
-		color: var(--text-secondary);
-	}
-	.insight :global(strong) {
-		color: var(--text);
 	}
 </style>
