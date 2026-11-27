@@ -54,6 +54,9 @@
 			<div class="what">
 				<span class="label">
 					{m.label}
+					{#if m.weeks_old}
+						<span class="age" title="Last measured {m.weeks_old} {m.weeks_old === 1 ? 'week' : 'weeks'} ago">{m.weeks_old}w old</span>
+					{/if}
 				</span>
 				<span class="sub">
 					{#if m.status === 'missing'}
@@ -203,5 +206,19 @@
 		font-size: 0.88rem;
 		font-weight: 600;
 		color: var(--text-secondary);
+	}
+	/* Short and never split: the label column is narrow on a phone. */
+	.age {
+		display: inline-block;
+		white-space: nowrap;
+		font-family: var(--font-mono);
+		font-size: 0.6rem;
+		letter-spacing: 0.03em;
+		color: var(--muted);
+		border: 1px solid var(--border-strong);
+		border-radius: 999px;
+		padding: 0 6px;
+		margin-left: 4px;
+		vertical-align: 2px;
 	}
 </style>

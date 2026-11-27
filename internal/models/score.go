@@ -25,6 +25,9 @@ type MetricScore struct {
 	ValueText     string  `json:"value_text"`
 	ReferenceText string  `json:"reference_text"`
 	Points        float64 `json:"points"`
+	// WeeksOld is how many weeks ago the value was last measured, for a
+	// carried or imputed value; 0 when measured this week or never.
+	WeeksOld int `json:"weeks_old,omitempty"`
 }
 
 // WeeklyScore is the Biological Reserve Score after one Saturday–Friday week.

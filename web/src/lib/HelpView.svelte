@@ -70,6 +70,7 @@
 			steps, 150 minutes, and so on) each week, so a gap neither rewards nor punishes for long.
 		</li>
 	</ul>
+	<p>A reused or fading value shows how long ago it was measured, for example <strong>3w old</strong>.</p>
 </section>
 
 <section class="card">

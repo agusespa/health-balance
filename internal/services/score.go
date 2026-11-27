@@ -239,6 +239,7 @@ func (t *markerTrack) step(w week, measured bool, m models.MetricScore) models.M
 	}
 	out := t.last
 	since := w.index - t.lastWeek
+	out.WeeksOld = since
 	if since <= t.carryWeeks {
 		out.Status = models.StatusCarried
 	} else {
@@ -276,6 +277,23 @@ func (t *behaviourTrack) step(obs float64, ok bool) (smoothed float64, status st
 		t.history = append(t.history, v)
 	}
 	return averageLastN(t.history, behaviourWindow, func(v float64) float64 { return v }), status
+}
+
+// weeksOld is how many weeks ago the habit was last measured, or 0 when it
+// was measured in the latest step or never.
+func (t *behaviourTrack) weeksOld() int {
+	if len(t.history) == 0 {
+		return 0
+	}
+	return t.missed
+}
+
+// aged sets a behaviour's WeeksOld from its track.
+func aged(m models.MetricScore, t *behaviourTrack) models.MetricScore {
+	if m.Status == models.StatusCarried || m.Status == models.StatusImputed {
+		m.WeeksOld = t.weeksOld()
+	}
+	return m
 }
 
 type tracks struct {
@@ -361,20 +379,20 @@ func (t *tracks) score(w week, s, sleepScores series) []models.MetricScore {
 	{
 		v, n := sleepScores.mean(ingest.MetricSleepHours, from, to)
 		avg, status := t.sleep.step(v, n >= minDaysPerWeek)
-		out = append(out, behaviour("sleep_score", "Sleep score", status, avg, sleepScoreReference,
-			fmt0(avg), fmt0(sleepScoreReference), cappedContribution(avg-sleepScoreReference, 0.6, 0.9, 8.0, 12.0)))
+		out = append(out, aged(behaviour("sleep_score", "Sleep score", status, avg, sleepScoreReference,
+			fmt0(avg), fmt0(sleepScoreReference), cappedContribution(avg-sleepScoreReference, 0.6, 0.9, 8.0, 12.0)), &t.sleep))
 	}
 	{
 		v, n := s.mean(ingest.MetricSteps, from, to)
 		avg, status := t.steps.step(v, n >= minDaysPerWeek)
-		out = append(out, behaviour("steps", "Steps", status, avg, 8000,
-			thousands(avg)+"/day", "8,000/day", cappedContribution((avg-8000)/2000.0, 1.0, 1.5, 3.0, 5.0)))
+		out = append(out, aged(behaviour("steps", "Steps", status, avg, 8000,
+			thousands(avg)+"/day", "8,000/day", cappedContribution((avg-8000)/2000.0, 1.0, 1.5, 3.0, 5.0)), &t.steps))
 	}
 	{
 		v, n := s.mean(ingest.MetricExerciseMin, from, to)
 		avg, status := t.exercise.step(v*7, n >= minDaysPerWeek)
-		out = append(out, behaviour("exercise_min", "Exercise", status, avg, 150,
-			fmt0(avg)+" min/wk", "150 min/wk", cappedContribution((avg-150)/30.0, 1.5, 2.5, 6.0, 9.0)))
+		out = append(out, aged(behaviour("exercise_min", "Exercise", status, avg, 150,
+			fmt0(avg)+" min/wk", "150 min/wk", cappedContribution((avg-150)/30.0, 1.5, 2.5, 6.0, 9.0)), &t.exercise))
 	}
 	{
 		// Gym logging started with the first SETS line; before that it's unknown.
@@ -393,7 +411,7 @@ func (t *tracks) score(w week, s, sleepScores series) []models.MetricScore {
 		if status == models.StatusMissing {
 			m.Points, m.ValueText = 0, "no data"
 		}
-		out = append(out, m)
+		out = append(out, aged(m, &t.sets))
 	}
 	{
 		// Health only records sessions that happened, so a synced week with
@@ -407,8 +425,8 @@ func (t *tracks) score(w week, s, sleepScores series) []models.MetricScore {
 			sessions += v
 		}
 		avg, status := t.mindful.step(sessions, synced >= minDaysPerWeek)
-		out = append(out, behaviour("mindfulness", "Mindfulness", status, avg, 3,
-			fmt1(avg)+"/wk", "3/wk", cappedContribution(avg-3, 0.6, 1.0, 2.0, 3.0)))
+		out = append(out, aged(behaviour("mindfulness", "Mindfulness", status, avg, 3,
+			fmt1(avg)+"/wk", "3/wk", cappedContribution(avg-3, 0.6, 1.0, 2.0, 3.0)), &t.mindful))
 	}
 	return out
 }

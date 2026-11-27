@@ -15,6 +15,8 @@ export interface MetricScore {
 	value_text: string;
 	reference_text: string;
 	points: number;
+	/** Weeks since the value was last measured, for a reused or fading value. */
+	weeks_old?: number;
 }
 
 export interface WeeklyScore {

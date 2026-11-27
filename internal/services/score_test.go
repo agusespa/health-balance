@@ -101,13 +101,13 @@ func TestMarkerCarriedThenFades(t *testing.T) {
 		t.Fatalf("week 0: %+v", measured)
 	}
 	for i := 1; i <= 4; i++ {
-		if m := metricOf(t, out[i], "vo2_max"); m.Status != models.StatusCarried || m.Points != 10 {
-			t.Errorf("week %d: %s %v, want carried 10", i, m.Status, m.Points)
+		if m := metricOf(t, out[i], "vo2_max"); m.Status != models.StatusCarried || m.Points != 10 || m.WeeksOld != i {
+			t.Errorf("week %d: %s %v, %d weeks old, want carried 10, %d weeks old", i, m.Status, m.Points, m.WeeksOld, i)
 		}
 	}
 	for i, want := range map[int]float64{5: 7.5, 6: 5.625} {
-		if m := metricOf(t, out[i], "vo2_max"); m.Status != models.StatusImputed || math.Abs(m.Points-want) > 1e-9 {
-			t.Errorf("week %d: %s %v, want imputed %v", i, m.Status, m.Points, want)
+		if m := metricOf(t, out[i], "vo2_max"); m.Status != models.StatusImputed || math.Abs(m.Points-want) > 1e-9 || m.WeeksOld != i {
+			t.Errorf("week %d: %s %v, %d weeks old, want imputed %v", i, m.Status, m.Points, m.WeeksOld, want)
 		}
 	}
 }
@@ -128,18 +128,19 @@ func TestBehaviourAveragesAndFades(t *testing.T) {
 	out := scores(t, scoreDB(t, values), 4)
 
 	want := []struct {
-		status string
-		avg    float64
+		status   string
+		avg      float64
+		weeksOld int
 	}{
-		{models.StatusMeasured, 12000},
-		{models.StatusMeasured, 12000},
-		{models.StatusCarried, 12000},                 // reused once
-		{models.StatusImputed, (36000 + 10000) / 4.0}, // 8000 + 4000 × 0.5
+		{models.StatusMeasured, 12000, 0},
+		{models.StatusMeasured, 12000, 0},
+		{models.StatusCarried, 12000, 1},                 // reused once
+		{models.StatusImputed, (36000 + 10000) / 4.0, 2}, // 8000 + 4000 × 0.5
 	}
 	for i, w := range want {
 		m := metricOf(t, out[i], "steps")
-		if m.Status != w.status || m.Value != w.avg {
-			t.Errorf("week %d: %s %v, want %s %v", i, m.Status, m.Value, w.status, w.avg)
+		if m.Status != w.status || m.Value != w.avg || m.WeeksOld != w.weeksOld {
+			t.Errorf("week %d: %s %v, %d weeks old, want %s %v, %d weeks old", i, m.Status, m.Value, m.WeeksOld, w.status, w.avg, w.weeksOld)
 		}
 	}
 	if m := metricOf(t, out[0], "steps"); m.Points != 2 { // (12000-8000)/2000 × 1.0
