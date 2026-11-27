@@ -72,6 +72,17 @@ func TestDashboardWithoutProfile(t *testing.T) {
 	}
 }
 
+func TestLatestData(t *testing.T) {
+	h := realHandler(t, nil, []models.DailyMetric{{Date: "2024-03-01", Metric: ingest.MetricVO2Max, Value: 50}})
+	rec := serve(t, h, "GET", "/api/latest-data", "")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status %d", rec.Code)
+	}
+	if got := decode[map[string]string](t, rec)["latest_data"]; got != "2024-03-01" {
+		t.Errorf("latest_data %q, want 2024-03-01", got)
+	}
+}
+
 func TestDashboardScoresAndHistory(t *testing.T) {
 	h := realHandler(t, profile, []models.DailyMetric{{Date: "2024-03-01", Metric: ingest.MetricVO2Max, Value: 50}})
 

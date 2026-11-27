@@ -6,7 +6,7 @@
 	import PullToRefresh from '#lib/PullToRefresh.svelte';
 	import ScoreHeader from '#lib/ScoreHeader.svelte';
 	import ScoreMeaning from '#lib/ScoreMeaning.svelte';
-	import { daysAgo, shortDate } from '#lib/format.ts';
+	import { noNewData } from '#lib/format.ts';
 
 	let data = $state<Dashboard | null>(null);
 	let error = $state('');
@@ -26,9 +26,8 @@
 	const score = $derived(data?.score ?? null);
 	const markers = $derived(score?.metrics.filter((m) => m.kind === 'marker') ?? []);
 	const behaviours = $derived(score?.metrics.filter((m) => m.kind === 'behaviour') ?? []);
-	// The daily delivery includes today, so a newest day before the day before
-	// yesterday means nothing new has arrived for at least 48 hours.
-	const stale = $derived(!!data && data.latest_data < daysAgo(2));
+	// The notice itself is on the profile page; here the profile icon gets a badge.
+	const stale = $derived(!!data && noNewData(data.latest_data));
 
 </script>
 
@@ -47,26 +46,17 @@
 				<path d="M4 17l5-5 4 3 7-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
 			</svg>
 		</a>
-		<a href="/profile" aria-label="Profile" class="icon-btn">
+		<a href="/profile" aria-label={stale ? 'Profile: no new health data' : 'Profile'} class="icon-btn badged">
 			<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
 				<circle cx="12" cy="8.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8" />
 				<path d="M5 19.5c1.2-3.2 3.9-4.8 7-4.8s5.8 1.6 7 4.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
 			</svg>
+			{#if stale}
+				<span class="badge" data-testid="stale-badge"></span>
+			{/if}
 		</a>
 	{/snippet}
 </ScoreHeader>
-
-{#if stale && data}
-	<div class="alert" role="alert" data-testid="stale-banner">
-		{#if data.latest_data}
-			<strong>No new health data since {shortDate(data.latest_data)}.</strong>
-			Check whatever sends your health data, and include every day since then in the next delivery.
-		{:else}
-			<strong>No health data has arrived yet.</strong>
-			Set up a daily delivery of your health data to start scoring.
-		{/if}
-	</div>
-{/if}
 
 {#if data && !data.profile_complete}
 	<section class="card">
@@ -88,20 +78,18 @@
 
 
 <style>
-	.alert {
-		border-left: 2px solid var(--warning);
-		background: color-mix(in srgb, var(--warning) 8%, transparent);
-		color: var(--text-secondary);
-		border-radius: 0 12px 12px 0;
-		padding: 0.75rem 0.95rem;
-		margin: 0 0 0.75rem;
-		font-size: 0.85rem;
-		line-height: 1.45;
+	.badged {
+		position: relative;
 	}
-	.alert strong {
-		display: block;
-		color: var(--warning);
-		font-weight: 600;
-		margin-bottom: 0.15rem;
+	/* --warning is a light yellow on the coloured header. */
+	.badge {
+		position: absolute;
+		top: 1px;
+		right: 1px;
+		width: 10px;
+		height: 10px;
+		border-radius: 999px;
+		background: var(--warning);
+		box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.18);
 	}
 </style>

@@ -7,7 +7,8 @@ test('shows the score with markers and behaviours', async ({ page }) => {
 	// The dashboard scores the last finished Saturday–Friday week, and says so.
 	await expect(page.getByRole('heading', { level: 1 })).toContainText('Last week');
 	// The seed has data up to today.
-	await expect(page.getByTestId('stale-banner')).toHaveCount(0);
+	await expect(page.getByTestId('stale-badge')).toHaveCount(0);
+	await expect(page.getByRole('link', { name: 'Profile', exact: true })).toBeVisible();
 
 	const markers = page.getByTestId('card-markers');
 	const behaviours = page.getByTestId('card-behaviours');

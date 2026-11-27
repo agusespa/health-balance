@@ -34,6 +34,7 @@ func New(db database.Querier, insights services.InsightWriter) *Handler {
 func (h *Handler) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /health", h.HandleAppHealth)
 	mux.HandleFunc("GET /api/dashboard", h.HandleDashboard)
+	mux.HandleFunc("GET /api/latest-data", h.HandleLatestData)
 	mux.HandleFunc("GET /api/scores", h.HandleScores)
 	mux.HandleFunc("GET /api/weeks/{date}", h.HandleWeek)
 	mux.HandleFunc("GET /api/daily", h.HandleDaily)
@@ -103,6 +104,17 @@ func (h *Handler) HandleDashboard(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	writeJSON(w, http.StatusOK, res)
+}
+
+// HandleLatestData returns the newest day with any stored value, or "" when
+// there is none, for pages that only need to know whether data is arriving.
+func (h *Handler) HandleLatestData(w http.ResponseWriter, r *http.Request) {
+	latest, err := h.db.GetLatestDataDate()
+	if err != nil {
+		internalError(w, "latest data", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"latest_data": latest})
 }
 
 type scoreSummary struct {

@@ -120,6 +120,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 
 export const api = {
 	dashboard: () => request<Dashboard>('GET', '/api/dashboard'),
+	latestData: () => request<{ latest_data: string }>('GET', '/api/latest-data'),
 	scores: () => request<ScoreSummary[]>('GET', '/api/scores'),
 	week: (date: string) => request<WeeklyScore>('GET', `/api/weeks/${date}`),
 	daily: (from: string, to: string, metrics: string[]) =>

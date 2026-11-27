@@ -29,5 +29,8 @@ test('stores an ingest payload and records the sync', async ({ request, page }) 
 	expect(dashboard.latest_data).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 
 	await page.goto('/');
+	await expect(page.getByTestId('stale-badge')).toHaveCount(0);
+	await page.goto('/profile');
+	await expect(page.getByRole('tab', { name: 'Score history' })).toBeVisible();
 	await expect(page.getByTestId('stale-banner')).toHaveCount(0);
 });

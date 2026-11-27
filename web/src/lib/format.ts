@@ -33,6 +33,14 @@ export function daysAgo(n: number): string {
 	return isoDate(d);
 }
 
+/**
+ * The daily delivery includes today, so a newest day (YYYY-MM-DD, or "" for
+ * none) before the day before yesterday means nothing new for 48 hours.
+ */
+export function noNewData(latest: string): boolean {
+	return latest < daysAgo(2);
+}
+
 /** "Nov 14 - Nov 20" for the week ending on `end` (YYYY-MM-DD). */
 export function weekRange(end: string): string {
 	const start = new Date(`${end}T12:00:00`);
