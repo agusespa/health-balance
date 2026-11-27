@@ -3,6 +3,7 @@
 	import { api, type WeeklyScore } from '#lib/api.ts';
 	import MetricCard from '#lib/MetricCard.svelte';
 	import ScoreHeader from '#lib/ScoreHeader.svelte';
+	import ScoreMeaning from '#lib/ScoreMeaning.svelte';
 	import { weekRange } from '#lib/format.ts';
 
 	let week = $state<WeeklyScore | null>(null);
@@ -30,7 +31,8 @@
 </ScoreHeader>
 
 {#if week}
-	<p class="facts num">target {week.target.toFixed(1)}&ensp;·&ensp;aging tax −{week.aging_tax.toFixed(1)}</p>
+	<p class="facts num">target {week.target.toFixed(1)}&ensp;·&ensp;aging tax −{week.aging_tax.toFixed(1)}&ensp;·&ensp;levels off at {week.settle.toFixed(1)}</p>
+	<ScoreMeaning score={week} />
 	<MetricCard title="Markers" info="Not measured every week. When a week has no new reading, the last one is reused for 2 to 16 weeks depending on the marker, then fades by a quarter each week." metrics={week.metrics.filter((m) => m.kind === 'marker')} />
 	<MetricCard title="Behaviours" info="Each week scores the average of the last 4 weeks, so a steady habit counts more than one good or bad week." metrics={week.metrics.filter((m) => m.kind === 'behaviour')} />
 {/if}

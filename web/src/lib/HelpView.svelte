@@ -14,6 +14,11 @@
 		<li><strong>Slow adjustment.</strong> The score moves 12% of the way toward the target, so one good or bad week barely moves it.</li>
 	</ol>
 	<p class="muted">Points are capped, and falling short costs more than doing well earns.</p>
+	<p class="muted">
+		If every week were like this one, the score would level off a little below the target, because the aging tax keeps
+		pulling it down. With every metric on its reference that is about 979 at 35. The small triangle on the gauge marks
+		that point.
+	</p>
 </section>
 
 <section class="card" id="markers">

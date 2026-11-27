@@ -15,6 +15,8 @@ export interface MetricScore {
 	value_text: string;
 	reference_text: string;
 	points: number;
+	/** The most this metric can add to the target. */
+	max_points: number;
 	/** Weeks since the value was last measured, for a reused or fading value. */
 	weeks_old?: number;
 }
@@ -25,6 +27,8 @@ export interface WeeklyScore {
 	change: number;
 	aging_tax: number;
 	target: number;
+	/** Where the score levels off if every week is like this one. */
+	settle: number;
 	metrics: MetricScore[];
 }
 

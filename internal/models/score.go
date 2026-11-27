@@ -25,6 +25,8 @@ type MetricScore struct {
 	ValueText     string  `json:"value_text"`
 	ReferenceText string  `json:"reference_text"`
 	Points        float64 `json:"points"`
+	// MaxPoints is the most this metric can add to the target.
+	MaxPoints float64 `json:"max_points"`
 	// WeeksOld is how many weeks ago the value was last measured, for a
 	// carried or imputed value; 0 when measured this week or never.
 	WeeksOld int `json:"weeks_old,omitempty"`
@@ -32,10 +34,13 @@ type MetricScore struct {
 
 // WeeklyScore is the Biological Reserve Score after one Saturday–Friday week.
 type WeeklyScore struct {
-	WeekEnd  string        `json:"week_end"`
-	Score    float64       `json:"score"`
-	Change   float64       `json:"change"`
-	AgingTax float64       `json:"aging_tax"`
-	Target   float64       `json:"target"`
-	Metrics  []MetricScore `json:"metrics"`
+	WeekEnd  string  `json:"week_end"`
+	Score    float64 `json:"score"`
+	Change   float64 `json:"change"`
+	AgingTax float64 `json:"aging_tax"`
+	Target   float64 `json:"target"`
+	// Settle is where the score would level off if every week were like this
+	// one: below the target, because the aging tax keeps pulling it down.
+	Settle  float64       `json:"settle"`
+	Metrics []MetricScore `json:"metrics"`
 }

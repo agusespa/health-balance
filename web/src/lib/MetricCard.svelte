@@ -1,18 +1,11 @@
 <script lang="ts">
 	import type { MetricScore } from '#lib/api.ts';
 	import { signed } from '#lib/format.ts';
+	import InfoTip from '#lib/InfoTip.svelte';
 	import MetricIcon from '#lib/MetricIcon.svelte';
 
 	// `info` is a one-line explanation of how this card is scored, shown in a tooltip.
 	let { title, info, metrics }: { title: string; info: string; metrics: MetricScore[] } = $props();
-
-	let open = $state(false);
-	let infoEl: HTMLElement | undefined = $state();
-	const tipId = $derived(`info-${title.toLowerCase()}`);
-
-	function closeOutside(e: PointerEvent) {
-		if (open && infoEl && !infoEl.contains(e.target as Node)) open = false;
-	}
 
 	const sorted = $derived([...metrics].sort((a, b) => b.points - a.points));
 	// Bars share a scale within the card so contributions compare at a glance.
@@ -20,31 +13,11 @@
 	const total = $derived(metrics.reduce((sum, m) => sum + m.points, 0));
 </script>
 
-<svelte:window onpointerdown={closeOutside} onkeydown={(e) => e.key === 'Escape' && (open = false)} />
-
 <section class="section" data-testid={`card-${title.toLowerCase()}`}>
 	<div class="head">
 		<p class="section-label">
 			{title}
-			<span class="info-wrap" bind:this={infoEl}>
-				<button
-					type="button"
-					class="info"
-					aria-label={`How ${title.toLowerCase()} are scored`}
-					aria-expanded={open}
-					aria-describedby={open ? tipId : undefined}
-					onclick={() => (open = !open)}
-				>
-					<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-						<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8" />
-						<path d="M12 11v5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-						<circle cx="12" cy="7.8" r="1.1" fill="currentColor" />
-					</svg>
-				</button>
-				{#if open}
-					<span class="tip" role="tooltip" id={tipId}>{info}</span>
-				{/if}
-			</span>
+			<InfoTip label={`How ${title.toLowerCase()} are scored`} text={info} id={`info-${title.toLowerCase()}`} />
 		</p>
 		<span class="total num" class:pos={total > 0.05} class:neg={total < -0.05}>{signed(total)}</span>
 	</div>
@@ -90,49 +63,6 @@
 		align-items: center;
 		gap: 0.25rem;
 		margin: 0;
-	}
-	.info-wrap {
-		position: relative;
-		display: inline-flex;
-	}
-	/* Small visible icon, larger tap target. */
-	.info {
-		appearance: none;
-		border: none;
-		padding: 0;
-		background: none;
-		cursor: pointer;
-		display: grid;
-		place-items: center;
-		width: 32px;
-		height: 32px;
-		margin: -8px 0;
-		border-radius: 999px;
-		color: var(--muted);
-	}
-	.tip {
-		position: absolute;
-		top: calc(100% + 6px);
-		left: -10px;
-		z-index: 5;
-		width: max-content;
-		max-width: min(260px, 70vw);
-		padding: 0.55rem 0.7rem;
-		border: 1px solid var(--border-strong);
-		border-radius: 10px;
-		background: var(--surface);
-		box-shadow: var(--shadow);
-		font-family: var(--font-sans);
-		font-size: 0.8rem;
-		line-height: 1.45;
-		letter-spacing: normal;
-		text-transform: none;
-		color: var(--text-secondary);
-	}
-	.info:hover,
-	.info[aria-expanded='true'] {
-		color: var(--text-secondary);
-		background: var(--surface-muted);
 	}
 	.total {
 		font-size: 0.75rem;

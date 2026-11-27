@@ -5,6 +5,7 @@
 	import NutritionCard from '#lib/NutritionCard.svelte';
 	import PullToRefresh from '#lib/PullToRefresh.svelte';
 	import ScoreHeader from '#lib/ScoreHeader.svelte';
+	import ScoreMeaning from '#lib/ScoreMeaning.svelte';
 	import { daysAgo, shortDate } from '#lib/format.ts';
 
 	let data = $state<Dashboard | null>(null);
@@ -76,6 +77,7 @@
 {/if}
 
 {#if score}
+	<ScoreMeaning {score} />
 	<MetricCard title="Markers" info="Not measured every week. When a week has no new reading, the last one is reused for 2 to 16 weeks depending on the marker, then fades by a quarter each week." metrics={markers} />
 	<MetricCard title="Behaviours" info="Each week scores the average of the last 4 weeks, so a steady habit counts more than one good or bad week." metrics={behaviours} />
 {/if}

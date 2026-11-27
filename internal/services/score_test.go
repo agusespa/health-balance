@@ -89,6 +89,26 @@ func TestScoreWithNoDataStaysNearBaseline(t *testing.T) {
 	if len(w.Metrics) != 11 {
 		t.Errorf("%d metrics, want 11", len(w.Metrics))
 	}
+	if m := metricOf(t, w, "vo2_max"); m.MaxPoints != 16 {
+		t.Errorf("vo2_max max points %v, want 16", m.MaxPoints)
+	}
+	if m := metricOf(t, w, "bp"); m.MaxPoints != 9 {
+		t.Errorf("bp max points %v, want 9", m.MaxPoints)
+	}
+}
+
+func TestSettlePointIsWhereAWeekChangesNothing(t *testing.T) {
+	out := scores(t, scoreDB(t, nil), 1)
+	w := out[0]
+	// Every metric on reference settles below 1000: about 979 at 35.
+	if w.Settle < 978 || w.Settle > 980 {
+		t.Errorf("settle %v, want about 979", w.Settle)
+	}
+	taxRate := 35.0 * 35.0 / 8000 / 52
+	post := w.Settle * (1 - taxRate)
+	if next := post + (w.Target-post)*scoreAdjustmentRate; math.Abs(next-w.Settle) > 1e-9 {
+		t.Errorf("a week at the settle point moves it to %v, want %v", next, w.Settle)
+	}
 }
 
 func TestMarkerCarriedThenFades(t *testing.T) {

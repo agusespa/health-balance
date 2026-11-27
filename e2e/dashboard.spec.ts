@@ -17,6 +17,16 @@ test('shows the score with markers and behaviours', async ({ page }) => {
 	await expect(behaviours.getByTestId('metric-working_sets')).toContainText('Working sets');
 });
 
+test('explains the score in plain words', async ({ page }) => {
+	await page.goto('/');
+	const meaning = page.getByTestId('card-meaning');
+	await expect(meaning.getByTestId('meaning-standing')).toContainText('starting point');
+	await expect(meaning.getByTestId('meaning-heading')).toContainText('Weeks like this one');
+	await expect(meaning.getByTestId('meaning-improve')).toHaveText(/Biggest drag|Biggest room to grow|Every metric/);
+	await meaning.getByRole('button', { name: 'How the score works' }).click();
+	await expect(meaning.getByRole('tooltip')).toContainText('started in January 2024');
+});
+
 test('opens score history and a week from the profile', async ({ page }) => {
 	await page.goto('/');
 	await page.getByRole('link', { name: 'Profile' }).click();

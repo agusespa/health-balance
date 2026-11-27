@@ -21,7 +21,7 @@
 	}: {
 		eyebrow: string;
 		title: string;
-		score: { score: number; change: number; target: number } | null;
+		score: { score: number; change: number; settle: number } | null;
 		loading?: boolean;
 		error?: string;
 		deltaLabel?: string;
@@ -73,7 +73,7 @@
 					{signed(score.change)}<small>{deltaLabel}</small>
 				</span>
 				<div class="gauge" aria-hidden={p > 0.5}>
-					<ReserveGauge score={score.score} target={score.target} compact />
+					<ReserveGauge score={score.score} settle={score.settle} compact />
 				</div>
 			</div>
 		{:else}

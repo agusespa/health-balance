@@ -97,7 +97,8 @@ func ComputeWeeklyScores(db database.Querier, profile models.UserProfile, firstW
 		for _, m := range metrics {
 			target += m.Points
 		}
-		tax := current * (float64(age*age) / 8000.0) / 52.0
+		taxRate := float64(age*age) / 8000.0 / 52.0
+		tax := current * taxRate
 		post := current - tax
 		next := math.Max(0, post+(target-post)*scoreAdjustmentRate)
 
@@ -107,6 +108,7 @@ func ComputeWeeklyScores(db database.Querier, profile models.UserProfile, firstW
 			Change:   next - current,
 			AgingTax: tax,
 			Target:   target,
+			Settle:   settlePoint(target, taxRate),
 			Metrics:  metrics,
 		})
 		current = next
@@ -326,15 +328,14 @@ func (t *tracks) score(w week, s, sleepScores series) []models.MetricScore {
 		base := models.GetVO2MaxBaseline(w.age, w.profile.Sex)
 		v, ok := s.last(ingest.MetricVO2Max, from, to)
 		out = append(out, t.vo2.step(w, ok, marker("vo2_max", "VO2 max", v, base,
-			fmt1(v), fmt.Sprintf("%s for your age", fmt1(base)),
-			cappedContribution(v-base, 2.5, 3.5, 16.0, 22.0))))
+			fmt1(v), fmt.Sprintf("%s for your age", fmt1(base)), vo2Curve.points(v-base), vo2Curve.maxGain)))
 	}
 	// Waist-to-height ratio vs 0.48.
 	{
 		v, ok := s.last(ingest.MetricWaistCm, from, to)
 		whtr := v / w.profile.HeightCm
 		out = append(out, t.whtr.step(w, ok, marker("whtr", "Waist / height", whtr, 0.48,
-			fmt2(whtr), "0.48", cappedContribution(0.48-whtr, 180.0, 260.0, 10.0, 15.0))))
+			fmt2(whtr), "0.48", whtrCurve.points(0.48-whtr), whtrCurve.maxGain)))
 	}
 	// Resting heart rate vs your 90-day average.
 	{
@@ -344,7 +345,7 @@ func (t *tracks) score(w week, s, sleepScores series) []models.MetricScore {
 			base = v
 		}
 		out = append(out, t.rhr.step(w, n >= minDaysPerWeek, marker("rhr", "Resting HR", v, base,
-			fmt0(v)+" bpm", fmt0(base)+" (90-day avg)", cappedContribution(base-v, 1.0, 1.5, 7.0, 10.0))))
+			fmt0(v)+" bpm", fmt0(base)+" (90-day avg)", rhrCurve.points(base-v), rhrCurve.maxGain)))
 	}
 	// HRV vs your 60-day average, as a percentage.
 	{
@@ -358,7 +359,7 @@ func (t *tracks) score(w week, s, sleepScores series) []models.MetricScore {
 			pct = (v/base - 1) * 100
 		}
 		out = append(out, t.hrv.step(w, n >= minDaysPerWeek, marker("hrv", "HRV", v, base,
-			fmt0(v)+" ms", fmt0(base)+" ms (60-day avg)", cappedContribution(pct, 0.25, 0.3, 5.0, 8.0))))
+			fmt0(v)+" ms", fmt0(base)+" ms (60-day avg)", hrvCurve.points(pct), hrvCurve.maxGain)))
 	}
 	// Blood pressure vs 120/80, from the mornings measured this week.
 	{
@@ -366,13 +367,13 @@ func (t *tracks) score(w week, s, sleepScores series) []models.MetricScore {
 		dia, _ := s.mean(ingest.MetricBPDia, from, to)
 		bp := bloodPressurePoints(sys, dia)
 		out = append(out, t.bp.step(w, n > 0 && dia > 0, marker("bp", "Blood pressure", sys, 120,
-			fmt0(sys)+"/"+fmt0(dia), "120/80", bp)))
+			fmt0(sys)+"/"+fmt0(dia), "120/80", bp, bpSysCurve.maxGain+bpDiaCurve.maxGain)))
 	}
 	// Cardio recovery vs a 25 bpm drop.
 	{
 		v, ok := s.last(ingest.MetricCardioRecovery, from, to)
 		out = append(out, t.cardio.step(w, ok, marker("cardio_recovery", "Cardio recovery", v, 25,
-			fmt0(v)+" bpm", "25 bpm", cappedContribution((v-25)/5.0, 1.0, 1.5, 4.0, 6.0))))
+			fmt0(v)+" bpm", "25 bpm", cardioCurve.points((v-25)/5.0), cardioCurve.maxGain)))
 	}
 
 	// Behaviours.
@@ -380,19 +381,19 @@ func (t *tracks) score(w week, s, sleepScores series) []models.MetricScore {
 		v, n := sleepScores.mean(ingest.MetricSleepHours, from, to)
 		avg, status := t.sleep.step(v, n >= minDaysPerWeek)
 		out = append(out, aged(behaviour("sleep_score", "Sleep score", status, avg, sleepScoreReference,
-			fmt0(avg), fmt0(sleepScoreReference), cappedContribution(avg-sleepScoreReference, 0.6, 0.9, 8.0, 12.0)), &t.sleep))
+			fmt0(avg), fmt0(sleepScoreReference), sleepCurve.points(avg-sleepScoreReference), sleepCurve.maxGain), &t.sleep))
 	}
 	{
 		v, n := s.mean(ingest.MetricSteps, from, to)
 		avg, status := t.steps.step(v, n >= minDaysPerWeek)
 		out = append(out, aged(behaviour("steps", "Steps", status, avg, 8000,
-			thousands(avg)+"/day", "8,000/day", cappedContribution((avg-8000)/2000.0, 1.0, 1.5, 3.0, 5.0)), &t.steps))
+			thousands(avg)+"/day", "8,000/day", stepsCurve.points((avg-8000)/2000.0), stepsCurve.maxGain), &t.steps))
 	}
 	{
 		v, n := s.mean(ingest.MetricExerciseMin, from, to)
 		avg, status := t.exercise.step(v*7, n >= minDaysPerWeek)
 		out = append(out, aged(behaviour("exercise_min", "Exercise", status, avg, 150,
-			fmt0(avg)+" min/wk", "150 min/wk", cappedContribution((avg-150)/30.0, 1.5, 2.5, 6.0, 9.0)), &t.exercise))
+			fmt0(avg)+" min/wk", "150 min/wk", exerciseCurve.points((avg-150)/30.0), exerciseCurve.maxGain), &t.exercise))
 	}
 	{
 		// Gym logging started with the first SETS line; before that it's unknown.
@@ -407,7 +408,7 @@ func (t *tracks) score(w week, s, sleepScores series) []models.MetricScore {
 			avg, status = t.sets.step(sum, len(vals) > 0)
 		}
 		m := behaviour("working_sets", "Working sets", status, avg, 10,
-			fmt0(avg)+"/wk", "10/wk", cappedContribution((avg-10)/2.0, 1.2, 1.5, 6.0, 8.0))
+			fmt0(avg)+"/wk", "10/wk", setsCurve.points((avg-10)/2.0), setsCurve.maxGain)
 		if status == models.StatusMissing {
 			m.Points, m.ValueText = 0, "no data"
 		}
@@ -426,24 +427,24 @@ func (t *tracks) score(w week, s, sleepScores series) []models.MetricScore {
 		}
 		avg, status := t.mindful.step(sessions, synced >= minDaysPerWeek)
 		out = append(out, aged(behaviour("mindfulness", "Mindfulness", status, avg, 3,
-			fmt1(avg)+"/wk", "3/wk", cappedContribution(avg-3, 0.6, 1.0, 2.0, 3.0)), &t.mindful))
+			fmt1(avg)+"/wk", "3/wk", mindfulCurve.points(avg-3), mindfulCurve.maxGain), &t.mindful))
 	}
 	return out
 }
 
-func marker(metric, label string, value, ref float64, valueText, refText string, points float64) models.MetricScore {
+func marker(metric, label string, value, ref float64, valueText, refText string, points, maxPoints float64) models.MetricScore {
 	return models.MetricScore{
 		Metric: metric, Label: label, Kind: models.KindMarker,
 		Value: round(value, 2), Reference: round(ref, 2),
-		ValueText: valueText, ReferenceText: refText, Points: points,
+		ValueText: valueText, ReferenceText: refText, Points: points, MaxPoints: maxPoints,
 	}
 }
 
-func behaviour(metric, label, status string, value, ref float64, valueText, refText string, points float64) models.MetricScore {
+func behaviour(metric, label, status string, value, ref float64, valueText, refText string, points, maxPoints float64) models.MetricScore {
 	m := models.MetricScore{
 		Metric: metric, Label: label, Kind: models.KindBehaviour, Status: status,
 		Value: round(value, 2), Reference: ref,
-		ValueText: valueText, ReferenceText: refText, Points: points,
+		ValueText: valueText, ReferenceText: refText, Points: points, MaxPoints: maxPoints,
 	}
 	if status == models.StatusMissing {
 		m.Points, m.ValueText = 0, "no data"
@@ -499,11 +500,41 @@ func averageLastN[T any](items []T, window int, value func(T) float64) float64 {
 	return total / float64(len(items[start:]))
 }
 
+// curve turns a difference from neutral into points with cappedContribution.
+type curve struct {
+	gainSlope, lossSlope, maxGain, maxLoss float64
+}
+
+func (c curve) points(delta float64) float64 {
+	return cappedContribution(delta, c.gainSlope, c.lossSlope, c.maxGain, c.maxLoss)
+}
+
+var (
+	vo2Curve      = curve{2.5, 3.5, 16, 22}
+	whtrCurve     = curve{180, 260, 10, 15}
+	rhrCurve      = curve{1.0, 1.5, 7, 10}
+	hrvCurve      = curve{0.25, 0.3, 5, 8}
+	bpSysCurve    = curve{1.0, 1.5, 5, 8}
+	bpDiaCurve    = curve{1.0, 1.5, 4, 6}
+	cardioCurve   = curve{1.0, 1.5, 4, 6}
+	sleepCurve    = curve{0.6, 0.9, 8, 12}
+	stepsCurve    = curve{1.0, 1.5, 3, 5}
+	exerciseCurve = curve{1.5, 2.5, 6, 9}
+	setsCurve     = curve{1.2, 1.5, 6, 8}
+	mindfulCurve  = curve{0.6, 1.0, 2, 3}
+)
+
+// settlePoint is the score at which a week with this target and tax rate
+// changes nothing: the aging tax taken off equals the step toward the target.
+func settlePoint(target, taxRate float64) float64 {
+	r := scoreAdjustmentRate
+	return r * target / (1 - (1-taxRate)*(1-r))
+}
+
 // bloodPressurePoints scores systolic against 120 and diastolic against 80.
 func bloodPressurePoints(sys, dia float64) float64 {
 	if sys <= 0 || dia <= 0 {
 		return 0
 	}
-	return cappedContribution((120-math.Round(sys))/5.0, 1.0, 1.5, 5.0, 8.0) +
-		cappedContribution((80-math.Round(dia))/3.0, 1.0, 1.5, 4.0, 6.0)
+	return bpSysCurve.points((120-math.Round(sys))/5.0) + bpDiaCurve.points((80-math.Round(dia))/3.0)
 }
