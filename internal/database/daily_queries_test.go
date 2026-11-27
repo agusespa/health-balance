@@ -119,6 +119,23 @@ func TestGetDailyMetricsFilters(t *testing.T) {
 	}
 }
 
+func TestGetLatestDataDate(t *testing.T) {
+	db := openTestDB(t)
+	if d, err := db.GetLatestDataDate(); err != nil || d != "" {
+		t.Fatalf("empty db: got %q, %v", d, err)
+	}
+	values := []models.DailyMetric{
+		{Date: "2026-11-22", Metric: "steps", Value: 9000},
+		{Date: "2026-11-20", Metric: "rhr", Value: 52},
+	}
+	if _, err := db.SaveIngest(models.IngestRun{Kind: models.IngestKindBackfill}, values, nil); err != nil {
+		t.Fatal(err)
+	}
+	if d, err := db.GetLatestDataDate(); err != nil || d != "2026-11-22" {
+		t.Errorf("got %q, %v, want 2026-11-22", d, err)
+	}
+}
+
 func TestGetLastIngestRun(t *testing.T) {
 	db := openTestDB(t)
 	if r, err := db.GetLastIngestRun(models.IngestKindShortcut); err != nil || r != nil {

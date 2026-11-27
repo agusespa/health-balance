@@ -13,10 +13,6 @@ export function ago(iso: string, now = Date.now()): string {
 	return `${Math.round(hours / 24)} days ago`;
 }
 
-export function hoursSince(iso: string, now = Date.now()): number {
-	return (now - new Date(iso).getTime()) / 3600000;
-}
-
 /** "Nov 21" or "Nov 21, 2025" outside the current year. */
 export function shortDate(date: string): string {
 	const d = new Date(`${date}T12:00:00`);

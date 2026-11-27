@@ -5,14 +5,14 @@ import (
 )
 
 type MockDB struct {
-	GetUserProfileFunc   func() (*models.UserProfile, error)
-	SaveUserProfileFunc  func(profile models.UserProfile) error
-	SaveIngestFunc       func(run models.IngestRun, values []models.DailyMetric, clear []models.DayMetric) (int64, error)
-	GetDailyMetricsFunc  func(from, to string, metrics ...string) ([]models.DailyMetric, error)
-	GetLastIngestRunFunc func(kind string) (*models.IngestRun, error)
-	SaveInsightFunc      func(in models.Insight) error
-	GetLatestInsightFunc func() (*models.Insight, error)
-	CloseFunc            func() error
+	GetUserProfileFunc    func() (*models.UserProfile, error)
+	SaveUserProfileFunc   func(profile models.UserProfile) error
+	SaveIngestFunc        func(run models.IngestRun, values []models.DailyMetric, clear []models.DayMetric) (int64, error)
+	GetDailyMetricsFunc   func(from, to string, metrics ...string) ([]models.DailyMetric, error)
+	GetLatestDataDateFunc func() (string, error)
+	SaveInsightFunc       func(in models.Insight) error
+	GetLatestInsightFunc  func() (*models.Insight, error)
+	CloseFunc             func() error
 }
 
 func (m *MockDB) GetUserProfile() (*models.UserProfile, error) {
@@ -43,11 +43,11 @@ func (m *MockDB) GetDailyMetrics(from, to string, metrics ...string) ([]models.D
 	return nil, nil
 }
 
-func (m *MockDB) GetLastIngestRun(kind string) (*models.IngestRun, error) {
-	if m.GetLastIngestRunFunc != nil {
-		return m.GetLastIngestRunFunc(kind)
+func (m *MockDB) GetLatestDataDate() (string, error) {
+	if m.GetLatestDataDateFunc != nil {
+		return m.GetLatestDataDateFunc()
 	}
-	return nil, nil
+	return "", nil
 }
 
 func (m *MockDB) SaveInsight(in models.Insight) error {

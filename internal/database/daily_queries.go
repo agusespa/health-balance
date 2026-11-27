@@ -119,6 +119,16 @@ func (db *DB) GetDailyMetrics(from, to string, metrics ...string) ([]models.Dail
 	return out, rows.Err()
 }
 
+// GetLatestDataDate returns the newest date with any stored value, or "" when
+// there is none.
+func (db *DB) GetLatestDataDate() (string, error) {
+	var date sql.NullString
+	if err := db.QueryRow(`SELECT MAX(date) FROM daily_metrics`).Scan(&date); err != nil {
+		return "", err
+	}
+	return date.String, nil
+}
+
 // GetLastIngestRun returns the most recent run of the given kind, or nil.
 func (db *DB) GetLastIngestRun(kind string) (*models.IngestRun, error) {
 	var r models.IngestRun

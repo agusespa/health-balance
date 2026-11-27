@@ -5,7 +5,7 @@
 	import MetricCard from '#lib/MetricCard.svelte';
 	import NutritionCard from '#lib/NutritionCard.svelte';
 	import ScoreHeader from '#lib/ScoreHeader.svelte';
-	import { hoursSince, shortDate, signed } from '#lib/format.ts';
+	import { daysAgo, shortDate, signed } from '#lib/format.ts';
 
 	let data = $state<Dashboard | null>(null);
 	let error = $state('');
@@ -56,19 +56,18 @@
 	const score = $derived(data?.score ?? null);
 	const markers = $derived(score?.metrics.filter((m) => m.kind === 'marker') ?? []);
 	const behaviours = $derived(score?.metrics.filter((m) => m.kind === 'behaviour') ?? []);
-	const stale = $derived(!!data && (!data.last_sync || hoursSince(data.last_sync.received_at) > 48));
+	// The daily delivery includes today, so a newest day before the day before
+	// yesterday means nothing new has arrived for at least 48 hours.
+	const stale = $derived(!!data && data.latest_data < daysAgo(2));
 
-	function syncTime(iso: string): string {
-		return new Date(iso).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-	}
 </script>
 
 <ScoreHeader {data} {error} />
 
 {#if stale && data}
 	<div class="alert" role="alert" data-testid="stale-banner">
-		{#if data.last_sync}
-			<strong>No health data since {syncTime(data.last_sync.received_at)}.</strong>
+		{#if data.latest_data}
+			<strong>No new health data since {shortDate(data.latest_data)}.</strong>
 			Check whatever sends your health data, and include every day since then in the next delivery.
 		{:else}
 			<strong>No health data has arrived yet.</strong>
@@ -86,18 +85,6 @@
 {/if}
 
 {#if score}
-	<section class="card week" data-testid="week-numbers">
-		<div>
-			<p class="section-label">Target</p>
-			<p class="stat num">{score.target.toFixed(0)}</p>
-			<p class="note">where the score is heading</p>
-		</div>
-		<div>
-			<p class="section-label">Aging tax</p>
-			<p class="stat num">−{score.aging_tax.toFixed(1)}</p>
-			<p class="note">taken off this week</p>
-		</div>
-	</section>
 	<MetricCard title="Markers" hint="carried forward" metrics={markers} />
 	<MetricCard title="Behaviours" hint="4-week average" metrics={behaviours} />
 {/if}
@@ -164,30 +151,6 @@
 		color: var(--warning);
 		font-weight: 600;
 		margin-bottom: 0.15rem;
-	}
-	.week {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		padding: 0.95rem 1.15rem;
-	}
-	.week div + div {
-		padding-left: 1.1rem;
-		border-left: 1px solid var(--border);
-	}
-	.week .section-label {
-		margin-bottom: 0.3rem;
-	}
-	.stat {
-		margin: 0;
-		font-size: 1.45rem;
-		font-weight: 600;
-		letter-spacing: -0.03em;
-		line-height: 1.1;
-	}
-	.note {
-		margin: 0.2rem 0 0;
-		font-size: 0.75rem;
-		color: var(--muted);
 	}
 	.more {
 		display: inline-block;

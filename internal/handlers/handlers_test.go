@@ -61,12 +61,13 @@ func realHandler(t *testing.T, profile *models.UserProfile, values []models.Dail
 var profile = &models.UserProfile{BirthDate: "1990-06-15", Sex: "male", HeightCm: 180}
 
 func TestDashboardWithoutProfile(t *testing.T) {
-	rec := serve(t, realHandler(t, nil, nil), "GET", "/api/dashboard", "")
+	h := realHandler(t, nil, []models.DailyMetric{{Date: "2024-03-01", Metric: ingest.MetricVO2Max, Value: 50}})
+	rec := serve(t, h, "GET", "/api/dashboard", "")
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status %d", rec.Code)
 	}
 	res := decode[dashboardResponse](t, rec)
-	if res.ProfileComplete || res.Score != nil || res.Week.End == "" || res.LastSync == nil {
+	if res.ProfileComplete || res.Score != nil || res.Week.End == "" || res.LatestData != "2024-03-01" {
 		t.Errorf("got %+v", res)
 	}
 }

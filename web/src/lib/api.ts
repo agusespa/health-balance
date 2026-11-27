@@ -28,17 +28,6 @@ export interface WeeklyScore {
 
 export type ScoreSummary = Omit<WeeklyScore, 'metrics'>;
 
-export interface IngestRun {
-	id: number;
-	received_at: string;
-	kind: string;
-	rows: number;
-	accepted: number;
-	rejected: number;
-	from_date: string;
-	to_date: string;
-}
-
 /** Daily averages over the logged days of the last 7 full days. Not scored. */
 export interface Nutrition {
 	from: string;
@@ -62,7 +51,8 @@ export interface Dashboard {
 	profile_complete: boolean;
 	week: { end: string; range: string };
 	score: WeeklyScore | null;
-	last_sync: IngestRun | null;
+	/** Newest day with any stored value (YYYY-MM-DD), or "" when there is none. */
+	latest_data: string;
 	nutrition: Nutrition | null;
 }
 

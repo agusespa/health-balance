@@ -4,7 +4,7 @@ test('shows the score with markers and behaviours', async ({ page }) => {
 	await page.goto('/');
 
 	await expect(page.getByTestId('score-value')).toHaveText(/^\d{3,4}$/);
-	// The seed's last sync was 6 hours ago.
+	// The seed has data up to today.
 	await expect(page.getByTestId('stale-banner')).toHaveCount(0);
 
 	const markers = page.getByTestId('card-markers');

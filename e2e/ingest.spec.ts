@@ -26,7 +26,7 @@ test('stores an ingest payload and records the sync', async ({ request, page }) 
 	expect(body.metrics.rhr).toBe(7);
 
 	const dashboard = await (await request.get('/api/dashboard')).json();
-	expect(dashboard.last_sync.accepted).toBe(body.accepted);
+	expect(dashboard.latest_data).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 
 	await page.goto('/');
 	await expect(page.getByTestId('stale-banner')).toHaveCount(0);

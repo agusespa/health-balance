@@ -66,22 +66,22 @@ type dashboardResponse struct {
 	ProfileComplete bool                       `json:"profile_complete"`
 	Week            weekInfo                   `json:"week"`
 	Score           *models.WeeklyScore        `json:"score"`
-	LastSync        *models.IngestRun          `json:"last_sync"`
+	LatestData      string                     `json:"latest_data"`
 	Nutrition       *services.NutritionSummary `json:"nutrition"`
 }
 
 // HandleDashboard returns the latest completed week's score with its
-// per-metric breakdown, when Health data last arrived, and nutrition over the
+// per-metric breakdown, the newest day with any data, and nutrition over the
 // last full days (today is still being logged).
 func (h *Handler) HandleDashboard(w http.ResponseWriter, r *http.Request) {
 	res := dashboardResponse{Week: weekInfo{End: utils.GetActiveWeekEndDate(), Range: utils.GetActiveWeekDateRange()}}
 
-	lastSync, err := h.db.GetLastIngestRun(models.IngestKindShortcut)
+	latest, err := h.db.GetLatestDataDate()
 	if err != nil {
-		internalError(w, "last sync", err)
+		internalError(w, "latest data", err)
 		return
 	}
-	res.LastSync = lastSync
+	res.LatestData = latest
 
 	nutrition, err := services.GetNutritionSummary(h.db, time.Now().AddDate(0, 0, -1))
 	if err != nil {
