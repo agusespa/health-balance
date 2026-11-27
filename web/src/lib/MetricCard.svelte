@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { MetricScore } from '#lib/api.ts';
 	import { signed } from '#lib/format.ts';
+	import MetricIcon from '#lib/MetricIcon.svelte';
 
 	let { title, hint, metrics }: { title: string; hint: string; metrics: MetricScore[] } = $props();
 
@@ -23,6 +24,7 @@
 	</div>
 	{#each sorted as m (m.metric)}
 		<div class="row" data-testid={`metric-${m.metric}`} data-status={m.status}>
+			<MetricIcon metric={m.metric} />
 			<div class="what">
 				<span class="label">
 					{m.label}
@@ -66,7 +68,7 @@
 	}
 	.row {
 		display: grid;
-		grid-template-columns: 1fr 56px 3.2rem;
+		grid-template-columns: 30px 1fr 56px 3.2rem;
 		align-items: center;
 		gap: 0.9rem;
 		padding: 0.7rem 0;
@@ -74,6 +76,9 @@
 	}
 	.head + .row {
 		border-top: none;
+	}
+	.row[data-status='missing'] :global(.icon) {
+		opacity: 0.5;
 	}
 	.row[data-status='missing'] .label {
 		color: var(--text-secondary);

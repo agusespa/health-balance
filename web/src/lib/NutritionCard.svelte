@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { Nutrition } from '#lib/api.ts';
 
+	import MetricIcon from '#lib/MetricIcon.svelte';
+
 	let { nutrition: n }: { nutrition: Nutrition } = $props();
 
 	const kcal = (v: number) => Math.round(v).toLocaleString('en-US');
@@ -19,7 +21,7 @@
 
 <section class="card" data-testid="card-nutrition">
 	<div class="head">
-		<p class="section-label">Nutrition <span class="hint">· last {n.days} days</span></p>
+		<p class="section-label"><MetricIcon metric="nutrition" size={22} /> Nutrition <span class="hint">· last {n.days} days</span></p>
 		<span class="logged" data-testid="nutrition-logged">{n.logged_days}/{n.days} logged</span>
 	</div>
 
@@ -73,7 +75,7 @@
 	.head {
 		display: flex;
 		justify-content: space-between;
-		align-items: baseline;
+		align-items: center;
 		margin-bottom: 0.5rem;
 	}
 	.head .section-label {

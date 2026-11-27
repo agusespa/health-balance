@@ -155,6 +155,12 @@ h2 {
 	margin: 0 0 0.6rem;
 }
 
+.section-label:has(> .icon) {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
 .section-label .hint {
 	color: color-mix(in srgb, var(--muted) 70%, transparent);
 }

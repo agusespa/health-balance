@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { api, type DailyMetric, type ScoreSummary } from '#lib/api.ts';
 	import LineChart from '#lib/LineChart.svelte';
+	import MetricIcon from '#lib/MetricIcon.svelte';
 	import TopBar from '#lib/TopBar.svelte';
 	import { daysAgo, isoDate, shortDate, signed } from '#lib/format.ts';
 
@@ -62,7 +63,7 @@
 
 	{#each trends as t (t.metric)}
 		<section class="card" data-testid={`trend-${t.metric}`}>
-			<p class="section-label">{t.label} <span class="hint">· {t.days > 365 ? 'last 2 years' : '7-day avg · 90 days'}</span></p>
+			<p class="section-label"><MetricIcon metric={t.metric} size={22} /> {t.label} <span class="hint">· {t.days > 365 ? 'last 2 years' : '7-day avg · 90 days'}</span></p>
 			<LineChart points={series(t.metric, t.days)} format={t.format} />
 		</section>
 	{/each}
