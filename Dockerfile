@@ -4,7 +4,9 @@ WORKDIR /src/web
 COPY web/package.json web/package-lock.json web/.npmrc ./
 RUN npm ci
 COPY web/ ./
-RUN npm run build
+# The release shown in Settings; .git isn't in the build context, so CI passes the tag.
+ARG APP_VERSION=dev
+RUN APP_VERSION=$APP_VERSION npm run build
 
 # Go binaries (cgo for SQLite), cross-compiled for the target platform.
 FROM --platform=$BUILDPLATFORM golang:1.26 AS builder

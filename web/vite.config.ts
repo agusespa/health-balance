@@ -1,8 +1,12 @@
 import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+	define: {
+		// The release shown in Settings: the image build passes the release tag as APP_VERSION.
+		__APP_VERSION__: JSON.stringify(loadEnv(mode, '.', 'APP_').APP_VERSION?.replace(/^v/, '') || 'dev')
+	},
 	plugins: [
 		sveltekit({
 			compilerOptions: {
@@ -19,4 +23,4 @@ export default defineConfig({
 			'/health': 'http://localhost:8080'
 		}
 	}
-});
+}));

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { version } from '$app/env';
 	import { api, type Profile } from '#lib/api.ts';
 	import TopBar from '#lib/TopBar.svelte';
 	import { getTheme, setTheme, type ThemePref } from '#lib/theme.ts';
@@ -20,6 +21,18 @@
 		theme = pref;
 		setTheme(pref);
 	}
+
+	// SvelteKit's build version is the build's timestamp; it tells two builds of one release apart.
+	const builtMs = Number(version);
+	const builtAt = Number.isFinite(builtMs)
+		? new Date(builtMs).toLocaleString(undefined, {
+				day: 'numeric',
+				month: 'short',
+				year: 'numeric',
+				hour: 'numeric',
+				minute: '2-digit'
+			})
+		: null;
 
 	onMount(async () => {
 		theme = getTheme();
@@ -79,12 +92,21 @@
 	</div>
 </section>
 
+<p class="muted version" data-testid="app-version">
+	Version {__APP_VERSION__}{#if builtAt}<br />Built {builtAt}{/if}
+</p>
 
 <style>
 	.lede {
 		font-size: 0.88rem;
 		line-height: 1.45;
 		margin: 0.35rem 0 0.4rem;
+	}
+	.version {
+		font-size: 0.8rem;
+		text-align: center;
+		margin: 2.5rem 0 0;
+		font-variant-numeric: tabular-nums;
 	}
 	.actions {
 		display: flex;

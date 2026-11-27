@@ -17,3 +17,9 @@ test('saves the profile', async ({ page }) => {
 	await form.getByRole('button', { name: 'Save profile' }).click();
 	await expect(form.getByTestId('profile-saved')).toHaveText('Saved');
 });
+
+test('shows the version and build time', async ({ page }) => {
+	await page.goto('/settings');
+	await expect(page.getByTestId('app-version')).toContainText(/Version \S+/);
+	await expect(page.getByTestId('app-version')).toContainText('Built');
+});
