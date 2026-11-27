@@ -139,12 +139,12 @@
 		display: flex;
 		align-items: flex-end;
 		gap: calc(0.9rem - 0.4rem * var(--p));
-		margin: calc(-36px * var(--p)) 0 calc(0.5rem * (1 - var(--p)));
+		margin: calc(-42px * var(--p)) 0 calc(0.5rem * (1 - var(--p)));
 		position: relative;
 		width: calc(100% - 100px * var(--p));
 	}
 	.value {
-		font-size: calc(3.8rem - 2.4rem * var(--p));
+		font-size: calc(3.8rem - 1.4rem * var(--p));
 		font-weight: 600;
 		line-height: 0.85;
 		letter-spacing: -0.06em;
@@ -155,8 +155,8 @@
 	.delta {
 		display: flex;
 		flex-direction: column;
-		padding-bottom: calc(0.25rem * (1 - var(--p)));
-		font-size: calc(1rem - 0.1rem * var(--p));
+		padding-bottom: calc(0.25rem * (1 - var(--p)) + 3px * var(--p));
+		font-size: 1rem;
 		font-weight: 600;
 		color: var(--text-secondary);
 		white-space: nowrap;
