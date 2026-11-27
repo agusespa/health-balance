@@ -20,7 +20,7 @@ import (
 )
 
 // DefaultInsightModel writes insights unless ANTHROPIC_MODEL says otherwise.
-const DefaultInsightModel = "claude-opus-5-5"
+const DefaultInsightModel = "claude-sonnet-5-5"
 
 const (
 	insightWeeks     = 12

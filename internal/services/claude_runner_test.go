@@ -29,10 +29,10 @@ func TestClaudeRunnerWrite(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if text != "**Sleep** first." || model != "claude-code/opus" {
+	if text != "**Sleep** first." || model != "claude-code/sonnet" {
 		t.Fatalf("got %q, %q", text, model)
 	}
-	if got.Model != "opus" || got.SystemPrompt != "sys" || got.Prompt != "usr" {
+	if got.Model != "sonnet" || got.Effort != "medium" || got.SystemPrompt != "sys" || got.Prompt != "usr" {
 		t.Fatalf("request = %+v", got)
 	}
 }

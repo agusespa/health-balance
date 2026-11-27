@@ -38,9 +38,9 @@ Other containers on the same Docker network can reach `http://health-balance:808
 | `TUNNEL_TOKEN` | | Cloudflare Tunnel token (docker-compose.yml). |
 | `CLAUDE_NETWORK` | | Docker network of the Claude Code container (docker-compose.yml). |
 | `CLAUDE_RUN_URL` | `http://claude:8080/run` in compose | Claude Code container endpoint; enables AI insights without an API key. |
-| `CLAUDE_RUN_MODEL` | `opus` | Claude Code model alias for insights. |
+| `CLAUDE_RUN_MODEL` | `sonnet` | Claude Code model alias for insights. |
 | `ANTHROPIC_API_KEY` | | Alternative to `CLAUDE_RUN_URL`: insights via the Messages API. |
-| `ANTHROPIC_MODEL` | `claude-opus-5-5` | Model when using `ANTHROPIC_API_KEY`. |
+| `ANTHROPIC_MODEL` | `claude-sonnet-5-5` | Model when using `ANTHROPIC_API_KEY`. |
 | `DB_PATH` | `./data/health.db` | Database file. |
 | `PORT` | `8080` | Listen port. |
 

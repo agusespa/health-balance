@@ -10,7 +10,7 @@ services:
     environment:
       - DB_PATH=/app/data/health.db
       - CLAUDE_RUN_URL=${CLAUDE_RUN_URL:-http://claude:8080/run}
-      - CLAUDE_RUN_MODEL=${CLAUDE_RUN_MODEL:-opus}
+      - CLAUDE_RUN_MODEL=${CLAUDE_RUN_MODEL:-sonnet}
       - PORT=8080
     volumes:
       - ./data:/app/data

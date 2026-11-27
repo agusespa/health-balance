@@ -13,7 +13,7 @@ import (
 
 // DefaultRunnerModel is the Claude Code model alias used with CLAUDE_RUN_URL
 // unless CLAUDE_RUN_MODEL says otherwise.
-const DefaultRunnerModel = "opus"
+const DefaultRunnerModel = "sonnet"
 
 // ClaudeRunner writes insights through a Claude Code container that exposes
 // POST /run, so no API key is needed here.
