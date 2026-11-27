@@ -22,7 +22,7 @@
 
 <svelte:window onpointerdown={closeOutside} onkeydown={(e) => e.key === 'Escape' && (open = false)} />
 
-<section class="card" data-testid={`card-${title.toLowerCase()}`}>
+<section class="section" data-testid={`card-${title.toLowerCase()}`}>
 	<div class="head">
 		<p class="section-label">
 			{title}
@@ -142,7 +142,7 @@
 		display: grid;
 		grid-template-columns: 30px 1fr 56px 3.2rem;
 		align-items: center;
-		gap: 0.9rem;
+		gap: 0.75rem;
 		padding: 0.7rem 0;
 		border-top: 1px solid var(--border);
 	}

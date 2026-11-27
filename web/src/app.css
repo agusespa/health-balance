@@ -130,6 +130,19 @@ h2 {
 	box-shadow: var(--shadow);
 }
 
+/*
+ * A flat dashboard section: rows run the full content width with hairline
+ * dividers, without a card's box and padding, which cost width on a phone.
+ */
+.section {
+	padding: 0.4rem 0 0;
+	margin-bottom: 1.25rem;
+}
+.section + .section {
+	border-top: 1px solid var(--border-strong);
+	padding-top: 1rem;
+}
+
 /* Small uppercase mono labels: the "instrument" voice of the app. */
 .section-label,
 .eyebrow {

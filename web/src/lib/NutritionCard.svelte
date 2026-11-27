@@ -19,7 +19,7 @@
 	]);
 </script>
 
-<section class="card" data-testid="card-nutrition">
+<section class="section" data-testid="card-nutrition">
 	<div class="head">
 		<p class="section-label"><MetricIcon metric="nutrition" size={22} /> Nutrition <span class="hint">· last {n.days} days</span></p>
 		<span class="logged" data-testid="nutrition-logged">{n.logged_days}/{n.days} logged</span>
