@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"sort"
 	"strings"
@@ -20,7 +19,7 @@ import (
 	"health-balance/internal/utils"
 )
 
-// DefaultInsightModel writes the weekly insight unless ANTHROPIC_MODEL says otherwise.
+// DefaultInsightModel writes insights unless ANTHROPIC_MODEL says otherwise.
 const DefaultInsightModel = "claude-opus-5-5"
 
 const (
@@ -131,40 +130,6 @@ func GenerateInsight(ctx context.Context, db database.Querier, w InsightWriter) 
 		return nil, err
 	}
 	return &in, nil
-}
-
-// StartInsightScheduler checks every hour whether the latest completed week
-// has an insight and writes one if not; a failed attempt is retried on the
-// next check. It does nothing without a writer.
-func StartInsightScheduler(db database.Querier, w InsightWriter) {
-	if w == nil {
-		log.Printf("Insights: neither CLAUDE_RUN_URL nor ANTHROPIC_API_KEY is set, weekly insights are off")
-		return
-	}
-	go func() {
-		for {
-			ensureWeeklyInsight(db, w)
-			time.Sleep(time.Hour)
-		}
-	}()
-}
-
-func ensureWeeklyInsight(db database.Querier, w InsightWriter) {
-	week := utils.GetActiveWeekEndDate()
-	latest, err := db.GetLatestInsight()
-	if err != nil {
-		log.Printf("Insights: %v", err)
-		return
-	}
-	if latest != nil && latest.WeekEnd >= week {
-		return
-	}
-	in, err := GenerateInsight(context.Background(), db, w)
-	if err != nil {
-		log.Printf("Insights: week %s: %v", week, err)
-		return
-	}
-	log.Printf("Insights: wrote week %s with %s", in.WeekEnd, in.Model)
 }
 
 const insightSystemPrompt = `You are a longevity and health coach reviewing one person's weekly data. Write for them directly, in English, as "you".

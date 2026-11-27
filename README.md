@@ -9,7 +9,7 @@ A self-hosted web app that tracks your **Biological Reserve Score**, a weekly es
 - **Behaviours** (4-week average): sleep, steps, exercise, gym working sets, mindfulness.
 - **Nutrition** (shown, not scored): energy balance, macros, fiber and water over the last 7 days.
 - **History**: weekly breakdowns and daily trends.
-- **AI insights**: a weekly summary written by Claude.
+- **AI insights**: a summary of the latest week, written by Claude when you ask for it.
 
 Tap **?** in the app for how the score is calculated.
 

@@ -123,7 +123,7 @@
 		<p class="section-label">Week ending {shortDate(insight.week_end)}</p>
 		<div class="insight" data-testid="insight">{@html insight.html}</div>
 	{:else if !insightError}
-		<p class="muted">No insights yet. They're written once a week after the week closes.</p>
+		<p class="muted">No insights yet. Write them when you want a summary of the latest week.</p>
 	{/if}
 	{#if insightError}
 		<p class="error" data-testid="insight-error">{insightError}</p>

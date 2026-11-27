@@ -84,16 +84,3 @@ func TestGenerateInsightErrors(t *testing.T) {
 		t.Errorf("a failed write stored %+v", in)
 	}
 }
-
-func TestEnsureWeeklyInsightOncePerWeek(t *testing.T) {
-	db := scoreDB(t, nil)
-	if err := db.SaveUserProfile(scoreProfile); err != nil {
-		t.Fatal(err)
-	}
-	w := &fakeWriter{}
-	ensureWeeklyInsight(db, w)
-	ensureWeeklyInsight(db, w)
-	if w.calls != 1 {
-		t.Errorf("wrote %d times, want once for the week", w.calls)
-	}
-}

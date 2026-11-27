@@ -40,7 +40,6 @@ func main() {
 	}()
 
 	insights := services.NewInsightWriterFromEnv()
-	services.StartInsightScheduler(db, insights)
 
 	mux := http.NewServeMux()
 	handlers.New(db, insights).Routes(mux)
