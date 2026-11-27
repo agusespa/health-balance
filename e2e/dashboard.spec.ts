@@ -38,11 +38,10 @@ test('shows an empty insights state and explains a missing API key', async ({ pa
 	await expect(page.getByTestId('insight-error')).toContainText('ANTHROPIC_API_KEY');
 });
 
-test('history shows the score and trend charts', async ({ page }) => {
-	await page.goto('/history');
-	await expect(page.getByText(/^Score since/)).toBeVisible();
-	await expect(page.getByTestId('trend-rhr').locator('svg')).toBeVisible();
-	await expect(page.getByTestId('trend-vo2_max').locator('svg')).toBeVisible();
+test('trends shows the metric charts', async ({ page }) => {
+	await page.goto('/trends');
+	await expect(page.getByTestId('trend-rhr').getByRole('img', { name: 'trend' })).toBeVisible();
+	await expect(page.getByTestId('trend-vo2_max').getByRole('img', { name: 'trend' })).toBeVisible();
 });
 
 test('a client-side route loads directly', async ({ page }) => {
