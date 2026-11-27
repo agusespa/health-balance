@@ -97,3 +97,26 @@ test('shows nutrition for the last 7 days, unscored', async ({ page }) => {
 	await expect(card.getByTestId('nutrition-fiber')).toContainText(/\d+ g/);
 	await expect(card.getByTestId('nutrition-water')).toContainText(/\d\.\d L/);
 });
+
+test('stale data badges the profile icon and explains on the profile page', async ({ page }) => {
+	// The seed is fresh, so make the newest data date old.
+	await page.route('**/api/dashboard', async (route) => {
+		const res = await route.fetch();
+		await route.fulfill({ response: res, json: { ...(await res.json()), latest_data: '2024-01-05' } });
+	});
+	await page.route('**/api/latest-data', (route) => route.fulfill({ json: { latest_data: '2024-01-05' } }));
+
+	await page.goto('/');
+	await expect(page.getByTestId('stale-badge')).toBeVisible();
+	await expect(page.getByTestId('stale-banner')).toHaveCount(0);
+
+	await page.getByRole('link', { name: 'Profile: no new health data' }).click();
+	await expect(page).toHaveURL(/\/profile$/);
+	await expect(page.getByTestId('stale-banner')).toContainText('No new health data since Jan 5, 2024');
+});
+
+test('the profile page says when no health data has arrived yet', async ({ page }) => {
+	await page.route('**/api/latest-data', (route) => route.fulfill({ json: { latest_data: '' } }));
+	await page.goto('/profile');
+	await expect(page.getByTestId('stale-banner')).toContainText('No health data has arrived yet');
+});
