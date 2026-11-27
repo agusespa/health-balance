@@ -43,7 +43,9 @@
 		</a>
 		<a href="/trends" aria-label="Trends" class="icon-btn">
 			<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-				<path d="M4 17l5-5 4 3 7-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+				<path d="M4 4v16h16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" opacity="0.5" />
+				<path d="M7.5 16c2.6 0 3.2-4.5 5.8-4.5s3-4.2 5.2-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+				<circle cx="18.5" cy="6.5" r="1.9" fill="currentColor" />
 			</svg>
 		</a>
 		<a href="/profile" aria-label={stale ? 'Profile: no new health data' : 'Profile'} class="icon-btn badged">
