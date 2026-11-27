@@ -94,7 +94,6 @@
 		right: 0;
 		z-index: 20;
 		background: var(--header-bg);
-		border-radius: 0 0 calc(28px - 8px * var(--p)) calc(28px - 8px * var(--p));
 		box-shadow: 0 6px 18px rgba(0, 0, 0, calc(0.18 * var(--p)));
 	}
 	.inner {
