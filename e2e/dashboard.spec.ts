@@ -22,7 +22,9 @@ test('explains the score in plain words', async ({ page }) => {
 	await page.goto('/');
 	const meaning = page.getByTestId('card-meaning');
 	await expect(meaning.getByTestId('meaning-standing')).toContainText('starting point');
-	await expect(meaning.getByTestId('meaning-heading')).toContainText('Weeks like this one');
+	// Only shown when the score is projected to move, so check it when present.
+	const heading = meaning.getByTestId('meaning-heading');
+	if (await heading.count()) await expect(heading).toHaveText(/^Heading toward \d+\.$/);
 	await expect(meaning.getByTestId('meaning-improve')).toHaveText(/Biggest drag|Biggest room to grow|Every metric/);
 	await meaning.getByRole('button', { name: 'How the score works' }).click();
 	await expect(meaning.getByRole('tooltip')).toContainText('started in January 2024');

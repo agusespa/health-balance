@@ -4,7 +4,7 @@
 
 	/**
 	 * The score in plain words: where it stands against the 1000 start, where
-	 * weeks like this one would take it, and what costs the most points.
+	 * it's heading when that differs from today, and what costs the most points.
 	 */
 	let { score }: { score: WeeklyScore } = $props();
 
@@ -20,12 +20,9 @@
 		return 'Well below your starting point. Several areas are falling short.';
 	});
 
+	// Only worth a mention when weeks like this one would actually move it.
 	const settle = $derived(Math.round(score.settle));
-	const heading = $derived.by(() => {
-		const d = settle - Math.round(score.score);
-		if (Math.abs(d) <= 3) return 'Weeks like this one keep it about where it is.';
-		return d > 0 ? `Weeks like this one would take it to about ${settle}.` : `Weeks like this one would bring it down to about ${settle}.`;
-	});
+	const heading = $derived(Math.abs(settle - Math.round(score.score)) > 3 ? `Heading toward ${settle}.` : '');
 
 	const scored = $derived(score.metrics.filter((m) => m.status !== 'missing'));
 	const drags = $derived(scored.filter((m) => m.points < -0.05).sort((a, b) => a.points - b.points));
@@ -42,8 +39,10 @@
 			text="1000 is where your score started in January 2024. Each week it moves 12% of the way toward a target set by your metrics, after a small cost for aging. That's why a good week only adds a few points. Watch the direction, not the exact number."
 		/>
 	</p>
-	<p class="standing" data-testid="meaning-standing">{standing}</p>
-	<p class="line" data-testid="meaning-heading">{heading}</p>
+	<p class="standing" data-testid="meaning-standing">
+		{standing}
+		{#if heading}<span class="heading" data-testid="meaning-heading">{heading}</span>{/if}
+	</p>
 	<p class="line" data-testid="meaning-improve">
 		{#if drags.length}
 			{@const top = drags[0]}
@@ -85,6 +84,9 @@
 		margin: 0 0 0.3rem;
 		font-size: 0.9rem;
 		line-height: 1.45;
+		color: var(--text-secondary);
+	}
+	.heading {
 		color: var(--text-secondary);
 	}
 	strong {
